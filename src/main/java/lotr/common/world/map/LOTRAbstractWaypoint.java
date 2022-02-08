@@ -1,36 +1,43 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  net.minecraft.entity.player.EntityPlayer
+ *  net.minecraft.world.World
+ */
 package lotr.common.world.map;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 
 public interface LOTRAbstractWaypoint {
-    int getX();
+    public double getX();
 
-    int getY();
+    public double getY();
 
-    int getXCoord();
+    public int getXCoord();
 
-    int getZCoord();
+    public int getZCoord();
 
-    int getYCoord(World var1, int var2, int var3);
+    public int getYCoord(World var1, int var2, int var3);
 
-    int getYCoordSaved();
+    public int getYCoordSaved();
 
-    String getCodeName();
+    public String getCodeName();
 
-    String getDisplayName();
+    public String getDisplayName();
 
-    String getLoreText(EntityPlayer var1);
+    public String getLoreText(EntityPlayer var1);
 
-    boolean hasPlayerUnlocked(EntityPlayer var1);
+    public boolean hasPlayerUnlocked(EntityPlayer var1);
 
-    WaypointLockState getLockState(EntityPlayer var1);
+    public WaypointLockState getLockState(EntityPlayer var1);
 
-    boolean isHidden();
+    public boolean isHidden();
 
-    int getID();
+    public int getID();
 
-    public enum WaypointLockState {
+    public static enum WaypointLockState {
         STANDARD_LOCKED(0, 200),
         STANDARD_UNLOCKED(4, 200),
         STANDARD_UNLOCKED_CONQUEST(8, 200),
@@ -42,7 +49,7 @@ public interface LOTRAbstractWaypoint {
         public final int iconU;
         public final int iconV;
 
-        WaypointLockState(int u, int v) {
+        private WaypointLockState(int u, int v) {
             this.iconU = u;
             this.iconV = v;
         }

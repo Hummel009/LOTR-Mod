@@ -1,46 +1,161 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  com.google.common.math.IntMath
+ *  com.mojang.authlib.GameProfile
+ *  com.mojang.authlib.minecraft.MinecraftProfileTexture
+ *  com.mojang.authlib.minecraft.MinecraftProfileTexture$Type
+ *  cpw.mods.fml.common.network.simpleimpl.IMessage
+ *  cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper
+ *  net.minecraft.client.Minecraft
+ *  net.minecraft.client.entity.AbstractClientPlayer
+ *  net.minecraft.client.entity.EntityClientPlayerMP
+ *  net.minecraft.client.gui.FontRenderer
+ *  net.minecraft.client.gui.GuiButton
+ *  net.minecraft.client.gui.GuiScreen
+ *  net.minecraft.client.gui.GuiTextField
+ *  net.minecraft.client.gui.ScaledResolution
+ *  net.minecraft.client.multiplayer.WorldClient
+ *  net.minecraft.client.renderer.Tessellator
+ *  net.minecraft.client.renderer.entity.RenderItem
+ *  net.minecraft.client.renderer.texture.TextureManager
+ *  net.minecraft.client.resources.SkinManager
+ *  net.minecraft.client.settings.GameSettings
+ *  net.minecraft.client.settings.KeyBinding
+ *  net.minecraft.entity.player.EntityPlayer
+ *  net.minecraft.item.Item
+ *  net.minecraft.item.ItemStack
+ *  net.minecraft.server.MinecraftServer
+ *  net.minecraft.server.integrated.IntegratedServer
+ *  net.minecraft.util.AxisAlignedBB
+ *  net.minecraft.util.ChunkCoordinates
+ *  net.minecraft.util.IChatComponent
+ *  net.minecraft.util.IIcon
+ *  net.minecraft.util.MathHelper
+ *  net.minecraft.util.ResourceLocation
+ *  net.minecraft.util.StatCollector
+ *  net.minecraft.world.World
+ *  net.minecraft.world.WorldServer
+ *  net.minecraft.world.chunk.Chunk
+ *  net.minecraft.world.chunk.EmptyChunk
+ *  net.minecraft.world.chunk.IChunkProvider
+ *  net.minecraft.world.storage.WorldInfo
+ *  org.apache.commons.lang3.StringUtils
+ *  org.lwjgl.input.Keyboard
+ *  org.lwjgl.input.Mouse
+ *  org.lwjgl.opengl.GL11
+ */
 package lotr.client.gui;
-
-import java.awt.Color;
-import java.util.*;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.lwjgl.input.*;
-import org.lwjgl.opengl.GL11;
 
 import com.google.common.math.IntMath;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
-
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
-import lotr.client.*;
-import lotr.common.*;
-import lotr.common.fac.*;
+import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Pattern;
+import lotr.client.LOTRClientProxy;
+import lotr.client.LOTRKeyHandler;
+import lotr.client.LOTRTextures;
+import lotr.client.LOTRTickHandlerClient;
+import lotr.client.gui.LOTRGuiButtonRedBook;
+import lotr.client.gui.LOTRGuiFactions;
+import lotr.client.gui.LOTRGuiFellowships;
+import lotr.client.gui.LOTRGuiMapWidget;
+import lotr.client.gui.LOTRGuiMenuBase;
+import lotr.client.gui.LOTRGuiScrollPane;
+import lotr.client.gui.LOTRMapLabels;
+import lotr.common.LOTRAchievement;
+import lotr.common.LOTRConfig;
+import lotr.common.LOTRDimension;
+import lotr.common.LOTRLevelData;
+import lotr.common.LOTRMod;
+import lotr.common.LOTRPlayerData;
+import lotr.common.fac.LOTRAlignmentValues;
+import lotr.common.fac.LOTRControlZone;
+import lotr.common.fac.LOTRFaction;
+import lotr.common.fac.LOTRFactionRank;
 import lotr.common.fellowship.LOTRFellowshipClient;
-import lotr.common.network.*;
+import lotr.common.network.LOTRPacketCWPSharedHide;
+import lotr.common.network.LOTRPacketClientMQEvent;
+import lotr.common.network.LOTRPacketConquestGridRequest;
+import lotr.common.network.LOTRPacketCreateCWP;
+import lotr.common.network.LOTRPacketDeleteCWP;
+import lotr.common.network.LOTRPacketFastTravel;
+import lotr.common.network.LOTRPacketHandler;
+import lotr.common.network.LOTRPacketIsOpRequest;
+import lotr.common.network.LOTRPacketMapTp;
+import lotr.common.network.LOTRPacketRenameCWP;
+import lotr.common.network.LOTRPacketShareCWP;
 import lotr.common.quest.LOTRMiniQuest;
 import lotr.common.world.biome.LOTRBiome;
 import lotr.common.world.genlayer.LOTRGenLayerWorld;
-import lotr.common.world.map.*;
+import lotr.common.world.map.LOTRAbstractWaypoint;
+import lotr.common.world.map.LOTRConquestGrid;
+import lotr.common.world.map.LOTRConquestZone;
+import lotr.common.world.map.LOTRCustomWaypoint;
+import lotr.common.world.map.LOTRFixedStructures;
+import lotr.common.world.map.LOTRRoads;
+import lotr.common.world.map.LOTRWaypoint;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.gui.*;
+import net.minecraft.client.entity.EntityClientPlayerMP;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.settings.*;
+import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.SkinManager;
+import net.minecraft.client.settings.GameSettings;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.integrated.IntegratedServer;
-import net.minecraft.util.*;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.IIcon;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.EmptyChunk;
+import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraft.world.storage.WorldInfo;
+import org.apache.commons.lang3.StringUtils;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.GL11;
 
 public class LOTRGuiMap
 extends LOTRGuiMenuBase {
-    private static Map<UUID, PlayerLocationInfo> playerLocations = new HashMap<>();
+    private static Map<UUID, PlayerLocationInfo> playerLocations = new HashMap<UUID, PlayerLocationInfo>();
     public static final ResourceLocation mapIconsTexture = new ResourceLocation("lotr:map/mapScreen.png");
     public static final ResourceLocation conquestTexture = new ResourceLocation("lotr:map/conquest.png");
     private static final ItemStack questBookIcon = new ItemStack(LOTRMod.redBook);
     public static final int BLACK = -16777216;
     public static final int BORDER_COLOR = -6156032;
+    private static final int MIN_ZOOM = -3;
+    private static final int MAX_ZOOM = 4;
+    private static final int mapBorder = 30;
     private static boolean fullscreen = true;
     private static int mapWidth;
     private static int mapHeight;
@@ -88,6 +203,7 @@ extends LOTRGuiMenuBase {
     private int zoomTicks;
     public boolean enableZoomOutWPFading = true;
     private LOTRAbstractWaypoint selectedWaypoint;
+    private static final int waypointSelectRange = 5;
     public static boolean showWP;
     public static boolean showCWP;
     public static boolean showHiddenSWP;
@@ -114,13 +230,20 @@ extends LOTRGuiMenuBase {
     private boolean mouseControlZone;
     private boolean mouseControlZoneReduced;
     private boolean isConquestGrid = false;
+    private static final int conqBorderW = 8;
+    private static final int conqBorderUp = 22;
+    private static final int conqBorderDown = 54;
     private boolean loadingConquestGrid = false;
-    private Map<LOTRFaction, List<LOTRConquestZone>> facConquestGrids = new HashMap<>();
-    private Set<LOTRFaction> requestedFacGrids = new HashSet<>();
-    private Set<LOTRFaction> receivedFacGrids = new HashSet<>();
+    private Map<LOTRFaction, List<LOTRConquestZone>> facConquestGrids = new HashMap<LOTRFaction, List<LOTRConquestZone>>();
+    private Set<LOTRFaction> requestedFacGrids = new HashSet<LOTRFaction>();
+    private Set<LOTRFaction> receivedFacGrids = new HashSet<LOTRFaction>();
     private int ticksUntilRequestFac = 40;
+    private static final int REQUEST_FAC_WAIT = 40;
     private float highestViewedConqStr;
+    private static final int conqKeyGrades = 10;
     public static final int CONQUEST_COLOR = 12255232;
+    private static final int CONQUEST_COLOR_OPQ = -4521984;
+    private static final int CONQUEST_COLOR_NO_EFFECT = 1973790;
     private static LOTRDimension.DimensionRegion currentRegion;
     private static LOTRDimension.DimensionRegion prevRegion;
     private static List<LOTRFaction> currentFactionList;
@@ -179,19 +302,19 @@ extends LOTRGuiMenuBase {
             this.buttonMenuReturn.yPosition = 4;
         }
         if (this.isConquestGrid || this.hasControlZones) {
-            this.buttonList.remove(this.buttonMenuReturn);
+            this.buttonList.remove((Object)this.buttonMenuReturn);
         }
         this.setupMapWidgets();
         if (this.isConquestGrid) {
             this.loadingConquestGrid = true;
             this.setupMapDimensions();
-            this.conquestViewingFaction = LOTRLevelData.getData(this.mc.thePlayer).getPledgeFaction();
+            this.conquestViewingFaction = LOTRLevelData.getData((EntityPlayer)this.mc.thePlayer).getPledgeFaction();
             if (this.conquestViewingFaction == null) {
-                this.conquestViewingFaction = LOTRLevelData.getData(this.mc.thePlayer).getViewingFaction();
+                this.conquestViewingFaction = LOTRLevelData.getData((EntityPlayer)this.mc.thePlayer).getViewingFaction();
             }
             prevRegion = currentRegion = this.conquestViewingFaction.factionRegion;
             currentFactionList = LOTRGuiMap.currentRegion.factionList;
-            this.prevFactionIndex = this.currentFactionIndex = currentFactionList.indexOf(this.conquestViewingFaction);
+            this.prevFactionIndex = this.currentFactionIndex = currentFactionList.indexOf((Object)this.conquestViewingFaction);
             lastViewedRegions.put(currentRegion, this.conquestViewingFaction);
             this.facScrollX = mapXMin;
             this.facScrollY = mapYMax + 8;
@@ -206,20 +329,20 @@ extends LOTRGuiMenuBase {
             int xMax = zoneBorders[1];
             int zMin = zoneBorders[2];
             int zMax = zoneBorders[3];
-            float x = (xMin + xMax) / 2.0f;
-            float z = (zMin + zMax) / 2.0f;
-            this.posX = x / LOTRGenLayerWorld.scale + 810.0f;
-            this.posY = z / LOTRGenLayerWorld.scale + 730.0f;
+            float x = (float)(xMin + xMax) / 2.0f;
+            float z = (float)(zMin + zMax) / 2.0f;
+            this.posX = x / (float)LOTRGenLayerWorld.scale + 810.0f;
+            this.posY = z / (float)LOTRGenLayerWorld.scale + 730.0f;
             int zoneWidth = xMax - xMin;
             int zoneHeight = zMax - zMin;
             double mapZoneWidth = (double)zoneWidth / (double)LOTRGenLayerWorld.scale;
             double mapZoneHeight = (double)zoneHeight / (double)LOTRGenLayerWorld.scale;
-            int zoomPowerWidth = MathHelper.floor_double(Math.log(mapWidth / mapZoneWidth) / Math.log(2.0));
-            int zoomPowerHeight = MathHelper.floor_double(Math.log(mapHeight / mapZoneHeight) / Math.log(2.0));
+            int zoomPowerWidth = MathHelper.floor_double((double)(Math.log((double)mapWidth / mapZoneWidth) / Math.log(2.0)));
+            int zoomPowerHeight = MathHelper.floor_double((double)(Math.log((double)mapHeight / mapZoneHeight) / Math.log(2.0)));
             this.prevZoomPower = zoomPower = Math.min(zoomPowerWidth, zoomPowerHeight);
         } else if (this.mc.thePlayer != null) {
-            this.posX = (float)(this.mc.thePlayer.posX / LOTRGenLayerWorld.scale) + 810.0f;
-            this.posY = (float)(this.mc.thePlayer.posZ / LOTRGenLayerWorld.scale) + 730.0f;
+            this.posX = (float)(this.mc.thePlayer.posX / (double)LOTRGenLayerWorld.scale) + 810.0f;
+            this.posY = (float)(this.mc.thePlayer.posZ / (double)LOTRGenLayerWorld.scale) + 730.0f;
         }
         this.prevPosX = this.posX;
         this.prevPosY = this.posY;
@@ -232,7 +355,7 @@ extends LOTRGuiMenuBase {
         this.fellowshipDrawGUI.setWorldAndResolution(this.mc, this.width, this.height);
         if (this.mc.currentScreen == this) {
             LOTRPacketClientMQEvent packet = new LOTRPacketClientMQEvent(LOTRPacketClientMQEvent.ClientMQEvent.MAP);
-            LOTRPacketHandler.networkWrapper.sendToServer(packet);
+            LOTRPacketHandler.networkWrapper.sendToServer((IMessage)packet);
         }
     }
 
@@ -242,7 +365,7 @@ extends LOTRGuiMenuBase {
         mapWidgets.add(this.widgetAddCWP);
         this.widgetDelCWP = new LOTRGuiMapWidget(-16, 20, 10, "delCWP", 10, 0);
         mapWidgets.add(this.widgetDelCWP);
-        this.widgetRenameCWP = new LOTRGuiMapWidget(-16, 34, 10, "renameCWP", 0, 10);
+        this.widgetRenameCWP = new LOTRGuiMapWidget(-16, 34, 10, "renameCWP", 0, 20);
         mapWidgets.add(this.widgetRenameCWP);
         this.widgetToggleWPs = new LOTRGuiMapWidget(-58, 6, 10, "toggleWPs", 80, 0);
         mapWidgets.add(this.widgetToggleWPs);
@@ -329,8 +452,8 @@ extends LOTRGuiMenuBase {
         if (currentRegion != prevRegion) {
             lastViewedRegions.put(prevRegion, this.conquestViewingFaction);
             currentFactionList = LOTRGuiMap.currentRegion.factionList;
-            this.conquestViewingFaction = lastViewedRegions.containsKey(currentRegion) ? lastViewedRegions.get(currentRegion) : LOTRGuiMap.currentRegion.factionList.get(0);
-            this.prevFactionIndex = this.currentFactionIndex = currentFactionList.indexOf(this.conquestViewingFaction);
+            this.conquestViewingFaction = lastViewedRegions.containsKey((Object)currentRegion) ? lastViewedRegions.get((Object)currentRegion) : LOTRGuiMap.currentRegion.factionList.get(0);
+            this.prevFactionIndex = this.currentFactionIndex = currentFactionList.indexOf((Object)this.conquestViewingFaction);
             this.ticksUntilRequestFac = 40;
         }
         prevRegion = currentRegion;
@@ -339,8 +462,8 @@ extends LOTRGuiMenuBase {
     public void setupZoomVariables(float f) {
         this.zoomExp = zoomPower;
         if (this.zoomTicks > 0) {
-            float progress = (zoomTicksMax - (this.zoomTicks - f)) / zoomTicksMax;
-            this.zoomExp = this.prevZoomPower + (zoomPower - this.prevZoomPower) * progress;
+            float progress = ((float)zoomTicksMax - ((float)this.zoomTicks - f)) / (float)zoomTicksMax;
+            this.zoomExp = (float)this.prevZoomPower + (float)(zoomPower - this.prevZoomPower) * progress;
         }
         this.zoomScale = (float)Math.pow(2.0, this.zoomExp);
         this.zoomScaleStable = (float)Math.pow(2.0, this.zoomTicks == 0 ? zoomPower : Math.min(zoomPower, this.prevZoomPower));
@@ -356,7 +479,7 @@ extends LOTRGuiMenuBase {
         this.setupMapDimensions();
         this.setupZoomVariables(f);
         if (this.isConquestGrid) {
-            this.loadingConquestGrid = !this.receivedFacGrids.contains(this.conquestViewingFaction);
+            this.loadingConquestGrid = !this.receivedFacGrids.contains((Object)this.conquestViewingFaction);
             this.highestViewedConqStr = 0.0f;
             this.setupConquestScrollBar(i, j);
             this.buttonConquestRegions.displayString = currentRegion.getRegionName();
@@ -365,14 +488,14 @@ extends LOTRGuiMenuBase {
         }
         this.posX = this.prevPosX;
         this.posY = this.prevPosY;
-        this.isMouseWithinMap = i >= mapXMin && i < mapXMax && j >= mapYMin && j < mapYMax;
-        if (!this.hasOverlay && !this.isFacScrolling && this.zoomTicks == 0 && Mouse.isButtonDown(0)) {
+        boolean bl = this.isMouseWithinMap = i >= mapXMin && i < mapXMax && j >= mapYMin && j < mapYMax;
+        if (!this.hasOverlay && !this.isFacScrolling && this.zoomTicks == 0 && Mouse.isButtonDown((int)0)) {
             if ((this.isMouseButtonDown == 0 || this.isMouseButtonDown == 1) && this.isMouseWithinMap) {
                 if (this.isMouseButtonDown == 0) {
                     this.isMouseButtonDown = 1;
                 } else {
-                    float x2 = (i - this.prevMouseX) / this.zoomScale;
-                    float y2 = (j - this.prevMouseY) / this.zoomScale;
+                    float x2 = (float)(i - this.prevMouseX) / this.zoomScale;
+                    float y2 = (float)(j - this.prevMouseY) / this.zoomScale;
                     this.posX -= x2;
                     this.posY -= y2;
                     if (x2 != 0.0f || y2 != 0.0f) {
@@ -389,7 +512,7 @@ extends LOTRGuiMenuBase {
         this.prevPosY = this.posY;
         this.posX += this.posXMove * f;
         this.posY += this.posYMove * f;
-        isSepia = this.isConquestGrid || LOTRConfig.enableSepiaMap;
+        boolean bl2 = isSepia = this.isConquestGrid || LOTRConfig.enableSepiaMap;
         if (this.isConquestGrid) {
             this.drawDefaultBackground();
         }
@@ -397,57 +520,57 @@ extends LOTRGuiMenuBase {
             this.mc.getTextureManager().bindTexture(LOTRTextures.overlayTexture);
             if (this.conquestViewingFaction != null) {
                 float[] cqColors = this.conquestViewingFaction.getFactionRGB();
-                GL11.glColor4f(cqColors[0], cqColors[1], cqColors[2], 1.0f);
+                GL11.glColor4f((float)cqColors[0], (float)cqColors[1], (float)cqColors[2], (float)1.0f);
             } else {
-                GL11.glColor4f(0.65f, 0.5f, 0.35f, 1.0f);
+                GL11.glColor4f((float)0.65f, (float)0.5f, (float)0.35f, (float)1.0f);
             }
             tess.startDrawingQuads();
             if (this.isConquestGrid) {
                 int w = 8;
                 int up = 22;
                 int down = 54;
-                tess.addVertexWithUV(mapXMin - w, mapYMax + down, this.zLevel, 0.0, 1.0);
-                tess.addVertexWithUV(mapXMax + w, mapYMax + down, this.zLevel, 1.0, 1.0);
-                tess.addVertexWithUV(mapXMax + w, mapYMin - up, this.zLevel, 1.0, 0.0);
-                tess.addVertexWithUV(mapXMin - w, mapYMin - up, this.zLevel, 0.0, 0.0);
+                tess.addVertexWithUV((double)(mapXMin - w), (double)(mapYMax + down), (double)this.zLevel, 0.0, 1.0);
+                tess.addVertexWithUV((double)(mapXMax + w), (double)(mapYMax + down), (double)this.zLevel, 1.0, 1.0);
+                tess.addVertexWithUV((double)(mapXMax + w), (double)(mapYMin - up), (double)this.zLevel, 1.0, 0.0);
+                tess.addVertexWithUV((double)(mapXMin - w), (double)(mapYMin - up), (double)this.zLevel, 0.0, 0.0);
             } else {
-                tess.addVertexWithUV(0.0, this.height, this.zLevel, 0.0, 1.0);
-                tess.addVertexWithUV(this.width, this.height, this.zLevel, 1.0, 1.0);
-                tess.addVertexWithUV(this.width, 0.0, this.zLevel, 1.0, 0.0);
-                tess.addVertexWithUV(0.0, 0.0, this.zLevel, 0.0, 0.0);
+                tess.addVertexWithUV(0.0, (double)this.height, (double)this.zLevel, 0.0, 1.0);
+                tess.addVertexWithUV((double)this.width, (double)this.height, (double)this.zLevel, 1.0, 1.0);
+                tess.addVertexWithUV((double)this.width, 0.0, (double)this.zLevel, 1.0, 0.0);
+                tess.addVertexWithUV(0.0, 0.0, (double)this.zLevel, 0.0, 0.0);
             }
             tess.draw();
             int redW = this.isConquestGrid ? 2 : 4;
-            GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
             this.renderGraduatedRects(mapXMin - 1, mapYMin - 1, mapXMax + 1, mapYMax + 1, -6156032, -16777216, redW);
         } else {
             this.drawDefaultBackground();
             this.renderGraduatedRects(mapXMin - 1, mapYMin - 1, mapXMax + 1, mapYMax + 1, -6156032, -16777216, 4);
         }
         this.setupScrollBars(i, j);
-        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
         int oceanColor = LOTRTextures.getMapOceanColor(isSepia);
-        LOTRGuiMap.drawRect(mapXMin, mapYMin, mapXMax, mapYMax, oceanColor);
-        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        LOTRGuiMap.drawRect((int)mapXMin, (int)mapYMin, (int)mapXMax, (int)mapYMax, (int)oceanColor);
+        GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
         if (!this.isConquestGrid) {
-            String title = StatCollector.translateToLocal("lotr.gui.map.title");
+            String title = StatCollector.translateToLocal((String)"lotr.gui.map.title");
             if (fullscreen) {
                 this.drawCenteredString(title, this.width / 2, 10, 16777215);
             } else {
                 this.drawCenteredString(title, this.width / 2, this.guiTop - 30, 16777215);
             }
         }
-        if (this.hasControlZones && LOTRFaction.controlZonesEnabled(this.mc.theWorld)) {
+        if (this.hasControlZones && LOTRFaction.controlZonesEnabled((World)this.mc.theWorld)) {
             this.renderMapAndOverlay(isSepia, 1.0f, false);
             this.renderControlZone(i, j);
-            GL11.glEnable(3042);
+            GL11.glEnable((int)3042);
             this.renderMapAndOverlay(isSepia, 0.5f, true);
-            GL11.glDisable(3042);
+            GL11.glDisable((int)3042);
             String tooltip = null;
             if (this.mouseControlZone) {
-                tooltip = StatCollector.translateToLocal("lotr.gui.map.controlZoneFull");
+                tooltip = StatCollector.translateToLocal((String)"lotr.gui.map.controlZoneFull");
             } else if (this.mouseControlZoneReduced) {
-                tooltip = StatCollector.translateToLocal("lotr.gui.map.controlZoneReduced");
+                tooltip = StatCollector.translateToLocal((String)"lotr.gui.map.controlZoneReduced");
             }
             if (tooltip != null) {
                 int strWidth = this.mc.fontRenderer.getStringWidth(tooltip);
@@ -462,36 +585,36 @@ extends LOTRGuiMenuBase {
                 rectX = Math.min(rectX, mapXMax - mapBorder2 - rectWidth);
                 rectY = Math.max(rectY, mapYMin + mapBorder2);
                 rectY = Math.min(rectY, mapYMax - mapBorder2 - rectHeight);
-                GL11.glTranslatef(0.0f, 0.0f, 300.0f);
+                GL11.glTranslatef((float)0.0f, (float)0.0f, (float)300.0f);
                 this.drawFancyRect(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
                 this.mc.fontRenderer.drawString(tooltip, rectX + border, rectY + border, 16777215);
-                GL11.glTranslatef(0.0f, 0.0f, -300.0f);
+                GL11.glTranslatef((float)0.0f, (float)0.0f, (float)-300.0f);
             }
         } else {
             this.renderMapAndOverlay(isSepia, 1.0f, true);
             if (this.isConquestGrid && this.conquestViewingFaction != null) {
                 this.requestConquestGridIfNeed(this.conquestViewingFaction);
                 if (!this.loadingConquestGrid) {
-                    GL11.glEnable(3042);
-                    GL11.glBlendFunc(770, 771);
+                    GL11.glEnable((int)3042);
+                    GL11.glBlendFunc((int)770, (int)771);
                     this.setupMapClipping();
-                    float alphaFunc = GL11.glGetFloat(3010);
-                    GL11.glAlphaFunc(516, 0.005f);
-                    GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-                    ArrayList allZones = (ArrayList)this.facConquestGrids.get(this.conquestViewingFaction);
+                    float alphaFunc = GL11.glGetFloat((int)3010);
+                    GL11.glAlphaFunc((int)516, (float)0.005f);
+                    GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
+                    ArrayList allZones = (ArrayList)this.facConquestGrids.get((Object)this.conquestViewingFaction);
                     if (allZones == null) {
                         allZones = new ArrayList();
                     }
-                    ArrayList<LOTRConquestZone> zonesInView = new ArrayList<>();
+                    ArrayList<LOTRConquestZone> zonesInView = new ArrayList<LOTRConquestZone>();
                     this.highestViewedConqStr = 0.0f;
                     float mouseOverStr = 0.0f;
                     LOTRConquestZone mouseOverZone = null;
                     LOTRConquestGrid.ConquestEffective mouseOverEffect = null;
                     for (int pass = 0; pass <= 1; ++pass) {
-                        if (pass == 1 && (this.highestViewedConqStr <= 0.0f)) continue;
+                        if (pass == 1 && !(this.highestViewedConqStr > 0.0f)) continue;
                         ArrayList<LOTRConquestZone> zoneList = pass == 0 ? allZones : zonesInView;
                         for (LOTRConquestZone zone : zoneList) {
-                            float strength = zone.getConquestStrength(this.conquestViewingFaction, this.mc.theWorld);
+                            float strength = zone.getConquestStrength(this.conquestViewingFaction, (World)this.mc.theWorld);
                             int[] min = LOTRConquestGrid.getMinCoordsOnMap(zone);
                             int[] max = LOTRConquestGrid.getMaxCoordsOnMap(zone);
                             float[] minF = this.transformMapCoords(min[0], min[1]);
@@ -500,7 +623,7 @@ extends LOTRGuiMenuBase {
                             float maxX = maxF[0];
                             float minY = minF[1];
                             float maxY = maxF[1];
-                            if ((maxX < mapXMin) || (minX > mapXMax) || (maxY < mapYMin) || (minY > mapYMax)) continue;
+                            if (!(maxX >= (float)mapXMin) || !(minX <= (float)mapXMax) || !(maxY >= (float)mapYMin) || !(minY <= (float)mapYMax)) continue;
                             if (pass == 0) {
                                 if (strength > this.highestViewedConqStr) {
                                     this.highestViewedConqStr = strength;
@@ -508,13 +631,13 @@ extends LOTRGuiMenuBase {
                                 zonesInView.add(zone);
                                 continue;
                             }
-                            if (pass != 1 || (strength <= 0.0f)) continue;
+                            if (pass != 1 || !(strength > 0.0f)) continue;
                             float strFrac = strength / this.highestViewedConqStr;
-                            float strAlpha = strFrac = MathHelper.clamp_float(strFrac, 0.0f, 1.0f);
+                            float strAlpha = strFrac = MathHelper.clamp_float((float)strFrac, (float)0.0f, (float)1.0f);
                             if (strength > 0.0f) {
                                 strAlpha = Math.max(strAlpha, 0.1f);
                             }
-                            LOTRConquestGrid.ConquestEffective effect = LOTRConquestGrid.getConquestEffectIn(this.mc.theWorld, zone, this.conquestViewingFaction);
+                            LOTRConquestGrid.ConquestEffective effect = LOTRConquestGrid.getConquestEffectIn((World)this.mc.theWorld, zone, this.conquestViewingFaction);
                             int zoneColor = 0xBB0000 | Math.round(strAlpha * 255.0f) << 24;
                             if (effect == LOTRConquestGrid.ConquestEffective.EFFECTIVE) {
                                 LOTRGuiMap.drawFloatRect(minX, minY, maxX, maxY, zoneColor);
@@ -524,20 +647,20 @@ extends LOTRGuiMenuBase {
                                     float zoneYSize = maxY - minY;
                                     int strips = 8;
                                     for (int l = 0; l < strips; ++l) {
-                                        float stripYSize = zoneYSize / strips;
-                                        LOTRGuiMap.drawFloatRect(minX, minY + stripYSize * l, maxX, minY + stripYSize * (l + 1), l % 2 == 0 ? zoneColor : zoneColor2);
+                                        float stripYSize = zoneYSize / (float)strips;
+                                        LOTRGuiMap.drawFloatRect(minX, minY + stripYSize * (float)l, maxX, minY + stripYSize * (float)(l + 1), l % 2 == 0 ? zoneColor : zoneColor2);
                                     }
                                 } else if (effect == LOTRConquestGrid.ConquestEffective.NO_EFFECT) {
                                     LOTRGuiMap.drawFloatRect(minX, minY, maxX, maxY, zoneColor2);
                                 }
                             }
-                            if ((i < minX) || (i >= maxX) || (j < minY) || (j >= maxY)) continue;
+                            if (!((float)i >= minX) || !((float)i < maxX) || !((float)j >= minY) || !((float)j < maxY)) continue;
                             mouseOverStr = strength;
                             mouseOverZone = zone;
                             mouseOverEffect = effect;
                         }
                     }
-                    GL11.glAlphaFunc(516, alphaFunc);
+                    GL11.glAlphaFunc((int)516, (float)alphaFunc);
                     if (mouseOverZone != null && i >= mapXMin && i < mapXMax && j >= mapYMin && j < mapYMax) {
                         int[] min = LOTRConquestGrid.getMinCoordsOnMap(mouseOverZone);
                         int[] max = LOTRConquestGrid.getMaxCoordsOnMap(mouseOverZone);
@@ -558,9 +681,9 @@ extends LOTRGuiMenuBase {
                         String tooltip = LOTRAlignmentValues.formatConqForDisplay(mouseOverStr, false);
                         String subtip = null;
                         if (mouseOverEffect == LOTRConquestGrid.ConquestEffective.ALLY_BOOST) {
-                            subtip = StatCollector.translateToLocalFormatted("lotr.gui.map.conquest.allyBoost", this.conquestViewingFaction.factionName());
+                            subtip = StatCollector.translateToLocalFormatted((String)"lotr.gui.map.conquest.allyBoost", (Object[])new Object[]{this.conquestViewingFaction.factionName()});
                         } else if (mouseOverEffect == LOTRConquestGrid.ConquestEffective.NO_EFFECT) {
-                            subtip = StatCollector.translateToLocal("lotr.gui.map.conquest.noEffect");
+                            subtip = StatCollector.translateToLocal((String)"lotr.gui.map.conquest.noEffect");
                         }
                         int strWidth = this.mc.fontRenderer.getStringWidth(tooltip);
                         int subWidth = subtip == null ? 0 : this.mc.fontRenderer.getStringWidth(subtip);
@@ -572,34 +695,34 @@ extends LOTRGuiMenuBase {
                         int rectY = j - 12;
                         int border = 3;
                         int iconSize = 16;
-                        int rectWidth = border * 2 + Math.max(strWidth + iconSize + border, (int)(subWidth * subScaleRel));
+                        int rectWidth = border * 2 + Math.max(strWidth + iconSize + border, (int)((float)subWidth * subScaleRel));
                         int rectHeight = Math.max(strHeight, iconSize) + border * 2;
                         if (subtip != null) {
-                            rectHeight += border + (int)(strHeight * subScaleRel);
+                            rectHeight += border + (int)((float)strHeight * subScaleRel);
                         }
                         int mapBorder2 = 2;
                         rectX = Math.max(rectX, mapXMin + mapBorder2);
                         rectX = Math.min(rectX, mapXMax - mapBorder2 - rectWidth);
                         rectY = Math.max(rectY, mapYMin + mapBorder2);
                         rectY = Math.min(rectY, mapYMax - mapBorder2 - rectHeight);
-                        GL11.glTranslatef(0.0f, 0.0f, 300.0f);
+                        GL11.glTranslatef((float)0.0f, (float)0.0f, (float)300.0f);
                         this.drawFancyRect(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
                         this.mc.getTextureManager().bindTexture(LOTRClientProxy.alignmentTexture);
-                        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+                        GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
                         this.drawTexturedModalRect(rectX + border, rectY + border, 0, 228, iconSize, iconSize);
                         this.mc.fontRenderer.drawString(tooltip, rectX + iconSize + border * 2, rectY + border + (iconSize - strHeight) / 2, 16777215);
                         if (subtip != null) {
                             GL11.glPushMatrix();
-                            GL11.glScalef(subScaleRel, subScaleRel, 1.0f);
+                            GL11.glScalef((float)subScaleRel, (float)subScaleRel, (float)1.0f);
                             int subX = rectX + border;
                             int subY = rectY + border * 2 + iconSize;
-                            this.mc.fontRenderer.drawString(subtip, Math.round(subX / subScaleRel), Math.round(subY / subScaleRel), 16777215);
+                            this.mc.fontRenderer.drawString(subtip, Math.round((float)subX / subScaleRel), Math.round((float)subY / subScaleRel), 16777215);
                             GL11.glPopMatrix();
                         }
-                        GL11.glTranslatef(0.0f, 0.0f, -300.0f);
+                        GL11.glTranslatef((float)0.0f, (float)0.0f, (float)-300.0f);
                     }
                     this.endMapClipping();
-                    GL11.glDisable(3042);
+                    GL11.glDisable((int)3042);
                 }
             }
         }
@@ -609,7 +732,7 @@ extends LOTRGuiMenuBase {
         this.renderRoads();
         this.renderPlayers(i, j);
         if (!this.loadingConquestGrid) {
-            this.renderMiniQuests(this.mc.thePlayer, i, j);
+            this.renderMiniQuests((EntityPlayer)this.mc.thePlayer, i, j);
         }
         this.renderWaypoints(0, i, j);
         this.renderLabels();
@@ -623,29 +746,29 @@ extends LOTRGuiMenuBase {
         }
         if (this.isConquestGrid) {
             if (this.loadingConquestGrid) {
-                LOTRGuiMap.drawRect(mapXMin, mapYMin, mapXMax, mapYMax, -1429949539);
-                GL11.glEnable(3042);
-                GL11.glBlendFunc(770, 771);
+                LOTRGuiMap.drawRect((int)mapXMin, (int)mapYMin, (int)mapXMax, (int)mapYMax, (int)-1429949539);
+                GL11.glEnable((int)3042);
+                GL11.glBlendFunc((int)770, (int)771);
                 this.mc.getTextureManager().bindTexture(LOTRTextures.overlayTexture);
-                GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
+                GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)0.2f);
                 tess.startDrawingQuads();
-                tess.addVertexWithUV(mapXMin, mapYMax, 0.0, 0.0, 1.0);
-                tess.addVertexWithUV(mapXMax, mapYMax, 0.0, 1.0, 1.0);
-                tess.addVertexWithUV(mapXMax, mapYMin, 0.0, 1.0, 0.0);
-                tess.addVertexWithUV(mapXMin, mapYMin, 0.0, 0.0, 0.0);
+                tess.addVertexWithUV((double)mapXMin, (double)mapYMax, 0.0, 0.0, 1.0);
+                tess.addVertexWithUV((double)mapXMax, (double)mapYMax, 0.0, 1.0, 1.0);
+                tess.addVertexWithUV((double)mapXMax, (double)mapYMin, 0.0, 1.0, 0.0);
+                tess.addVertexWithUV((double)mapXMin, (double)mapYMin, 0.0, 0.0, 0.0);
                 tess.draw();
                 String loadText = "";
-                LOTRConquestGrid.ConquestViewableQuery query = LOTRConquestGrid.canPlayerViewConquest(this.mc.thePlayer, this.conquestViewingFaction);
+                LOTRConquestGrid.ConquestViewableQuery query = LOTRConquestGrid.canPlayerViewConquest((EntityPlayer)this.mc.thePlayer, this.conquestViewingFaction);
                 if (query.result == LOTRConquestGrid.ConquestViewable.CAN_VIEW) {
-                    loadText = StatCollector.translateToLocal("lotr.gui.map.conquest.wait");
+                    loadText = StatCollector.translateToLocal((String)"lotr.gui.map.conquest.wait");
                     int ellipsis = 1 + this.tickCounter / 10 % 3;
                     for (int l = 0; l < ellipsis; ++l) {
                         loadText = loadText + ".";
                     }
                 } else if (query.result == LOTRConquestGrid.ConquestViewable.UNPLEDGED) {
-                    loadText = StatCollector.translateToLocal("lotr.gui.map.conquest.noPledge");
+                    loadText = StatCollector.translateToLocal((String)"lotr.gui.map.conquest.noPledge");
                 } else {
-                    LOTRPlayerData pd = LOTRLevelData.getData(this.mc.thePlayer);
+                    LOTRPlayerData pd = LOTRLevelData.getData((EntityPlayer)this.mc.thePlayer);
                     LOTRFaction pledgeFac = pd.getPledgeFaction();
                     LOTRFactionRank needRank = query.needRank;
                     String needAlign = LOTRAlignmentValues.formatAlignForDisplay(needRank.alignment);
@@ -653,9 +776,9 @@ extends LOTRGuiMenuBase {
                     if (query.result == LOTRConquestGrid.ConquestViewable.NEED_RANK) {
                         format = "lotr.gui.map.conquest.needRank";
                     }
-                    loadText = StatCollector.translateToLocalFormatted(format, pledgeFac.factionName(), needRank.getFullNameWithGender(pd), needAlign);
+                    loadText = StatCollector.translateToLocalFormatted((String)format, (Object[])new Object[]{pledgeFac.factionName(), needRank.getFullNameWithGender(pd), needAlign});
                 }
-                GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+                GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
                 int stringWidth = 250;
                 String[] splitNewline = loadText.split(Pattern.quote("\\n"));
                 ArrayList<String> loadLines = new ArrayList();
@@ -668,39 +791,39 @@ extends LOTRGuiMenuBase {
                     this.drawCenteredString(s2, stringX, stringY, 3748142);
                     stringY += this.fontRendererObj.FONT_HEIGHT;
                 }
-                GL11.glDisable(3042);
+                GL11.glDisable((int)3042);
             }
             this.mc.getTextureManager().bindTexture(conquestTexture);
-            GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
             this.drawTexturedModalRect(mapXMin - 8, mapYMin - 22, 0, 0, mapWidth + 16, mapHeight + 22 + 54, 512);
         }
         this.zLevel = 100.0f;
         if (!this.hasOverlay) {
             if (this.isMiddleEarth() && this.selectedWaypoint != null) {
                 this.zLevel += 500.0f;
-                LOTRPlayerData pd = LOTRLevelData.getData(this.mc.thePlayer);
-                boolean hasUnlocked = this.selectedWaypoint.hasPlayerUnlocked(this.mc.thePlayer);
+                LOTRPlayerData pd = LOTRLevelData.getData((EntityPlayer)this.mc.thePlayer);
+                boolean hasUnlocked = this.selectedWaypoint.hasPlayerUnlocked((EntityPlayer)this.mc.thePlayer);
                 int ftSince = pd.getTimeSinceFT();
-                int wpTimeThreshold = pd.getWaypointFTTime(this.selectedWaypoint, this.mc.thePlayer);
+                int wpTimeThreshold = pd.getWaypointFTTime(this.selectedWaypoint, (EntityPlayer)this.mc.thePlayer);
                 int timeRemaining = wpTimeThreshold - ftSince;
                 boolean canFastTravel = hasUnlocked && timeRemaining <= 0;
                 String notUnlocked = "If you can read this, something has gone hideously wrong";
                 if (this.selectedWaypoint instanceof LOTRCustomWaypoint) {
                     LOTRCustomWaypoint cwp = (LOTRCustomWaypoint)this.selectedWaypoint;
                     if (cwp.isShared()) {
-                        notUnlocked = StatCollector.translateToLocal("lotr.gui.map.locked.shared");
+                        notUnlocked = StatCollector.translateToLocal((String)"lotr.gui.map.locked.shared");
                     }
                 } else {
                     LOTRWaypoint wp = (LOTRWaypoint)this.selectedWaypoint;
-                    notUnlocked = !wp.isCompatibleAlignment(this.mc.thePlayer) ? StatCollector.translateToLocal("lotr.gui.map.locked.enemy") : StatCollector.translateToLocal("lotr.gui.map.locked.region");
+                    notUnlocked = !wp.isCompatibleAlignment((EntityPlayer)this.mc.thePlayer) ? StatCollector.translateToLocal((String)"lotr.gui.map.locked.enemy") : StatCollector.translateToLocal((String)"lotr.gui.map.locked.region");
                 }
-                String conquestUnlock = pd.getPledgeFaction() == null ? "" : StatCollector.translateToLocalFormatted("lotr.gui.map.locked.conquerable", pd.getPledgeFaction().factionName());
-                String ftPrompt = StatCollector.translateToLocalFormatted("lotr.gui.map.fastTravel.prompt", GameSettings.getKeyDisplayString(LOTRKeyHandler.keyBindingFastTravel.getKeyCode()));
-                String ftMoreTime = StatCollector.translateToLocalFormatted("lotr.gui.map.fastTravel.moreTime", LOTRLevelData.getHMSTime_Ticks(timeRemaining));
-                String ftWaitTime = StatCollector.translateToLocalFormatted("lotr.gui.map.fastTravel.waitTime", LOTRLevelData.getHMSTime_Ticks(wpTimeThreshold));
+                String conquestUnlock = pd.getPledgeFaction() == null ? "" : StatCollector.translateToLocalFormatted((String)"lotr.gui.map.locked.conquerable", (Object[])new Object[]{pd.getPledgeFaction().factionName()});
+                String ftPrompt = StatCollector.translateToLocalFormatted((String)"lotr.gui.map.fastTravel.prompt", (Object[])new Object[]{GameSettings.getKeyDisplayString((int)LOTRKeyHandler.keyBindingFastTravel.getKeyCode())});
+                String ftMoreTime = StatCollector.translateToLocalFormatted((String)"lotr.gui.map.fastTravel.moreTime", (Object[])new Object[]{LOTRLevelData.getHMSTime_Ticks(timeRemaining)});
+                String ftWaitTime = StatCollector.translateToLocalFormatted((String)"lotr.gui.map.fastTravel.waitTime", (Object[])new Object[]{LOTRLevelData.getHMSTime_Ticks(wpTimeThreshold)});
                 if (fullscreen || this.isConquestGrid) {
                     if (!hasUnlocked) {
-                        if (this.selectedWaypoint instanceof LOTRWaypoint && ((LOTRWaypoint)this.selectedWaypoint).isConquestUnlockable(this.mc.thePlayer)) {
+                        if (this.selectedWaypoint instanceof LOTRWaypoint && ((LOTRWaypoint)this.selectedWaypoint).isConquestUnlockable((EntityPlayer)this.mc.thePlayer)) {
                             this.renderFullscreenSubtitles(notUnlocked, conquestUnlock);
                         } else {
                             this.renderFullscreenSubtitles(notUnlocked);
@@ -711,10 +834,10 @@ extends LOTRGuiMenuBase {
                         this.renderFullscreenSubtitles(ftMoreTime, ftWaitTime);
                     }
                 } else {
-                    ArrayList<String> lines = new ArrayList<>();
+                    ArrayList<String> lines = new ArrayList<String>();
                     if (!hasUnlocked) {
                         lines.add(notUnlocked);
-                        if (this.selectedWaypoint instanceof LOTRWaypoint && ((LOTRWaypoint)this.selectedWaypoint).isConquestUnlockable(this.mc.thePlayer)) {
+                        if (this.selectedWaypoint instanceof LOTRWaypoint && ((LOTRWaypoint)this.selectedWaypoint).isConquestUnlockable((EntityPlayer)this.mc.thePlayer)) {
                             lines.add(conquestUnlock);
                         }
                     } else if (canFastTravel) {
@@ -740,28 +863,29 @@ extends LOTRGuiMenuBase {
                 }
                 this.zLevel -= 500.0f;
             } else if (this.isMouseWithinMap) {
+                int biomePosZ_int;
                 this.zLevel += 500.0f;
-                float biomePosX = this.posX + (i - mapXMin - mapWidth / 2) / this.zoomScale;
-                float biomePosZ = this.posY + (j - mapYMin - mapHeight / 2) / this.zoomScale;
-                int biomePosX_int = MathHelper.floor_double(biomePosX);
-                LOTRBiome biome = LOTRGenLayerWorld.getBiomeOrOcean(biomePosX_int, MathHelper.floor_double(biomePosZ));
-                if (biome.isHiddenBiome() && !LOTRLevelData.getData(this.mc.thePlayer).hasAchievement(biome.getBiomeAchievement())) {
+                float biomePosX = this.posX + (float)(i - mapXMin - mapWidth / 2) / this.zoomScale;
+                float biomePosZ = this.posY + (float)(j - mapYMin - mapHeight / 2) / this.zoomScale;
+                int biomePosX_int = MathHelper.floor_double((double)biomePosX);
+                LOTRBiome biome = LOTRGenLayerWorld.getBiomeOrOcean(biomePosX_int, biomePosZ_int = MathHelper.floor_double((double)biomePosZ));
+                if (biome.isHiddenBiome() && !LOTRLevelData.getData((EntityPlayer)this.mc.thePlayer).hasAchievement(biome.getBiomeAchievement())) {
                     biome = LOTRBiome.ocean;
                 }
-                this.mouseXCoord = Math.round((biomePosX - 810.0f) * LOTRGenLayerWorld.scale);
-                this.mouseZCoord = Math.round((biomePosZ - 730.0f) * LOTRGenLayerWorld.scale);
+                this.mouseXCoord = Math.round((biomePosX - 810.0f) * (float)LOTRGenLayerWorld.scale);
+                this.mouseZCoord = Math.round((biomePosZ - 730.0f) * (float)LOTRGenLayerWorld.scale);
                 String biomeName = biome.getBiomeDisplayName();
-                String coords = StatCollector.translateToLocalFormatted("lotr.gui.map.coords", this.mouseXCoord, this.mouseZCoord);
-                String teleport = StatCollector.translateToLocalFormatted("lotr.gui.map.tp", GameSettings.getKeyDisplayString(LOTRKeyHandler.keyBindingMapTeleport.getKeyCode()));
+                String coords = StatCollector.translateToLocalFormatted((String)"lotr.gui.map.coords", (Object[])new Object[]{this.mouseXCoord, this.mouseZCoord});
+                String teleport = StatCollector.translateToLocalFormatted((String)"lotr.gui.map.tp", (Object[])new Object[]{GameSettings.getKeyDisplayString((int)LOTRKeyHandler.keyBindingMapTeleport.getKeyCode())});
                 int stringHeight = this.fontRendererObj.FONT_HEIGHT;
                 if (fullscreen || this.isConquestGrid) {
                     this.renderFullscreenSubtitles(biomeName, coords);
                     if (this.canTeleport()) {
                         GL11.glPushMatrix();
                         if (this.isConquestGrid) {
-                            GL11.glTranslatef((mapXMax - mapXMin) / 2 - 8 - this.fontRendererObj.getStringWidth(teleport) / 2, 0.0f, 0.0f);
+                            GL11.glTranslatef((float)((mapXMax - mapXMin) / 2 - 8 - this.fontRendererObj.getStringWidth(teleport) / 2), (float)0.0f, (float)0.0f);
                         } else {
-                            GL11.glTranslatef(this.width / 2 - 30 - this.fontRendererObj.getStringWidth(teleport) / 2, 0.0f, 0.0f);
+                            GL11.glTranslatef((float)(this.width / 2 - 30 - this.fontRendererObj.getStringWidth(teleport) / 2), (float)0.0f, (float)0.0f);
                         }
                         this.renderFullscreenSubtitles(teleport);
                         GL11.glPopMatrix();
@@ -788,7 +912,7 @@ extends LOTRGuiMenuBase {
             }
         }
         if (this.isConquestGrid) {
-            s = StatCollector.translateToLocalFormatted("lotr.gui.map.conquest.title", this.conquestViewingFaction.factionName());
+            s = StatCollector.translateToLocalFormatted((String)"lotr.gui.map.conquest.title", (Object[])new Object[]{this.conquestViewingFaction.factionName()});
             x = mapXMin + mapWidth / 2;
             y = mapYMin - 14;
             LOTRTickHandlerClient.drawAlignmentText(this.fontRendererObj, x - this.fontRendererObj.getStringWidth(s) / 2, y, s, 1.0f);
@@ -802,11 +926,11 @@ extends LOTRGuiMenuBase {
                 float labelScale = guiScale <= 2.0f ? guiScale : guiScale - 1.0f;
                 float labelScaleRel = labelScale / guiScale;
                 this.mc.getTextureManager().bindTexture(LOTRClientProxy.alignmentTexture);
-                GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+                GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
                 this.drawTexturedModalRect(mapXMax - keyBorder - iconSize, mapYMax - keyBorder - iconSize, 0, 228, iconSize, iconSize);
                 for (int pass = 0; pass <= 1; ++pass) {
                     for (int l = 0; l <= 10; ++l) {
-                        float frac = (10 - l) / 10.0f;
+                        float frac = (float)(10 - l) / 10.0f;
                         float strFrac = frac * this.highestViewedConqStr;
                         int x1 = mapXMax - keyBorder - iconSize - iconGap - l * keyWidth;
                         int x0 = x1 - keyWidth;
@@ -814,15 +938,15 @@ extends LOTRGuiMenuBase {
                         int y0 = y1 - keyHeight;
                         if (pass == 0) {
                             int color = 0xBB0000 | Math.round(frac * 255.0f) << 24;
-                            LOTRGuiMap.drawRect(x0, y0, x1, y1, color);
+                            LOTRGuiMap.drawRect((int)x0, (int)y0, (int)x1, (int)y1, (int)color);
                             continue;
                         }
                         if (pass != 1 || l % 2 != 0) continue;
                         String keyLabel = LOTRAlignmentValues.formatConqForDisplay(strFrac, false);
-                        int strX = (int)((x0 + keyWidth / 2) / labelScaleRel);
-                        int strY = (int)((y0 + keyHeight / 2) / labelScaleRel) - this.fontRendererObj.FONT_HEIGHT / 2;
+                        int strX = (int)((float)(x0 + keyWidth / 2) / labelScaleRel);
+                        int strY = (int)((float)(y0 + keyHeight / 2) / labelScaleRel) - this.fontRendererObj.FONT_HEIGHT / 2;
                         GL11.glPushMatrix();
-                        GL11.glScalef(labelScaleRel, labelScaleRel, 1.0f);
+                        GL11.glScalef((float)labelScaleRel, (float)labelScaleRel, (float)1.0f);
                         this.drawCenteredString(keyLabel, strX, strY, 16777215);
                         GL11.glPopMatrix();
                     }
@@ -830,44 +954,44 @@ extends LOTRGuiMenuBase {
             }
             if (this.hasConquestScrollBar()) {
                 this.mc.getTextureManager().bindTexture(LOTRGuiFactions.factionsTexture);
-                GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+                GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
                 this.drawTexturedModalRect(this.facScrollX, this.facScrollY, 0, 128, this.facScrollWidth, this.facScrollHeight);
                 int factions = currentFactionList.size();
                 for (int index = 0; index < factions; ++index) {
                     LOTRFaction faction = currentFactionList.get(index);
                     float[] factionColors = faction.getFactionRGB();
                     float shade = 0.6f;
-                    GL11.glColor4f(factionColors[0] * shade, factionColors[1] * shade, factionColors[2] * shade, 1.0f);
+                    GL11.glColor4f((float)(factionColors[0] * shade), (float)(factionColors[1] * shade), (float)(factionColors[2] * shade), (float)1.0f);
                     float xMin = (float)index / (float)factions;
                     float xMax = (float)(index + 1) / (float)factions;
-                    xMin = this.facScrollX + this.facScrollBorder + xMin * (this.facScrollWidth - this.facScrollBorder * 2);
-                    xMax = this.facScrollX + this.facScrollBorder + xMax * (this.facScrollWidth - this.facScrollBorder * 2);
+                    xMin = (float)(this.facScrollX + this.facScrollBorder) + xMin * (float)(this.facScrollWidth - this.facScrollBorder * 2);
+                    xMax = (float)(this.facScrollX + this.facScrollBorder) + xMax * (float)(this.facScrollWidth - this.facScrollBorder * 2);
                     float yMin = this.facScrollY + this.facScrollBorder;
                     float yMax = this.facScrollY + this.facScrollHeight - this.facScrollBorder;
-                    float minU = (0 + this.facScrollBorder) / 256.0f;
-                    float maxU = (0 + this.facScrollWidth - this.facScrollBorder) / 256.0f;
-                    float minV = (128 + this.facScrollBorder) / 256.0f;
-                    float maxV = (128 + this.facScrollHeight - this.facScrollBorder) / 256.0f;
+                    float minU = (float)(0 + this.facScrollBorder) / 256.0f;
+                    float maxU = (float)(0 + this.facScrollWidth - this.facScrollBorder) / 256.0f;
+                    float minV = (float)(128 + this.facScrollBorder) / 256.0f;
+                    float maxV = (float)(128 + this.facScrollHeight - this.facScrollBorder) / 256.0f;
                     tess.startDrawingQuads();
-                    tess.addVertexWithUV(xMin, yMax, this.zLevel, minU, maxV);
-                    tess.addVertexWithUV(xMax, yMax, this.zLevel, maxU, maxV);
-                    tess.addVertexWithUV(xMax, yMin, this.zLevel, maxU, minV);
-                    tess.addVertexWithUV(xMin, yMin, this.zLevel, minU, minV);
+                    tess.addVertexWithUV((double)xMin, (double)yMax, (double)this.zLevel, (double)minU, (double)maxV);
+                    tess.addVertexWithUV((double)xMax, (double)yMax, (double)this.zLevel, (double)maxU, (double)maxV);
+                    tess.addVertexWithUV((double)xMax, (double)yMin, (double)this.zLevel, (double)maxU, (double)minV);
+                    tess.addVertexWithUV((double)xMin, (double)yMin, (double)this.zLevel, (double)minU, (double)minV);
                     tess.draw();
                 }
                 this.mc.getTextureManager().bindTexture(LOTRGuiFactions.factionsTexture);
-                GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-                int scroll = (int)(this.currentFacScroll * (this.facScrollWidth - this.facScrollBorder * 2 - this.facScrollWidgetWidth));
+                GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
+                int scroll = (int)(this.currentFacScroll * (float)(this.facScrollWidth - this.facScrollBorder * 2 - this.facScrollWidgetWidth));
                 this.drawTexturedModalRect(this.facScrollX + this.facScrollBorder + scroll, this.facScrollY + this.facScrollBorder, 0, 142, this.facScrollWidgetWidth, this.facScrollWidgetHeight);
             }
         }
         if (!this.hasOverlay && this.hasControlZones) {
-            s = StatCollector.translateToLocalFormatted("lotr.gui.map.controlZones", this.controlZoneFaction.factionName());
+            s = StatCollector.translateToLocalFormatted((String)"lotr.gui.map.controlZones", (Object[])new Object[]{this.controlZoneFaction.factionName()});
             x = mapXMin + mapWidth / 2;
             y = mapYMin + 20;
             LOTRTickHandlerClient.drawAlignmentText(this.fontRendererObj, x - this.fontRendererObj.getStringWidth(s) / 2, y, s, 1.0f);
-            if (!LOTRFaction.controlZonesEnabled(this.mc.theWorld)) {
-                s = StatCollector.translateToLocal("lotr.gui.map.controlZonesDisabled");
+            if (!LOTRFaction.controlZonesEnabled((World)this.mc.theWorld)) {
+                s = StatCollector.translateToLocal((String)"lotr.gui.map.controlZonesDisabled");
                 LOTRTickHandlerClient.drawAlignmentText(this.fontRendererObj, x - this.fontRendererObj.getStringWidth(s) / 2, mapYMin + mapHeight / 2, s, 1.0f);
             }
         }
@@ -877,7 +1001,7 @@ extends LOTRGuiMenuBase {
         this.buttonOverlayFunction.visible = buttonVisible;
         this.renderMapWidgets(i, j);
         if (this.hasOverlay) {
-            GL11.glTranslatef(0.0f, 0.0f, 500.0f);
+            GL11.glTranslatef((float)0.0f, (float)0.0f, (float)500.0f);
             int overlayBorder = 10;
             if (fullscreen) {
                 overlayBorder = 40;
@@ -890,7 +1014,7 @@ extends LOTRGuiMenuBase {
             if (this.overlayLines != null) {
                 int stringX = mapXMin + mapWidth / 2;
                 int stringY = rectY0 + 3 + this.mc.fontRenderer.FONT_HEIGHT;
-                int stringWidth = (int)((mapWidth - overlayBorder * 2) * 0.75f);
+                int stringWidth = (int)((float)(mapWidth - overlayBorder * 2) * 0.75f);
                 ArrayList<String> displayLines = new ArrayList();
                 for (String s4 : this.overlayLines) {
                     displayLines.addAll(this.fontRendererObj.listFormattedStringToWidth(s4, stringWidth));
@@ -916,20 +1040,20 @@ extends LOTRGuiMenuBase {
                     int[] sharesMinMax = this.scrollPaneWPShares.getMinMaxIndices(this.displayedWPShareList, this.displayedWPShares);
                     for (int index = sharesMinMax[0]; index <= sharesMinMax[1]; ++index) {
                         UUID fsID = this.displayedWPShareList.get(index);
-                        LOTRFellowshipClient fs = LOTRLevelData.getData(this.mc.thePlayer).getClientFellowshipByID(fsID);
+                        LOTRFellowshipClient fs = LOTRLevelData.getData((EntityPlayer)this.mc.thePlayer).getClientFellowshipByID(fsID);
                         if (fs == null) continue;
                         this.fellowshipDrawGUI.drawFellowshipEntry(fs, fsX, fsY, i, j, false, fullWidth);
                         int iconRemoveX = fsX + this.fellowshipDrawGUI.xSize + iconGap;
                         int iconRemoveY = fsY;
                         boolean mouseOverRemove = false;
                         if (fs == this.fellowshipDrawGUI.getMouseOverFellowship()) {
-                            mouseOverRemove = i >= iconRemoveX && i <= iconRemoveX + iconWidth && j >= iconRemoveY && j <= iconRemoveY + iconWidth;
+                            boolean bl3 = mouseOverRemove = i >= iconRemoveX && i <= iconRemoveX + iconWidth && j >= iconRemoveY && j <= iconRemoveY + iconWidth;
                             if (mouseOverRemove) {
                                 this.mouseOverRemoveSharedFellowship = fs;
                             }
                         }
                         this.mc.getTextureManager().bindTexture(LOTRGuiFellowships.iconsTextures);
-                        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+                        GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
                         this.drawTexturedModalRect(iconRemoveX, iconRemoveY, 8, 16 + (mouseOverRemove ? 0 : iconWidth), iconWidth, iconWidth);
                         fsY = stringY += this.mc.fontRenderer.FONT_HEIGHT + 5;
                     }
@@ -941,11 +1065,11 @@ extends LOTRGuiMenuBase {
                     this.nameWPTextField.xPosition = (rectX0 + rectX1) / 2 - this.nameWPTextField.width / 2;
                     this.nameWPTextField.yPosition = stringY;
                     GL11.glPushMatrix();
-                    GL11.glTranslatef(0.0f, 0.0f, this.zLevel);
+                    GL11.glTranslatef((float)0.0f, (float)0.0f, (float)this.zLevel);
                     this.nameWPTextField.drawTextBox();
                     GL11.glPopMatrix();
                     if (this.sharingWaypointNew && this.isFellowshipAlreadyShared(this.nameWPTextField.getText(), (LOTRCustomWaypoint)this.selectedWaypoint)) {
-                        String alreadyShared = StatCollector.translateToLocal("lotr.gui.map.customWaypoint.shareNew.already");
+                        String alreadyShared = StatCollector.translateToLocal((String)"lotr.gui.map.customWaypoint.shareNew.already");
                         int sx = this.nameWPTextField.xPosition + this.nameWPTextField.width + 6;
                         int sy = this.nameWPTextField.yPosition + this.nameWPTextField.height / 2 - this.fontRendererObj.FONT_HEIGHT / 2;
                         this.fontRendererObj.drawString(alreadyShared, sx, sy, 16711680);
@@ -969,12 +1093,12 @@ extends LOTRGuiMenuBase {
                     this.buttonOverlayFunction.drawButton(this.mc, i, j);
                 }
             }
-            GL11.glTranslatef(0.0f, 0.0f, -500.0f);
+            GL11.glTranslatef((float)0.0f, (float)0.0f, (float)-500.0f);
         }
     }
 
     private void setupScrollBars(int i, int j) {
-        maxDisplayedWPShares = fullscreen ? 8 : 5;
+        int n = maxDisplayedWPShares = fullscreen ? 8 : 5;
         if (this.selectedWaypoint != null && this.hasOverlay && this.sharingWaypoint) {
             this.displayedWPShareList = ((LOTRCustomWaypoint)this.selectedWaypoint).getSharedFellowshipIDs();
             this.displayedWPShares = this.displayedWPShareList.size();
@@ -996,14 +1120,14 @@ extends LOTRGuiMenuBase {
         mapXMax_W = mapXMax;
         mapYMin_W = mapYMin;
         mapYMax_W = mapYMax;
-        float mapScaleX = mapWidth / this.zoomScale;
-        float mapScaleY = mapHeight / this.zoomScale;
+        float mapScaleX = (float)mapWidth / this.zoomScale;
+        float mapScaleY = (float)mapHeight / this.zoomScale;
         double minU = (double)(this.posX - mapScaleX / 2.0f) / (double)LOTRGenLayerWorld.imageWidth;
         double maxU = (double)(this.posX + mapScaleX / 2.0f) / (double)LOTRGenLayerWorld.imageWidth;
         double minV = (double)(this.posY - mapScaleY / 2.0f) / (double)LOTRGenLayerWorld.imageHeight;
         double maxV = (double)(this.posY + mapScaleY / 2.0f) / (double)LOTRGenLayerWorld.imageHeight;
         if (minU < 0.0) {
-            mapXMin_W = mapXMin + (int)Math.round((0.0 - minU) * LOTRGenLayerWorld.imageWidth * this.zoomScale);
+            mapXMin_W = mapXMin + (int)Math.round((0.0 - minU) * (double)LOTRGenLayerWorld.imageWidth * (double)this.zoomScale);
             minU = 0.0;
             if (maxU < 0.0) {
                 maxU = 0.0;
@@ -1011,7 +1135,7 @@ extends LOTRGuiMenuBase {
             }
         }
         if (maxU > 1.0) {
-            mapXMax_W = mapXMax - (int)Math.round((maxU - 1.0) * LOTRGenLayerWorld.imageWidth * this.zoomScale);
+            mapXMax_W = mapXMax - (int)Math.round((maxU - 1.0) * (double)LOTRGenLayerWorld.imageWidth * (double)this.zoomScale);
             maxU = 1.0;
             if (minU > 1.0) {
                 minU = 1.0;
@@ -1019,7 +1143,7 @@ extends LOTRGuiMenuBase {
             }
         }
         if (minV < 0.0) {
-            mapYMin_W = mapYMin + (int)Math.round((0.0 - minV) * LOTRGenLayerWorld.imageHeight * this.zoomScale);
+            mapYMin_W = mapYMin + (int)Math.round((0.0 - minV) * (double)LOTRGenLayerWorld.imageHeight * (double)this.zoomScale);
             minV = 0.0;
             if (maxV < 0.0) {
                 maxV = 0.0;
@@ -1027,16 +1151,16 @@ extends LOTRGuiMenuBase {
             }
         }
         if (maxV > 1.0) {
-            mapYMax_W = mapYMax - (int)Math.round((maxV - 1.0) * LOTRGenLayerWorld.imageHeight * this.zoomScale);
+            mapYMax_W = mapYMax - (int)Math.round((maxV - 1.0) * (double)LOTRGenLayerWorld.imageHeight * (double)this.zoomScale);
             maxV = 1.0;
             if (minV > 1.0) {
                 minV = 1.0;
                 mapYMin_W = mapYMax_W;
             }
         }
-        LOTRTextures.drawMap(this.mc.thePlayer, sepia, mapXMin_W, mapXMax_W, mapYMin_W, mapYMax_W, this.zLevel, minU, maxU, minV, maxV, alpha);
+        LOTRTextures.drawMap((EntityPlayer)this.mc.thePlayer, sepia, mapXMin_W, mapXMax_W, mapYMin_W, mapYMax_W, this.zLevel, minU, maxU, minV, maxV, alpha);
         if (overlay && !LOTRGuiMap.isOSRS()) {
-            LOTRTextures.drawMapOverlay(this.mc.thePlayer, mapXMin, mapXMax, mapYMin, mapYMax, this.zLevel, minU, maxU, minV, maxV);
+            LOTRTextures.drawMapOverlay((EntityPlayer)this.mc.thePlayer, mapXMin, mapXMax, mapYMin, mapYMax, this.zLevel, minU, maxU, minV, maxV);
         }
     }
 
@@ -1049,12 +1173,13 @@ extends LOTRGuiMenuBase {
             float g = rgb1[1] + (rgb2[1] - rgb1[1]) * f;
             float b = rgb1[2] + (rgb2[2] - rgb1[2]) * f;
             int color = new Color(r, g, b).getRGB() + -16777216;
-            LOTRGuiMap.drawRect(x1 - l, y1 - l, x2 + l, y2 + l, color);
+            LOTRGuiMap.drawRect((int)(x1 - l), (int)(y1 - l), (int)(x2 + l), (int)(y2 + l), (int)color);
         }
     }
 
     private void renderMapWidgets(int mouseX, int mouseY) {
         this.widgetAddCWP.visible = !this.hasOverlay && this.isMiddleEarth();
+        this.widgetAddCWP.setTexVIndex(this.canCreateWaypointAtPosition() ? 0 : 1);
         this.widgetDelCWP.visible = !this.hasOverlay && this.isMiddleEarth() && this.selectedWaypoint instanceof LOTRCustomWaypoint && !((LOTRCustomWaypoint)this.selectedWaypoint).isShared();
         this.widgetRenameCWP.visible = !this.hasOverlay && this.isMiddleEarth() && this.selectedWaypoint instanceof LOTRCustomWaypoint && !((LOTRCustomWaypoint)this.selectedWaypoint).isShared();
         this.widgetToggleWPs.visible = !this.hasOverlay;
@@ -1077,7 +1202,7 @@ extends LOTRGuiMenuBase {
         for (LOTRGuiMapWidget widget : mapWidgets) {
             if (!widget.visible) continue;
             this.mc.getTextureManager().bindTexture(mapIconsTexture);
-            GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
             this.drawTexturedModalRect(mapXMin + widget.getMapXPos(mapWidth), mapYMin + widget.getMapYPos(mapHeight), widget.getTexU(), widget.getTexV(), widget.width, widget.width);
             if (!widget.isMouseOver(mouseX - mapXMin, mouseY - mapYMin, mapWidth, mapHeight)) continue;
             mouseOverWidget = widget;
@@ -1087,10 +1212,15 @@ extends LOTRGuiMenuBase {
             int stringWidth = 200;
             List desc = this.fontRendererObj.listFormattedStringToWidth(mouseOverWidget.getTranslatedName(), stringWidth);
             this.func_146283_a(desc, mouseX, mouseY);
-            GL11.glDisable(2896);
-            GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            GL11.glDisable((int)2896);
+            GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
             this.zLevel = z;
         }
+    }
+
+    private boolean canCreateWaypointAtPosition() {
+        int minY = LOTRConfig.getCustomWaypointMinY((World)this.mc.theWorld);
+        return minY < 0 || this.mc.thePlayer.boundingBox.minY >= (double)minY;
     }
 
     private void renderFullscreenSubtitles(String ... lines) {
@@ -1115,7 +1245,8 @@ extends LOTRGuiMenuBase {
         double mouseOverPlayerY = 0.0;
         double distanceMouseOverPlayer = Double.MAX_VALUE;
         int iconWidthHalf = 4;
-        HashMap<UUID, PlayerLocationInfo> playersToRender = new HashMap<>(playerLocations);
+        HashMap<UUID, PlayerLocationInfo> playersToRender = new HashMap<UUID, PlayerLocationInfo>();
+        playersToRender.putAll(playerLocations);
         if (this.isMiddleEarth()) {
             playersToRender.put(this.mc.thePlayer.getUniqueID(), new PlayerLocationInfo(this.mc.thePlayer.getGameProfile(), this.mc.thePlayer.posX, this.mc.thePlayer.posZ));
         }
@@ -1123,12 +1254,14 @@ extends LOTRGuiMenuBase {
             int playerY;
             float[] pos;
             int playerX;
-            entry.getKey();
+            double playerPosZ;
+            double playerPosX;
+            UUID player = (UUID)entry.getKey();
             PlayerLocationInfo info = (PlayerLocationInfo)entry.getValue();
             GameProfile profile = info.profile;
             String playerName = profile.getName();
-            double distToPlayer = this.renderPlayerIcon(profile, playerName, playerX = Math.round((pos = this.transformCoords(info.posX, info.posZ))[0]), playerY = Math.round(pos[1]), mouseX, mouseY);
-            if ((distToPlayer > iconWidthHalf + 3) || (distToPlayer > distanceMouseOverPlayer)) continue;
+            double distToPlayer = this.renderPlayerIcon(profile, playerName, playerX = Math.round((pos = this.transformCoords(playerPosX = info.posX, playerPosZ = info.posZ))[0]), playerY = Math.round(pos[1]), mouseX, mouseY);
+            if (!(distToPlayer <= (double)(iconWidthHalf + 3)) || !(distToPlayer <= distanceMouseOverPlayer)) continue;
             mouseOverPlayerName = playerName;
             mouseOverPlayerX = playerX;
             mouseOverPlayerY = playerY;
@@ -1149,10 +1282,10 @@ extends LOTRGuiMenuBase {
             rectX = Math.min(rectX, mapXMax - mapBorder2 - rectWidth);
             rectY = Math.max(rectY, mapYMin + mapBorder2);
             rectY = Math.min(rectY, mapYMax - mapBorder2 - rectHeight);
-            GL11.glTranslatef(0.0f, 0.0f, 300.0f);
+            GL11.glTranslatef((float)0.0f, (float)0.0f, (float)300.0f);
             this.drawFancyRect(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
             this.mc.fontRenderer.drawString(mouseOverPlayerName, rectX + border, rectY + border, 16777215);
-            GL11.glTranslatef(0.0f, 0.0f, -300.0f);
+            GL11.glTranslatef((float)0.0f, (float)0.0f, (float)-300.0f);
         }
     }
 
@@ -1160,19 +1293,19 @@ extends LOTRGuiMenuBase {
         Tessellator tessellator = Tessellator.instance;
         int iconWidthHalf = 4;
         int iconBorder = iconWidthHalf + 1;
-        playerX = Math.max(mapXMin + iconBorder, playerX);
-        playerX = Math.min(mapXMax - iconBorder - 1, playerX);
-        playerY = Math.max(mapYMin + iconBorder, playerY);
-        playerY = Math.min(mapYMax - iconBorder - 1, playerY);
-        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        playerX = Math.max((double)(mapXMin + iconBorder), playerX);
+        playerX = Math.min((double)(mapXMax - iconBorder - 1), playerX);
+        playerY = Math.max((double)(mapYMin + iconBorder), playerY);
+        playerY = Math.min((double)(mapYMax - iconBorder - 1), playerY);
+        GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
         ResourceLocation skin = AbstractClientPlayer.locationStevePng;
         if (profile.getId().equals(this.mc.thePlayer.getUniqueID())) {
             skin = this.mc.thePlayer.getLocationSkin();
         } else {
             MinecraftProfileTexture.Type type;
             Map map = this.mc.func_152342_ad().func_152788_a(profile);
-            if (map.containsKey(type = MinecraftProfileTexture.Type.SKIN)) {
-                skin = this.mc.func_152342_ad().func_152792_a((MinecraftProfileTexture)map.get(type), type);
+            if (map.containsKey((Object)(type = MinecraftProfileTexture.Type.SKIN))) {
+                skin = this.mc.func_152342_ad().func_152792_a((MinecraftProfileTexture)map.get((Object)type), type);
             }
         }
         this.mc.getTextureManager().bindTexture(skin);
@@ -1183,23 +1316,23 @@ extends LOTRGuiMenuBase {
         double playerX_d = playerX + 0.5;
         double playerY_d = playerY + 0.5;
         tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(playerX_d - iconWidthHalf, playerY_d + iconWidthHalf, this.zLevel, iconMinU, iconMaxV);
-        tessellator.addVertexWithUV(playerX_d + iconWidthHalf, playerY_d + iconWidthHalf, this.zLevel, iconMaxU, iconMaxV);
-        tessellator.addVertexWithUV(playerX_d + iconWidthHalf, playerY_d - iconWidthHalf, this.zLevel, iconMaxU, iconMinV);
-        tessellator.addVertexWithUV(playerX_d - iconWidthHalf, playerY_d - iconWidthHalf, this.zLevel, iconMinU, iconMinV);
+        tessellator.addVertexWithUV(playerX_d - (double)iconWidthHalf, playerY_d + (double)iconWidthHalf, (double)this.zLevel, iconMinU, iconMaxV);
+        tessellator.addVertexWithUV(playerX_d + (double)iconWidthHalf, playerY_d + (double)iconWidthHalf, (double)this.zLevel, iconMaxU, iconMaxV);
+        tessellator.addVertexWithUV(playerX_d + (double)iconWidthHalf, playerY_d - (double)iconWidthHalf, (double)this.zLevel, iconMaxU, iconMinV);
+        tessellator.addVertexWithUV(playerX_d - (double)iconWidthHalf, playerY_d - (double)iconWidthHalf, (double)this.zLevel, iconMinU, iconMinV);
         tessellator.draw();
         iconMinU = 0.625;
         iconMaxU = 0.75;
         iconMinV = 0.25;
         iconMaxV = 0.5;
         tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(playerX_d - iconWidthHalf - 0.5, playerY_d + iconWidthHalf + 0.5, this.zLevel, iconMinU, iconMaxV);
-        tessellator.addVertexWithUV(playerX_d + iconWidthHalf + 0.5, playerY_d + iconWidthHalf + 0.5, this.zLevel, iconMaxU, iconMaxV);
-        tessellator.addVertexWithUV(playerX_d + iconWidthHalf + 0.5, playerY_d - iconWidthHalf - 0.5, this.zLevel, iconMaxU, iconMinV);
-        tessellator.addVertexWithUV(playerX_d - iconWidthHalf - 0.5, playerY_d - iconWidthHalf - 0.5, this.zLevel, iconMinU, iconMinV);
+        tessellator.addVertexWithUV(playerX_d - (double)iconWidthHalf - 0.5, playerY_d + (double)iconWidthHalf + 0.5, (double)this.zLevel, iconMinU, iconMaxV);
+        tessellator.addVertexWithUV(playerX_d + (double)iconWidthHalf + 0.5, playerY_d + (double)iconWidthHalf + 0.5, (double)this.zLevel, iconMaxU, iconMaxV);
+        tessellator.addVertexWithUV(playerX_d + (double)iconWidthHalf + 0.5, playerY_d - (double)iconWidthHalf - 0.5, (double)this.zLevel, iconMaxU, iconMinV);
+        tessellator.addVertexWithUV(playerX_d - (double)iconWidthHalf - 0.5, playerY_d - (double)iconWidthHalf - 0.5, (double)this.zLevel, iconMinU, iconMinV);
         tessellator.draw();
-        double dx = playerX - mouseX;
-        double dy = playerY - mouseY;
+        double dx = playerX - (double)mouseX;
+        double dy = playerY - (double)mouseY;
         double distToPlayer = Math.sqrt(dx * dx + dy * dy);
         return distToPlayer;
     }
@@ -1223,26 +1356,26 @@ extends LOTRGuiMenuBase {
             float invScale = 1.0f / scale;
             IIcon icon = questBookIcon.getIconIndex();
             int iconWidthHalf = icon.getIconWidth() / 2;
-            iconWidthHalf = (int)(iconWidthHalf * scale);
+            iconWidthHalf = (int)((float)iconWidthHalf * scale);
             int iconBorder = iconWidthHalf + 1;
             questX = Math.max(mapXMin + iconBorder, questX);
             questX = Math.min(mapXMax - iconBorder - 1, questX);
             questY = Math.max(mapYMin + iconBorder, questY);
             questY = Math.min(mapYMax - iconBorder - 1, questY);
-            int iconX = Math.round(questX * invScale);
-            int iconY = Math.round(questY * invScale);
-            GL11.glScalef(scale, scale, scale);
-            GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-            GL11.glEnable(2896);
-            GL11.glEnable(2884);
+            int iconX = Math.round((float)questX * invScale);
+            int iconY = Math.round((float)questY * invScale);
+            GL11.glScalef((float)scale, (float)scale, (float)scale);
+            GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
+            GL11.glEnable((int)2896);
+            GL11.glEnable((int)2884);
             renderItem.renderItemAndEffectIntoGUI(this.mc.fontRenderer, this.mc.getTextureManager(), questBookIcon, iconX -= iconWidthHalf, iconY -= iconWidthHalf);
-            GL11.glDisable(2896);
-            GL11.glEnable(3008);
-            GL11.glScalef(invScale, invScale, invScale);
+            GL11.glDisable((int)2896);
+            GL11.glEnable((int)3008);
+            GL11.glScalef((float)invScale, (float)invScale, (float)invScale);
             double dx = questX - mouseX;
             double dy = questY - mouseY;
             double distToQuest = Math.sqrt(dx * dx + dy * dy);
-            if ((distToQuest > iconWidthHalf + 3) || (distToQuest > distanceMouseOverQuest)) continue;
+            if (!(distToQuest <= (double)(iconWidthHalf + 3)) || !(distToQuest <= distanceMouseOverQuest)) continue;
             mouseOverQuest = quest;
             mouseOverQuestX = questX;
             mouseOverQuestY = questY;
@@ -1264,10 +1397,10 @@ extends LOTRGuiMenuBase {
             x = Math.min(x, mapXMax - mapBorder2 - rectWidth);
             y = Math.max(y, mapYMin + mapBorder2);
             y = Math.min(y, mapYMax - mapBorder2 - rectHeight);
-            GL11.glTranslatef(0.0f, 0.0f, 300.0f);
+            GL11.glTranslatef((float)0.0f, (float)0.0f, (float)300.0f);
             this.drawFancyRect(x, y, x + rectWidth, y + rectHeight);
             this.mc.fontRenderer.drawString(name, x + border, y + border, 16777215);
-            GL11.glTranslatef(0.0f, 0.0f, -300.0f);
+            GL11.glTranslatef((float)0.0f, (float)0.0f, (float)-300.0f);
         }
     }
 
@@ -1279,7 +1412,7 @@ extends LOTRGuiMenuBase {
         if (faction.factionDimension == LOTRDimension.MIDDLE_EARTH && !(controlZones = faction.getControlZones()).isEmpty()) {
             Tessellator tessellator = Tessellator.instance;
             this.setupMapClipping();
-            GL11.glDisable(3553);
+            GL11.glDisable((int)3553);
             for (int pass = 0; pass <= 2; ++pass) {
                 int color = 16711680;
                 if (pass == 1) {
@@ -1308,11 +1441,11 @@ extends LOTRGuiMenuBase {
                         float angle = (float)l / (float)sides * 2.0f * 3.1415927f;
                         double x = zone.xCoord;
                         double z = zone.zCoord;
-                        float[] trans2 = this.transformCoords(x += MathHelper.cos(angle) * radiusWorld, z += MathHelper.sin(angle) * radiusWorld);
-                        tessellator.addVertex(trans2[0], trans2[1], this.zLevel);
+                        float[] trans2 = this.transformCoords(x += (double)(MathHelper.cos((float)angle) * radiusWorld), z += (double)(MathHelper.sin((float)angle) * radiusWorld));
+                        tessellator.addVertex((double)trans2[0], (double)trans2[1], (double)this.zLevel);
                     }
                     tessellator.draw();
-                    if (this.mouseControlZone && this.mouseControlZoneReduced || ((dx = mouseX - (trans = this.transformCoords(zone.xCoord, zone.zCoord))[0]) * dx + (dy = mouseY - trans[1]) * dy > (rScaled = radius * this.zoomScale) * rScaled)) continue;
+                    if (this.mouseControlZone && this.mouseControlZoneReduced || !((dx = (float)mouseX - (trans = this.transformCoords(zone.xCoord, zone.zCoord))[0]) * dx + (dy = (float)mouseY - trans[1]) * dy <= (rScaled = radius * this.zoomScale) * rScaled)) continue;
                     if (pass >= 1) {
                         this.mouseControlZone = true;
                         continue;
@@ -1321,13 +1454,13 @@ extends LOTRGuiMenuBase {
                     this.mouseControlZoneReduced = true;
                 }
             }
-            GL11.glEnable(3553);
+            GL11.glEnable((int)3553);
             this.endMapClipping();
         }
     }
 
     private void renderRoads() {
-        if (!showWP && !showCWP || !LOTRFixedStructures.hasMapFeatures(this.mc.theWorld)) {
+        if (!showWP && !showCWP || !LOTRFixedStructures.hasMapFeatures((World)this.mc.theWorld)) {
             return;
         }
         this.renderRoads(this.hasMapLabels());
@@ -1351,54 +1484,55 @@ extends LOTRGuiMenuBase {
                     float[] pos = this.transformCoords(point.x, point.z);
                     float x = pos[0];
                     float y = pos[1];
-                    if (x >= mapXMin && x < mapXMax && y >= mapYMin && y < mapYMax) {
+                    if (x >= (float)mapXMin && x < (float)mapXMax && y >= (float)mapYMin && y < (float)mapYMax) {
                         double roadWidth = 1.0;
                         int roadColor = 0;
                         float roadAlpha = roadZoomlerp;
                         if (LOTRGuiMap.isOSRS()) {
-                            roadWidth = 3.0 * this.zoomScale;
+                            roadWidth = 3.0 * (double)this.zoomScale;
                             roadColor = 6575407;
                             roadAlpha = 1.0f;
                         }
                         double roadWidthLess1 = roadWidth - 1.0;
-                        GL11.glDisable(3553);
-                        GL11.glEnable(3042);
-                        GL11.glBlendFunc(770, 771);
+                        GL11.glDisable((int)3553);
+                        GL11.glEnable((int)3042);
+                        GL11.glBlendFunc((int)770, (int)771);
                         Tessellator tessellator = Tessellator.instance;
                         tessellator.startDrawingQuads();
                         tessellator.setColorRGBA_I(roadColor, (int)(roadAlpha * 255.0f));
-                        tessellator.addVertex(x - roadWidthLess1, y + roadWidth, this.zLevel);
-                        tessellator.addVertex(x + roadWidth, y + roadWidth, this.zLevel);
-                        tessellator.addVertex(x + roadWidth, y - roadWidthLess1, this.zLevel);
-                        tessellator.addVertex(x - roadWidthLess1, y - roadWidthLess1, this.zLevel);
+                        tessellator.addVertex((double)x - roadWidthLess1, (double)y + roadWidth, (double)this.zLevel);
+                        tessellator.addVertex((double)x + roadWidth, (double)y + roadWidth, (double)this.zLevel);
+                        tessellator.addVertex((double)x + roadWidth, (double)y - roadWidthLess1, (double)this.zLevel);
+                        tessellator.addVertex((double)x - roadWidthLess1, (double)y - roadWidthLess1, (double)this.zLevel);
                         tessellator.draw();
-                        GL11.glDisable(3042);
-                        GL11.glEnable(3553);
+                        GL11.glDisable((int)3042);
+                        GL11.glEnable((int)3553);
                     }
-                    if (!labels || (x < mapXMin - (clip = 200)) || (x > mapXMax + clip) || (y < mapYMin - clip) || (y > mapYMax + clip)) continue;
+                    if (!labels || !(x >= (float)(mapXMin - (clip = 200))) || !(x <= (float)(mapXMax + clip)) || !(y >= (float)(mapYMin - clip)) || !(y <= (float)(mapYMax + clip))) continue;
                     float zoomlerp = (this.zoomExp - -1.0f) / 4.0f;
                     float scale = zoomlerp = Math.min(zoomlerp, 1.0f);
                     String name = road.getDisplayName();
                     int nameWidth = this.fontRendererObj.getStringWidth(name);
-                    int nameInterval = (int)((nameWidth * 2 + 100) * 200.0f / this.zoomScaleStable);
+                    int nameInterval = (int)((float)(nameWidth * 2 + 100) * 200.0f / this.zoomScaleStable);
                     if (i % nameInterval >= interval) continue;
                     boolean endNear = false;
-                    double dMax = (nameWidth / 2.0 + 25.0) * scale;
+                    double dMax = ((double)nameWidth / 2.0 + 25.0) * (double)scale;
                     double dMaxSq = dMax * dMax;
                     for (LOTRRoads.RoadPoint end : road.endpoints) {
+                        float endY;
                         float dy;
                         float[] endPos = this.transformCoords(end.x, end.z);
                         float endX = endPos[0];
                         float dx = x - endX;
-                        double dSq = dx * dx + (dy = y - (endPos[1])) * dy;
-                        if ((dSq >= dMaxSq)) continue;
+                        double dSq = dx * dx + (dy = y - (endY = endPos[1])) * dy;
+                        if (!(dSq < dMaxSq)) continue;
                         endNear = true;
                     }
-                    if (endNear || (zoomlerp <= 0.0f)) continue;
+                    if (endNear || !(zoomlerp > 0.0f)) continue;
                     this.setupMapClipping();
                     GL11.glPushMatrix();
-                    GL11.glTranslatef(x, y, 0.0f);
-                    GL11.glScalef(scale, scale, scale);
+                    GL11.glTranslatef((float)x, (float)y, (float)0.0f);
+                    GL11.glScalef((float)scale, (float)scale, (float)scale);
                     LOTRRoads.RoadPoint nextPoint = road.roadPoints[Math.min(i + 1, road.roadPoints.length - 1)];
                     LOTRRoads.RoadPoint prevPoint = road.roadPoints[Math.max(i - 1, 0)];
                     double grad = (nextPoint.z - prevPoint.z) / (nextPoint.x - prevPoint.x);
@@ -1407,16 +1541,16 @@ extends LOTRGuiMenuBase {
                     if (Math.abs(angle) > 90.0f) {
                         angle += 180.0f;
                     }
-                    GL11.glRotatef(angle, 0.0f, 0.0f, 1.0f);
+                    GL11.glRotatef((float)angle, (float)0.0f, (float)0.0f, (float)1.0f);
                     float alpha = zoomlerp;
                     int alphaI = LOTRClientProxy.getAlphaInt(alpha *= 0.8f);
-                    GL11.glEnable(3042);
-                    GL11.glBlendFunc(770, 771);
+                    GL11.glEnable((int)3042);
+                    GL11.glBlendFunc((int)770, (int)771);
                     int strX = -nameWidth / 2;
                     int strY = -15;
                     this.fontRendererObj.drawString(name, strX + 1, strY + 1, 0 + (alphaI << 24));
                     this.fontRendererObj.drawString(name, strX, strY, 16777215 + (alphaI << 24));
-                    GL11.glDisable(3042);
+                    GL11.glDisable((int)3042);
                     GL11.glPopMatrix();
                     this.endMapClipping();
                 }
@@ -1436,100 +1570,96 @@ extends LOTRGuiMenuBase {
     }
 
     private void renderWaypoints(int pass, int mouseX, int mouseY) {
-        if (!showWP && !showCWP && !showHiddenSWP || !LOTRFixedStructures.hasMapFeatures(this.mc.theWorld)) {
+        if (!showWP && !showCWP && !showHiddenSWP || !LOTRFixedStructures.hasMapFeatures((World)this.mc.theWorld)) {
             return;
         }
-        this.renderWaypoints(LOTRLevelData.getData(this.mc.thePlayer).getAllAvailableWaypoints(), pass, mouseX, mouseY, this.hasMapLabels(), false);
+        this.renderWaypoints(LOTRLevelData.getData((EntityPlayer)this.mc.thePlayer).getAllAvailableWaypoints(), pass, mouseX, mouseY, this.hasMapLabels(), false);
     }
 
     public void renderWaypoints(List<LOTRAbstractWaypoint> waypoints, int pass, int mouseX, int mouseY, boolean labels, boolean overrideToggles) {
-        setupMapClipping();
+        this.setupMapClipping();
         LOTRAbstractWaypoint mouseOverWP = null;
         double distanceMouseOverWP = Double.MAX_VALUE;
-        float wpZoomlerp = (this.zoomExp - -3.3F) / 2.2F;
-        wpZoomlerp = Math.min(wpZoomlerp, 1.0F);
-        if (!this.enableZoomOutWPFading)
-          wpZoomlerp = 1.0F; 
-        if (wpZoomlerp > 0.0F)
-          for (LOTRAbstractWaypoint waypoint : waypoints) {
-            boolean unlocked = (this.mc.thePlayer != null && waypoint.hasPlayerUnlocked(this.mc.thePlayer));
-            boolean hidden = waypoint.isHidden();
-            boolean custom = waypoint instanceof LOTRCustomWaypoint;
-            boolean shared = (waypoint instanceof LOTRCustomWaypoint && ((LOTRCustomWaypoint)waypoint).isShared());
-            if ((isWaypointVisible(waypoint) || overrideToggles) && (!hidden || unlocked)) {
-              float[] pos = transformCoords(waypoint.getXCoord(), waypoint.getZCoord());
-              float x = pos[0];
-              float y = pos[1];
-              int clip = 200;
-              if (x >= (mapXMin - clip) && x <= (mapXMax + clip) && y >= (mapYMin - clip) && y <= (mapYMax + clip)) {
+        float wpZoomlerp = (this.zoomExp - -3.3f) / 2.2f;
+        wpZoomlerp = Math.min(wpZoomlerp, 1.0f);
+        if (!this.enableZoomOutWPFading) {
+            wpZoomlerp = 1.0f;
+        }
+        if (wpZoomlerp > 0.0f) {
+            for (LOTRAbstractWaypoint waypoint : waypoints) {
+                double distToWP;
+                boolean shared;
+                double dy;
+                double dx;
+                boolean unlocked = this.mc.thePlayer != null && this.mc.thePlayer.worldObj != null && waypoint.hasPlayerUnlocked((EntityPlayer)this.mc.thePlayer);
+                boolean hidden = waypoint.isHidden();
+                boolean custom = waypoint instanceof LOTRCustomWaypoint;
+                boolean bl = shared = waypoint instanceof LOTRCustomWaypoint && ((LOTRCustomWaypoint)waypoint).isShared();
+                if (!this.isWaypointVisible(waypoint) && !overrideToggles || hidden && !unlocked) continue;
+                float[] pos = this.transformCoords(waypoint.getXCoord(), waypoint.getZCoord());
+                float x = pos[0];
+                float y = pos[1];
+                int clip = 200;
+                if (!(x >= (float)(mapXMin - clip)) || !(x <= (float)(mapXMax + clip)) || !(y >= (float)(mapYMin - clip)) || !(y <= (float)(mapYMax + clip))) continue;
                 if (pass == 0) {
-                  float wpAlpha = wpZoomlerp;
-                  GL11.glEnable(3042);
-                  GL11.glBlendFunc(770, 771);
-                  if (isOSRS()) {
-                    GL11.glPushMatrix();
-                    GL11.glScalef(0.33F, 0.33F, 1.0F);
-                    this.mc.getTextureManager().bindTexture(LOTRTextures.osrsTexture);
-                    GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-                    drawTexturedModalRectFloat(x / 0.33F - 8.0F, y / 0.33F - 8.0F, 0, 0, 15.0F, 15.0F);
-                    GL11.glPopMatrix();
-                  } else {
-                    this.mc.getTextureManager().bindTexture(mapIconsTexture);
-                    GL11.glColor4f(1.0F, 1.0F, 1.0F, wpAlpha);
-                    drawTexturedModalRectFloat(x - 2.0F, y - 2.0F, 0 + (unlocked ? 4 : 0), 200 + (shared ? 8 : (custom ? 4 : 0)), 4.0F, 4.0F);
-                  } 
-                  GL11.glDisable(3042);
-                  if (labels) {
-                    float zoomlerp = (this.zoomExp - -1.0F) / 4.0F;
-                    zoomlerp = Math.min(zoomlerp, 1.0F);
-                    if (zoomlerp > 0.0F) {
-                      GL11.glPushMatrix();
-                      GL11.glTranslatef(x, y, 0.0F);
-                      float scale = zoomlerp;
-                      GL11.glScalef(scale, scale, scale);
-                      float alpha = zoomlerp;
-                      alpha *= 0.8F;
-                      int alphaI = (int)(alpha * 255.0F);
-                      alphaI = MathHelper.clamp_int(alphaI, 4, 255);
-                      GL11.glEnable(3042);
-                      GL11.glBlendFunc(770, 771);
-                      String s = waypoint.getDisplayName();
-                      int strX = -this.fontRendererObj.getStringWidth(s) / 2;
-                      int strY = -15;
-                      this.fontRendererObj.drawString(s, strX + 1, strY + 1, 0 + (alphaI << 24));
-                      this.fontRendererObj.drawString(s, strX, strY, 16777215 + (alphaI << 24));
-                      GL11.glDisable(3042);
-                      GL11.glPopMatrix();
-                    } 
-                  } 
-                } 
-                if (pass == 1)
-                  if (waypoint != this.selectedWaypoint)
-                    if (x >= (mapXMin - 2) && x <= (mapXMax + 2) && y >= (mapYMin - 2) && y <= (mapYMax + 2)) {
-                      double dx = (x - mouseX);
-                      double dy = (y - mouseY);
-                      double distToWP = Math.sqrt(dx * dx + dy * dy);
-                      if ((distToWP <= 5.0D) && (distToWP <= distanceMouseOverWP)) {
-					  mouseOverWP = waypoint;
-					  distanceMouseOverWP = distToWP;
-					}  
-                    }   
-              } 
-            } 
-          }  
-        if (pass == 1)
-          if (mouseOverWP != null && !this.hasOverlay && !this.loadingConquestGrid)
-            renderWaypointTooltip(mouseOverWP, false, mouseX, mouseY);  
-        endMapClipping();
-      }
+                    float wpAlpha = wpZoomlerp;
+                    GL11.glEnable((int)3042);
+                    GL11.glBlendFunc((int)770, (int)771);
+                    if (LOTRGuiMap.isOSRS()) {
+                        float osScale = 0.33f;
+                        GL11.glPushMatrix();
+                        GL11.glScalef((float)0.33f, (float)0.33f, (float)1.0f);
+                        this.mc.getTextureManager().bindTexture(LOTRTextures.osrsTexture);
+                        GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
+                        this.drawTexturedModalRectFloat(x / 0.33f - 8.0f, y / 0.33f - 8.0f, 0, 0, 15.0f, 15.0f);
+                        GL11.glPopMatrix();
+                    } else {
+                        LOTRAbstractWaypoint.WaypointLockState state = this.mc.thePlayer != null ? waypoint.getLockState((EntityPlayer)this.mc.thePlayer) : LOTRAbstractWaypoint.WaypointLockState.STANDARD_UNLOCKED;
+                        this.mc.getTextureManager().bindTexture(mapIconsTexture);
+                        GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)wpAlpha);
+                        this.drawTexturedModalRectFloat(x - 2.0f, y - 2.0f, state.iconU, state.iconV, 4.0f, 4.0f);
+                    }
+                    GL11.glDisable((int)3042);
+                    if (labels) {
+                        float zoomlerp = (this.zoomExp - -1.0f) / 4.0f;
+                        if ((zoomlerp = Math.min(zoomlerp, 1.0f)) > 0.0f) {
+                            GL11.glPushMatrix();
+                            GL11.glTranslatef((float)x, (float)y, (float)0.0f);
+                            float scale = zoomlerp;
+                            GL11.glScalef((float)scale, (float)scale, (float)scale);
+                            float alpha = zoomlerp;
+                            int alphaI = (int)((alpha *= 0.8f) * 255.0f);
+                            alphaI = MathHelper.clamp_int((int)alphaI, (int)4, (int)255);
+                            GL11.glEnable((int)3042);
+                            GL11.glBlendFunc((int)770, (int)771);
+                            String s = waypoint.getDisplayName();
+                            int strX = -this.fontRendererObj.getStringWidth(s) / 2;
+                            int strY = -15;
+                            this.fontRendererObj.drawString(s, strX + 1, strY + 1, 0 + (alphaI << 24));
+                            this.fontRendererObj.drawString(s, strX, strY, 16777215 + (alphaI << 24));
+                            GL11.glDisable((int)3042);
+                            GL11.glPopMatrix();
+                        }
+                    }
+                }
+                if (pass != 1 || waypoint == this.selectedWaypoint || !(x >= (float)(mapXMin - 2)) || !(x <= (float)(mapXMax + 2)) || !(y >= (float)(mapYMin - 2)) || !(y <= (float)(mapYMax + 2)) || !((distToWP = Math.sqrt((dx = (double)(x - (float)mouseX)) * dx + (dy = (double)(y - (float)mouseY)) * dy)) <= 5.0) || !(distToWP <= distanceMouseOverWP)) continue;
+                mouseOverWP = waypoint;
+                distanceMouseOverWP = distToWP;
+            }
+        }
+        if (pass == 1 && mouseOverWP != null && !this.hasOverlay && !this.loadingConquestGrid) {
+            this.renderWaypointTooltip(mouseOverWP, false, mouseX, mouseY);
+        }
+        this.endMapClipping();
+    }
 
     private void renderWaypointTooltip(LOTRAbstractWaypoint waypoint, boolean selected, int mouseX, int mouseY) {
         String name = waypoint.getDisplayName();
         int wpX = waypoint.getXCoord();
         int wpZ = waypoint.getZCoord();
         int wpY = waypoint.getYCoordSaved();
-        String coords = wpY >= 0 ? StatCollector.translateToLocalFormatted("lotr.gui.map.coordsY", wpX, wpY, wpZ) : StatCollector.translateToLocalFormatted("lotr.gui.map.coords", wpX, wpZ);
-        String loreText = waypoint.getLoreText(this.mc.thePlayer);
+        String coords = wpY >= 0 ? StatCollector.translateToLocalFormatted((String)"lotr.gui.map.coordsY", (Object[])new Object[]{wpX, wpY, wpZ}) : StatCollector.translateToLocalFormatted((String)"lotr.gui.map.coords", (Object[])new Object[]{wpX, wpZ});
+        String loreText = waypoint.getLoreText((EntityPlayer)this.mc.thePlayer);
         float guiScale = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight).getScaleFactor();
         float loreScale = guiScale - 1.0f;
         if (guiScale <= 2.0f) {
@@ -1537,7 +1667,7 @@ extends LOTRGuiMenuBase {
         }
         float loreScaleRel = loreScale / guiScale;
         float loreScaleRelInv = 1.0f / loreScaleRel;
-        int loreFontHeight = MathHelper.ceiling_double_int(this.fontRendererObj.FONT_HEIGHT * loreScaleRel);
+        int loreFontHeight = MathHelper.ceiling_double_int((double)((float)this.fontRendererObj.FONT_HEIGHT * loreScaleRel));
         float[] pos = this.transformCoords(wpX, wpZ);
         int rectX = Math.round(pos[0]);
         int rectY = Math.round(pos[1]);
@@ -1549,7 +1679,7 @@ extends LOTRGuiMenuBase {
             innerRectWidth = Math.max(innerRectWidth, this.fontRendererObj.getStringWidth(coords));
             if (loreText != null) {
                 innerRectWidth += 50;
-                innerRectWidth = Math.round(innerRectWidth * (loreScaleRel / 0.66667f));
+                innerRectWidth = Math.round((float)innerRectWidth * (loreScaleRel / 0.66667f));
             }
         }
         int rectWidth = innerRectWidth + border * 2;
@@ -1559,7 +1689,7 @@ extends LOTRGuiMenuBase {
             rectHeight += border + stringHeight;
             if (loreText != null) {
                 rectHeight += border;
-                rectHeight += this.fontRendererObj.listFormattedStringToWidth(loreText, (int)(innerRectWidth * loreScaleRelInv)).size() * loreFontHeight;
+                rectHeight += this.fontRendererObj.listFormattedStringToWidth(loreText, (int)((float)innerRectWidth * loreScaleRelInv)).size() * loreFontHeight;
                 rectHeight += border;
             }
         }
@@ -1570,7 +1700,7 @@ extends LOTRGuiMenuBase {
         rectY = Math.min(rectY, mapYMax - mapBorder2 - rectHeight);
         int stringX = rectX + rectWidth / 2;
         int stringY = rectY + border;
-        GL11.glTranslatef(0.0f, 0.0f, 300.0f);
+        GL11.glTranslatef((float)0.0f, (float)0.0f, (float)300.0f);
         this.drawFancyRect(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
         this.drawCenteredString(name, stringX, stringY, 16777215);
         stringY += this.fontRendererObj.FONT_HEIGHT + border;
@@ -1579,30 +1709,31 @@ extends LOTRGuiMenuBase {
             stringY += this.fontRendererObj.FONT_HEIGHT + border * 2;
             if (loreText != null) {
                 GL11.glPushMatrix();
-                GL11.glScalef(loreScaleRel, loreScaleRel, 1.0f);
-                List loreLines = this.fontRendererObj.listFormattedStringToWidth(loreText, (int)(innerRectWidth * loreScaleRelInv));
+                GL11.glScalef((float)loreScaleRel, (float)loreScaleRel, (float)1.0f);
+                List loreLines = this.fontRendererObj.listFormattedStringToWidth(loreText, (int)((float)innerRectWidth * loreScaleRelInv));
                 for (int l = 0; l < loreLines.size(); ++l) {
                     String line = (String)loreLines.get(l);
-                    this.drawCenteredString(line, (int)(stringX * loreScaleRelInv), (int)(stringY * loreScaleRelInv), 16777215);
+                    this.drawCenteredString(line, (int)((float)stringX * loreScaleRelInv), (int)((float)stringY * loreScaleRelInv), 16777215);
                     stringY += loreFontHeight;
                 }
                 GL11.glPopMatrix();
             }
         }
-        GL11.glTranslatef(0.0f, 0.0f, -300.0f);
+        GL11.glTranslatef((float)0.0f, (float)0.0f, (float)-300.0f);
     }
 
     private void renderLabels() {
+        LOTRMapLabels[] allLabels;
         if (!this.hasMapLabels()) {
             return;
         }
         this.setupMapClipping();
-        for (LOTRMapLabels label : LOTRMapLabels.allMapLabels()) {
+        for (LOTRMapLabels label : allLabels = LOTRMapLabels.allMapLabels()) {
             float[] pos = this.transformMapCoords(label.posX, label.posY);
             float x = pos[0];
             float y = pos[1];
             float zoomlerp = (this.zoomExp - label.minZoom) / (label.maxZoom - label.minZoom);
-            if ((zoomlerp <= 0.0f) || (zoomlerp >= 1.0f)) continue;
+            if (!(zoomlerp > 0.0f) || !(zoomlerp < 1.0f)) continue;
             float alpha = (0.5f - Math.abs(zoomlerp - 0.5f)) / 0.5f;
             alpha *= 0.7f;
             if (LOTRGuiMap.isOSRS()) {
@@ -1610,18 +1741,18 @@ extends LOTRGuiMenuBase {
                 alpha = 1.0f;
             }
             GL11.glPushMatrix();
-            GL11.glTranslatef(x, y, 0.0f);
+            GL11.glTranslatef((float)x, (float)y, (float)0.0f);
             float scale = this.zoomScale * label.scale;
-            GL11.glScalef(scale, scale, scale);
+            GL11.glScalef((float)scale, (float)scale, (float)scale);
             if (!LOTRGuiMap.isOSRS()) {
-                GL11.glRotatef(label.angle, 0.0f, 0.0f, 1.0f);
+                GL11.glRotatef((float)label.angle, (float)0.0f, (float)0.0f, (float)1.0f);
             }
             int alphaI = (int)(alpha * 255.0f);
-            alphaI = MathHelper.clamp_int(alphaI, 4, 255);
-            GL11.glEnable(3042);
-            GL11.glBlendFunc(770, 771);
-            float alphaFunc = GL11.glGetFloat(3010);
-            GL11.glAlphaFunc(516, 0.01f);
+            alphaI = MathHelper.clamp_int((int)alphaI, (int)4, (int)255);
+            GL11.glEnable((int)3042);
+            GL11.glBlendFunc((int)770, (int)771);
+            float alphaFunc = GL11.glGetFloat((int)3010);
+            GL11.glAlphaFunc((int)516, (float)0.01f);
             String s = label.getDisplayName();
             int strX = -this.fontRendererObj.getStringWidth(s) / 2;
             int strY = -this.fontRendererObj.FONT_HEIGHT / 2;
@@ -1636,8 +1767,8 @@ extends LOTRGuiMenuBase {
             } else {
                 this.fontRendererObj.drawString(s, strX, strY, 16777215 + (alphaI << 24));
             }
-            GL11.glAlphaFunc(516, alphaFunc);
-            GL11.glDisable(3042);
+            GL11.glAlphaFunc((int)516, (float)alphaFunc);
+            GL11.glDisable((int)3042);
             GL11.glPopMatrix();
         }
         this.endMapClipping();
@@ -1646,17 +1777,17 @@ extends LOTRGuiMenuBase {
     private void setupMapClipping() {
         ScaledResolution sr = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
         int scale = sr.getScaleFactor();
-        GL11.glEnable(3089);
-        GL11.glScissor(mapXMin * scale, (this.height - mapYMax) * scale, mapWidth * scale, mapHeight * scale);
+        GL11.glEnable((int)3089);
+        GL11.glScissor((int)(mapXMin * scale), (int)((this.height - mapYMax) * scale), (int)(mapWidth * scale), (int)(mapHeight * scale));
     }
 
     private void endMapClipping() {
-        GL11.glDisable(3089);
+        GL11.glDisable((int)3089);
     }
 
     private float[] transformCoords(float x, float z) {
-        x = x / LOTRGenLayerWorld.scale + 810.0f;
-        z = z / LOTRGenLayerWorld.scale + 730.0f;
+        x = x / (float)LOTRGenLayerWorld.scale + 810.0f;
+        z = z / (float)LOTRGenLayerWorld.scale + 730.0f;
         return this.transformMapCoords(x, z);
     }
 
@@ -1669,11 +1800,11 @@ extends LOTRGuiMenuBase {
         z -= this.posY;
         x *= this.zoomScale;
         z *= this.zoomScale;
-        return new float[]{x += mapXMin + mapWidth / 2, z += mapYMin + mapHeight / 2};
+        return new float[]{x += (float)(mapXMin + mapWidth / 2), z += (float)(mapYMin + mapHeight / 2)};
     }
 
     private void drawFancyRect(int x1, int y1, int x2, int y2) {
-        LOTRGuiMap.drawRect(x1, y1, x2, y2, -1073741824);
+        LOTRGuiMap.drawRect((int)x1, (int)y1, (int)x2, (int)y2, (int)-1073741824);
         this.drawHorizontalLine(x1 - 1, x2, y1 - 1, -6156032);
         this.drawHorizontalLine(x1 - 1, x2, y2, -6156032);
         this.drawVerticalLine(x1 - 1, y1 - 1, y2, -6156032);
@@ -1681,12 +1812,12 @@ extends LOTRGuiMenuBase {
     }
 
     private boolean isValidWaypointName(String name) {
-        return !StringUtils.isBlank(name);
+        return !StringUtils.isBlank((CharSequence)name);
     }
 
     private LOTRFellowshipClient getFellowshipByName(String name) {
-        String fsName = StringUtils.strip(name);
-        return LOTRLevelData.getData(this.mc.thePlayer).getClientFellowshipByName(fsName);
+        String fsName = StringUtils.strip((String)name);
+        return LOTRLevelData.getData((EntityPlayer)this.mc.thePlayer).getClientFellowshipByName(fsName);
     }
 
     private boolean isExistingFellowshipName(String name) {
@@ -1723,25 +1854,26 @@ extends LOTRGuiMenuBase {
                 } else {
                     this.closeOverlay();
                 }
+                return;
             }
         } else {
             if (!this.loadingConquestGrid) {
-                LOTRPlayerData pd = LOTRLevelData.getData(this.mc.thePlayer);
-                if (i == LOTRKeyHandler.keyBindingFastTravel.getKeyCode() && this.isMiddleEarth() && this.selectedWaypoint != null && this.selectedWaypoint.hasPlayerUnlocked(this.mc.thePlayer) && pd.getTimeSinceFT() >= pd.getWaypointFTTime(this.selectedWaypoint, this.mc.thePlayer)) {
+                LOTRPlayerData pd = LOTRLevelData.getData((EntityPlayer)this.mc.thePlayer);
+                if (i == LOTRKeyHandler.keyBindingFastTravel.getKeyCode() && this.isMiddleEarth() && this.selectedWaypoint != null && this.selectedWaypoint.hasPlayerUnlocked((EntityPlayer)this.mc.thePlayer) && pd.getTimeSinceFT() >= pd.getWaypointFTTime(this.selectedWaypoint, (EntityPlayer)this.mc.thePlayer)) {
                     LOTRPacketFastTravel packet = new LOTRPacketFastTravel(this.selectedWaypoint);
-                    LOTRPacketHandler.networkWrapper.sendToServer(packet);
+                    LOTRPacketHandler.networkWrapper.sendToServer((IMessage)packet);
                     this.mc.thePlayer.closeScreen();
                     return;
                 }
                 if (this.selectedWaypoint == null && i == LOTRKeyHandler.keyBindingMapTeleport.getKeyCode() && this.isMouseWithinMap && this.canTeleport()) {
                     LOTRPacketMapTp packet = new LOTRPacketMapTp(this.mouseXCoord, this.mouseZCoord);
-                    LOTRPacketHandler.networkWrapper.sendToServer(packet);
+                    LOTRPacketHandler.networkWrapper.sendToServer((IMessage)packet);
                     this.mc.thePlayer.closeScreen();
                     return;
                 }
             }
             if (this.hasControlZones && (i == 1 || i == this.mc.gameSettings.keyBindInventory.getKeyCode())) {
-                Minecraft.getMinecraft().displayGuiScreen(new LOTRGuiFactions());
+                Minecraft.getMinecraft().displayGuiScreen((GuiScreen)new LOTRGuiFactions());
                 return;
             }
             super.keyTyped(c, i);
@@ -1766,15 +1898,15 @@ extends LOTRGuiMenuBase {
         this.closeOverlay();
         this.hasOverlay = true;
         this.creatingWaypoint = true;
-        int numWaypoints = LOTRLevelData.getData(this.mc.thePlayer).getCustomWaypoints().size();
-        int maxWaypoints = LOTRLevelData.getData(this.mc.thePlayer).getMaxCustomWaypoints();
+        int numWaypoints = LOTRLevelData.getData((EntityPlayer)this.mc.thePlayer).getCustomWaypoints().size();
+        int maxWaypoints = LOTRLevelData.getData((EntityPlayer)this.mc.thePlayer).getMaxCustomWaypoints();
         int remaining = maxWaypoints - numWaypoints;
         if (remaining <= 0) {
-            this.overlayLines = new String[]{StatCollector.translateToLocalFormatted("lotr.gui.map.customWaypoint.allUsed.1", maxWaypoints), "", StatCollector.translateToLocal("lotr.gui.map.customWaypoint.allUsed.2")};
+            this.overlayLines = new String[]{StatCollector.translateToLocalFormatted((String)"lotr.gui.map.customWaypoint.allUsed.1", (Object[])new Object[]{maxWaypoints}), "", StatCollector.translateToLocal((String)"lotr.gui.map.customWaypoint.allUsed.2")};
         } else {
-            this.overlayLines = new String[]{StatCollector.translateToLocalFormatted("lotr.gui.map.customWaypoint.create.1", numWaypoints, maxWaypoints), "", StatCollector.translateToLocalFormatted("lotr.gui.map.customWaypoint.create.2")};
+            this.overlayLines = new String[]{StatCollector.translateToLocalFormatted((String)"lotr.gui.map.customWaypoint.create.1", (Object[])new Object[]{numWaypoints, maxWaypoints}), "", StatCollector.translateToLocalFormatted((String)"lotr.gui.map.customWaypoint.create.2", (Object[])new Object[0])};
             this.buttonOverlayFunction.visible = true;
-            this.buttonOverlayFunction.displayString = StatCollector.translateToLocal("lotr.gui.map.customWaypoint.create.button");
+            this.buttonOverlayFunction.displayString = StatCollector.translateToLocal((String)"lotr.gui.map.customWaypoint.create.button");
         }
     }
 
@@ -1782,45 +1914,45 @@ extends LOTRGuiMenuBase {
         this.closeOverlay();
         this.hasOverlay = true;
         this.creatingWaypointNew = true;
-        this.overlayLines = new String[]{StatCollector.translateToLocal("lotr.gui.map.customWaypoint.createNew.1")};
+        this.overlayLines = new String[]{StatCollector.translateToLocal((String)"lotr.gui.map.customWaypoint.createNew.1")};
         this.buttonOverlayFunction.visible = true;
-        this.buttonOverlayFunction.displayString = StatCollector.translateToLocal("lotr.gui.map.customWaypoint.createNew.button");
+        this.buttonOverlayFunction.displayString = StatCollector.translateToLocal((String)"lotr.gui.map.customWaypoint.createNew.button");
     }
 
     private void openOverlayDelete() {
         this.closeOverlay();
         this.hasOverlay = true;
         this.deletingWaypoint = true;
-        this.overlayLines = new String[]{StatCollector.translateToLocalFormatted("lotr.gui.map.customWaypoint.delete.1", this.selectedWaypoint.getDisplayName())};
+        this.overlayLines = new String[]{StatCollector.translateToLocalFormatted((String)"lotr.gui.map.customWaypoint.delete.1", (Object[])new Object[]{this.selectedWaypoint.getDisplayName()})};
         this.buttonOverlayFunction.visible = true;
-        this.buttonOverlayFunction.displayString = StatCollector.translateToLocal("lotr.gui.map.customWaypoint.delete.button");
+        this.buttonOverlayFunction.displayString = StatCollector.translateToLocal((String)"lotr.gui.map.customWaypoint.delete.button");
     }
 
     private void openOverlayRename() {
         this.closeOverlay();
         this.hasOverlay = true;
         this.renamingWaypoint = true;
-        this.overlayLines = new String[]{StatCollector.translateToLocalFormatted("lotr.gui.map.customWaypoint.rename.1", this.selectedWaypoint.getDisplayName())};
+        this.overlayLines = new String[]{StatCollector.translateToLocalFormatted((String)"lotr.gui.map.customWaypoint.rename.1", (Object[])new Object[]{this.selectedWaypoint.getDisplayName()})};
         this.buttonOverlayFunction.visible = true;
-        this.buttonOverlayFunction.displayString = StatCollector.translateToLocal("lotr.gui.map.customWaypoint.rename.button");
+        this.buttonOverlayFunction.displayString = StatCollector.translateToLocal((String)"lotr.gui.map.customWaypoint.rename.button");
     }
 
     private void openOverlayShare() {
         this.closeOverlay();
         this.hasOverlay = true;
         this.sharingWaypoint = true;
-        this.overlayLines = new String[]{StatCollector.translateToLocalFormatted("lotr.gui.map.customWaypoint.share.1", this.selectedWaypoint.getDisplayName())};
+        this.overlayLines = new String[]{StatCollector.translateToLocalFormatted((String)"lotr.gui.map.customWaypoint.share.1", (Object[])new Object[]{this.selectedWaypoint.getDisplayName()})};
         this.buttonOverlayFunction.visible = true;
-        this.buttonOverlayFunction.displayString = StatCollector.translateToLocal("lotr.gui.map.customWaypoint.share.button");
+        this.buttonOverlayFunction.displayString = StatCollector.translateToLocal((String)"lotr.gui.map.customWaypoint.share.button");
     }
 
     private void openOverlayShareNew() {
         this.closeOverlay();
         this.hasOverlay = true;
         this.sharingWaypointNew = true;
-        this.overlayLines = new String[]{StatCollector.translateToLocalFormatted("lotr.gui.map.customWaypoint.shareNew.1", this.selectedWaypoint.getDisplayName())};
+        this.overlayLines = new String[]{StatCollector.translateToLocalFormatted((String)"lotr.gui.map.customWaypoint.shareNew.1", (Object[])new Object[]{this.selectedWaypoint.getDisplayName()})};
         this.buttonOverlayFunction.visible = true;
-        this.buttonOverlayFunction.displayString = StatCollector.translateToLocal("lotr.gui.map.customWaypoint.shareNew.button");
+        this.buttonOverlayFunction.displayString = StatCollector.translateToLocal((String)"lotr.gui.map.customWaypoint.shareNew.button");
     }
 
     protected void mouseClicked(int i, int j, int k) {
@@ -1869,7 +2001,7 @@ extends LOTRGuiMenuBase {
                 }
             }
         }
-        if (!this.hasOverlay && k == 0 && this.isMiddleEarth() && mouseWidget == this.widgetAddCWP) {
+        if (!this.hasOverlay && k == 0 && this.isMiddleEarth() && mouseWidget == this.widgetAddCWP && this.canCreateWaypointAtPosition()) {
             this.openOverlayCreate();
             return;
         }
@@ -1917,15 +2049,17 @@ extends LOTRGuiMenuBase {
         if (!this.hasOverlay && !this.loadingConquestGrid && k == 0 && this.isMouseWithinMap) {
             this.selectedWaypoint = null;
             double distanceSelectedWP = Double.MAX_VALUE;
-            List<LOTRAbstractWaypoint> waypoints = LOTRLevelData.getData(this.mc.thePlayer).getAllAvailableWaypoints();
+            List<LOTRAbstractWaypoint> waypoints = LOTRLevelData.getData((EntityPlayer)this.mc.thePlayer).getAllAvailableWaypoints();
             for (LOTRAbstractWaypoint waypoint : waypoints) {
+                float x;
                 float dx;
                 float dy;
+                float y;
                 double distToWP;
                 float[] pos;
-                boolean unlocked = waypoint.hasPlayerUnlocked(this.mc.thePlayer);
+                boolean unlocked = waypoint.hasPlayerUnlocked((EntityPlayer)this.mc.thePlayer);
                 boolean hidden = waypoint.isHidden();
-                if (!this.isWaypointVisible(waypoint) || hidden && !unlocked || ((distToWP = Math.sqrt((dx = ((pos = this.transformCoords(waypoint.getXCoord(), waypoint.getZCoord()))[0]) - i) * dx + (dy = (pos[1]) - j) * dy)) > 5.0) || (distToWP > distanceSelectedWP)) continue;
+                if (!this.isWaypointVisible(waypoint) || hidden && !unlocked || !((distToWP = Math.sqrt((dx = (x = (pos = this.transformCoords(waypoint.getXCoord(), waypoint.getZCoord()))[0]) - (float)i) * dx + (dy = (y = pos[1]) - (float)j) * dy)) <= 5.0) || !(distToWP <= distanceSelectedWP)) continue;
                 this.selectedWaypoint = waypoint;
                 distanceSelectedWP = distToWP;
             }
@@ -1942,32 +2076,32 @@ extends LOTRGuiMenuBase {
                 } else if (this.creatingWaypointNew && this.isValidWaypointName(this.nameWPTextField.getText())) {
                     String waypointName = this.nameWPTextField.getText();
                     LOTRPacketCreateCWP packet = new LOTRPacketCreateCWP(waypointName);
-                    LOTRPacketHandler.networkWrapper.sendToServer(packet);
+                    LOTRPacketHandler.networkWrapper.sendToServer((IMessage)packet);
                     this.closeOverlay();
                 } else if (this.deletingWaypoint) {
                     LOTRPacketDeleteCWP packet = new LOTRPacketDeleteCWP((LOTRCustomWaypoint)this.selectedWaypoint);
-                    LOTRPacketHandler.networkWrapper.sendToServer(packet);
+                    LOTRPacketHandler.networkWrapper.sendToServer((IMessage)packet);
                     this.closeOverlay();
                     this.selectedWaypoint = null;
                 } else if (this.renamingWaypoint && this.isValidWaypointName(this.nameWPTextField.getText())) {
                     String newName = this.nameWPTextField.getText();
                     LOTRPacketRenameCWP packet = new LOTRPacketRenameCWP((LOTRCustomWaypoint)this.selectedWaypoint, newName);
-                    LOTRPacketHandler.networkWrapper.sendToServer(packet);
+                    LOTRPacketHandler.networkWrapper.sendToServer((IMessage)packet);
                     this.closeOverlay();
                 } else if (this.sharingWaypoint) {
                     this.openOverlayShareNew();
                 } else if (this.sharingWaypointNew && this.isExistingUnsharedFellowshipName(this.nameWPTextField.getText(), (LOTRCustomWaypoint)this.selectedWaypoint)) {
                     String fsName = this.nameWPTextField.getText();
                     LOTRPacketShareCWP packet = new LOTRPacketShareCWP((LOTRCustomWaypoint)this.selectedWaypoint, fsName, true);
-                    LOTRPacketHandler.networkWrapper.sendToServer(packet);
+                    LOTRPacketHandler.networkWrapper.sendToServer((IMessage)packet);
                     this.openOverlayShare();
                 }
             } else if (button == this.buttonConquestRegions) {
                 List<LOTRDimension.DimensionRegion> regionList = LOTRDimension.MIDDLE_EARTH.dimensionRegions;
                 if (!regionList.isEmpty()) {
-                    int i = regionList.indexOf(currentRegion);
+                    int i = regionList.indexOf((Object)currentRegion);
                     ++i;
-                    i = IntMath.mod(i, regionList.size());
+                    i = IntMath.mod((int)i, (int)regionList.size());
                     currentRegion = regionList.get(i);
                     this.updateCurrentDimensionAndFaction();
                     this.setCurrentScrollFromFaction();
@@ -1985,16 +2119,16 @@ extends LOTRGuiMenuBase {
         this.posYMove = 0.0f;
         if (!this.hasOverlay) {
             float move = 12.0f / (float)Math.pow(this.zoomScale, 0.800000011920929);
-            if (this.isKeyDownAndNotMouse(this.mc.gameSettings.keyBindLeft) || Keyboard.isKeyDown(203)) {
+            if (this.isKeyDownAndNotMouse(this.mc.gameSettings.keyBindLeft) || Keyboard.isKeyDown((int)203)) {
                 this.posXMove -= move;
             }
-            if (this.isKeyDownAndNotMouse(this.mc.gameSettings.keyBindRight) || Keyboard.isKeyDown(205)) {
+            if (this.isKeyDownAndNotMouse(this.mc.gameSettings.keyBindRight) || Keyboard.isKeyDown((int)205)) {
                 this.posXMove += move;
             }
-            if (this.isKeyDownAndNotMouse(this.mc.gameSettings.keyBindForward) || Keyboard.isKeyDown(200)) {
+            if (this.isKeyDownAndNotMouse(this.mc.gameSettings.keyBindForward) || Keyboard.isKeyDown((int)200)) {
                 this.posYMove -= move;
             }
-            if (this.isKeyDownAndNotMouse(this.mc.gameSettings.keyBindBack) || Keyboard.isKeyDown(208)) {
+            if (this.isKeyDownAndNotMouse(this.mc.gameSettings.keyBindBack) || Keyboard.isKeyDown((int)208)) {
                 this.posYMove += move;
             }
             if (this.posXMove != 0.0f || this.posYMove != 0.0f) {
@@ -2004,7 +2138,7 @@ extends LOTRGuiMenuBase {
     }
 
     private boolean isKeyDownAndNotMouse(KeyBinding keybinding) {
-        return keybinding.getKeyCode() >= 0 && GameSettings.isKeyDown(keybinding);
+        return keybinding.getKeyCode() >= 0 && GameSettings.isKeyDown((KeyBinding)keybinding);
     }
 
     public void handleMouseInput() {
@@ -2034,6 +2168,7 @@ extends LOTRGuiMenuBase {
             if (this.scrollPaneWPShares.hasScrollBar && this.scrollPaneWPShares.mouseOver) {
                 int l = this.displayedWPShareList.size() - this.displayedWPShares;
                 this.scrollPaneWPShares.mouseWheelScroll(k, l);
+                return;
             }
         }
     }
@@ -2058,8 +2193,8 @@ extends LOTRGuiMenuBase {
         this.hasOverlay = true;
         this.creatingWaypoint = false;
         this.creatingWaypointNew = false;
-        String protection = StatCollector.translateToLocalFormatted("lotr.gui.map.customWaypoint.protected.1", message.getFormattedText());
-        String warning = StatCollector.translateToLocal("lotr.gui.map.customWaypoint.protected.2");
+        String protection = StatCollector.translateToLocalFormatted((String)"lotr.gui.map.customWaypoint.protected.1", (Object[])new Object[]{message.getFormattedText()});
+        String warning = StatCollector.translateToLocal((String)"lotr.gui.map.customWaypoint.protected.2");
         this.overlayLines = new String[]{protection, "", warning};
     }
 
@@ -2070,8 +2205,8 @@ extends LOTRGuiMenuBase {
         if (this.loadingConquestGrid) {
             return false;
         }
-        int chunkX = MathHelper.floor_double(this.mc.thePlayer.posX) >> 4;
-        int chunkZ = MathHelper.floor_double(this.mc.thePlayer.posZ) >> 4;
+        int chunkX = MathHelper.floor_double((double)this.mc.thePlayer.posX) >> 4;
+        int chunkZ = MathHelper.floor_double((double)this.mc.thePlayer.posZ) >> 4;
         if (this.mc.theWorld.getChunkProvider().provideChunk(chunkX, chunkZ) instanceof EmptyChunk) {
             return false;
         }
@@ -2085,7 +2220,7 @@ extends LOTRGuiMenuBase {
             this.isPlayerOp = server.worldServers[0].getWorldInfo().areCommandsAllowed() && server.getServerOwner().equalsIgnoreCase(this.mc.thePlayer.getGameProfile().getName());
         } else {
             LOTRPacketIsOpRequest packet = new LOTRPacketIsOpRequest();
-            LOTRPacketHandler.networkWrapper.sendToServer(packet);
+            LOTRPacketHandler.networkWrapper.sendToServer((IMessage)packet);
         }
     }
 
@@ -2094,10 +2229,10 @@ extends LOTRGuiMenuBase {
     }
 
     private void requestConquestGridIfNeed(LOTRFaction conqFac) {
-        if (!this.requestedFacGrids.contains(conqFac) && this.ticksUntilRequestFac <= 0) {
+        if (!this.requestedFacGrids.contains((Object)conqFac) && this.ticksUntilRequestFac <= 0) {
             this.requestedFacGrids.add(conqFac);
             LOTRPacketConquestGridRequest packet = new LOTRPacketConquestGridRequest(conqFac);
-            LOTRPacketHandler.networkWrapper.sendToServer(packet);
+            LOTRPacketHandler.networkWrapper.sendToServer((IMessage)packet);
         }
     }
 
@@ -2113,12 +2248,12 @@ extends LOTRGuiMenuBase {
     }
 
     private void setupConquestScrollBar(int i, int j) {
-        boolean isMouseDown = Mouse.isButtonDown(0);
+        boolean isMouseDown = Mouse.isButtonDown((int)0);
         int i1 = this.facScrollX;
         int j1 = this.facScrollY;
         int i2 = i1 + this.facScrollWidth;
         int j2 = j1 + this.facScrollHeight;
-        this.mouseInFacScroll = i >= i1 && j >= j1 && i < i2 && j < j2;
+        boolean bl = this.mouseInFacScroll = i >= i1 && j >= j1 && i < i2 && j < j2;
         if (!this.wasMouseDown && isMouseDown && this.mouseInFacScroll) {
             this.isFacScrolling = true;
         }
@@ -2127,9 +2262,9 @@ extends LOTRGuiMenuBase {
         }
         this.wasMouseDown = isMouseDown;
         if (this.isFacScrolling) {
-            this.currentFacScroll = (i - i1 - this.facScrollWidgetWidth / 2.0f) / ((float)(i2 - i1) - (float)this.facScrollWidgetWidth);
-            this.currentFacScroll = MathHelper.clamp_float(this.currentFacScroll, 0.0f, 1.0f);
-            this.currentFactionIndex = Math.round(this.currentFacScroll * (currentFactionList.size() - 1));
+            this.currentFacScroll = ((float)(i - i1) - (float)this.facScrollWidgetWidth / 2.0f) / ((float)(i2 - i1) - (float)this.facScrollWidgetWidth);
+            this.currentFacScroll = MathHelper.clamp_float((float)this.currentFacScroll, (float)0.0f, (float)1.0f);
+            this.currentFactionIndex = Math.round(this.currentFacScroll * (float)(currentFactionList.size() - 1));
         }
     }
 
@@ -2176,13 +2311,13 @@ extends LOTRGuiMenuBase {
     }
 
     static {
-        mapWidgets = new ArrayList<>();
+        mapWidgets = new ArrayList<LOTRGuiMapWidget>();
         zoomPower = 0;
         zoomTicksMax = 6;
         showWP = true;
         showCWP = true;
         showHiddenSWP = false;
-        lastViewedRegions = new HashMap<>();
+        lastViewedRegions = new HashMap<LOTRDimension.DimensionRegion, LOTRFaction>();
     }
 
     private static class PlayerLocationInfo {

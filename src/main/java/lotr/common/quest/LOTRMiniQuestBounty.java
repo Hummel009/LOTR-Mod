@@ -1,22 +1,62 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  net.minecraft.entity.Entity
+ *  net.minecraft.entity.EntityLivingBase
+ *  net.minecraft.entity.player.EntityPlayer
+ *  net.minecraft.init.Items
+ *  net.minecraft.item.Item
+ *  net.minecraft.item.ItemStack
+ *  net.minecraft.nbt.NBTTagCompound
+ *  net.minecraft.server.MinecraftServer
+ *  net.minecraft.server.management.ServerConfigurationManager
+ *  net.minecraft.util.ChatComponentTranslation
+ *  net.minecraft.util.ChatStyle
+ *  net.minecraft.util.EnumChatFormatting
+ *  net.minecraft.util.IChatComponent
+ *  net.minecraft.util.MathHelper
+ *  net.minecraft.util.StatCollector
+ *  org.apache.commons.lang3.StringUtils
+ */
 package lotr.common.quest;
 
-import java.util.*;
-
-import org.apache.commons.lang3.StringUtils;
-
-import lotr.common.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+import lotr.common.LOTRAchievement;
+import lotr.common.LOTRConfig;
+import lotr.common.LOTRLevelData;
+import lotr.common.LOTRMod;
+import lotr.common.LOTRPlayerData;
 import lotr.common.entity.npc.LOTREntityNPC;
-import lotr.common.fac.*;
-import net.minecraft.entity.*;
+import lotr.common.fac.LOTRAlignmentBonusMap;
+import lotr.common.fac.LOTRAlignmentValues;
+import lotr.common.fac.LOTRFaction;
+import lotr.common.fac.LOTRFactionBounties;
+import lotr.common.quest.LOTRMiniQuest;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.*;
+import net.minecraft.server.management.ServerConfigurationManager;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.StatCollector;
+import org.apache.commons.lang3.StringUtils;
 
 public class LOTRMiniQuestBounty
 extends LOTRMiniQuest {
+    private static final int KILL_THRESHOLD = 25;
+    private static final float MIN_ALIGNMENT_LOWERING = 100.0f;
     public UUID targetID;
     public String targetName;
     public boolean killed;
@@ -83,7 +123,7 @@ extends LOTRMiniQuest {
 
     @Override
     public String getQuestObjective() {
-        return StatCollector.translateToLocalFormatted("lotr.miniquest.bounty", this.targetName);
+        return StatCollector.translateToLocalFormatted((String)"lotr.miniquest.bounty", (Object[])new Object[]{this.targetName});
     }
 
     @Override
@@ -99,14 +139,14 @@ extends LOTRMiniQuest {
     @Override
     public String getQuestProgress() {
         if (this.killed) {
-            return StatCollector.translateToLocal("lotr.miniquest.bounty.progress.slain");
+            return StatCollector.translateToLocal((String)"lotr.miniquest.bounty.progress.slain");
         }
-        return StatCollector.translateToLocal("lotr.miniquest.bounty.progress.notSlain");
+        return StatCollector.translateToLocal((String)"lotr.miniquest.bounty.progress.notSlain");
     }
 
     @Override
     public String getQuestProgressShorthand() {
-        return StatCollector.translateToLocalFormatted("lotr.miniquest.progressShort", this.killed ? 1 : 0, 1);
+        return StatCollector.translateToLocalFormatted((String)"lotr.miniquest.progressShort", (Object[])new Object[]{this.killed ? 1 : 0, 1});
     }
 
     @Override
@@ -143,21 +183,21 @@ extends LOTRMiniQuest {
                 if (curAlignment + (alignmentLoss = this.getKilledAlignmentPenalty()) < 100.0f) {
                     alignmentLoss = -(curAlignment - 100.0f);
                 }
-                LOTRAlignmentValues.AlignmentBonus source = new LOTRAlignmentValues.AlignmentBonus(alignmentLoss, "lotr.alignment.bountyKill");
-                slainPlayerData.addAlignment(slainPlayer, source, highestFaction, entityplayer);
-                ChatComponentTranslation slainMsg1 = new ChatComponentTranslation("chat.lotr.bountyKilled1", entityplayer.getCommandSenderName(), this.entityFaction.factionName());
-                ChatComponentTranslation slainMsg2 = new ChatComponentTranslation("chat.lotr.bountyKilled2", highestFaction.factionName());
+                LOTRAlignmentValues.AlignmentBonus source = new LOTRAlignmentValues.AlignmentBonus(alignmentLoss, "lotr.alignment.bountyKilled");
+                slainPlayerData.addAlignment(slainPlayer, source, highestFaction, (Entity)entityplayer);
+                ChatComponentTranslation slainMsg1 = new ChatComponentTranslation("chat.lotr.bountyKilled1", new Object[]{entityplayer.getCommandSenderName(), this.entityFaction.factionName()});
+                ChatComponentTranslation slainMsg2 = new ChatComponentTranslation("chat.lotr.bountyKilled2", new Object[]{highestFaction.factionName()});
                 slainMsg1.getChatStyle().setColor(EnumChatFormatting.YELLOW);
                 slainMsg2.getChatStyle().setColor(EnumChatFormatting.YELLOW);
-                slainPlayer.addChatMessage(slainMsg1);
-                slainPlayer.addChatMessage(slainMsg2);
+                slainPlayer.addChatMessage((IChatComponent)slainMsg1);
+                slainPlayer.addChatMessage((IChatComponent)slainMsg2);
             }
-            ChatComponentTranslation announceMsg = new ChatComponentTranslation("chat.lotr.bountyKill", entityplayer.getCommandSenderName(), slainPlayer.getCommandSenderName(), this.entityFaction.factionName());
+            ChatComponentTranslation announceMsg = new ChatComponentTranslation("chat.lotr.bountyKill", new Object[]{entityplayer.getCommandSenderName(), slainPlayer.getCommandSenderName(), this.entityFaction.factionName()});
             announceMsg.getChatStyle().setColor(EnumChatFormatting.YELLOW);
             for (Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList) {
                 EntityPlayer otherPlayer = (EntityPlayer)obj;
                 if (otherPlayer == slainPlayer) continue;
-                otherPlayer.addChatMessage(announceMsg);
+                otherPlayer.addChatMessage((IChatComponent)announceMsg);
             }
         }
     }
@@ -172,7 +212,7 @@ extends LOTRMiniQuest {
             if (killerHighestFaction != null) {
                 float killerBonus = this.getAlignmentBonus();
                 LOTRAlignmentValues.AlignmentBonus source = new LOTRAlignmentValues.AlignmentBonus(killerBonus, "lotr.alignment.killedHunter");
-                killerData.addAlignment(killer, source, killerHighestFaction, entityplayer);
+                killerData.addAlignment(killer, source, killerHighestFaction, (Entity)entityplayer);
             }
             if ((curAlignment = (pd = this.getPlayerData()).getAlignment(this.entityFaction)) > 100.0f) {
                 float alignmentLoss = this.getKilledAlignmentPenalty();
@@ -180,23 +220,23 @@ extends LOTRMiniQuest {
                     alignmentLoss = -(curAlignment - 100.0f);
                 }
                 LOTRAlignmentValues.AlignmentBonus source = new LOTRAlignmentValues.AlignmentBonus(alignmentLoss, "lotr.alignment.killedByBounty");
-                pd.addAlignment(entityplayer, source, this.entityFaction, killer);
-                ChatComponentTranslation slainMsg1 = new ChatComponentTranslation("chat.lotr.killedByBounty1", killer.getCommandSenderName());
-                ChatComponentTranslation slainMsg2 = new ChatComponentTranslation("chat.lotr.killedByBounty2", this.entityFaction.factionName());
+                pd.addAlignment(entityplayer, source, this.entityFaction, (Entity)killer);
+                ChatComponentTranslation slainMsg1 = new ChatComponentTranslation("chat.lotr.killedByBounty1", new Object[]{killer.getCommandSenderName()});
+                ChatComponentTranslation slainMsg2 = new ChatComponentTranslation("chat.lotr.killedByBounty2", new Object[]{this.entityFaction.factionName()});
                 slainMsg1.getChatStyle().setColor(EnumChatFormatting.YELLOW);
                 slainMsg2.getChatStyle().setColor(EnumChatFormatting.YELLOW);
-                entityplayer.addChatMessage(slainMsg1);
-                entityplayer.addChatMessage(slainMsg2);
+                entityplayer.addChatMessage((IChatComponent)slainMsg1);
+                entityplayer.addChatMessage((IChatComponent)slainMsg2);
             }
             this.killedByBounty = true;
             this.updateQuest();
             killerData.addAchievement(LOTRAchievement.killHuntingPlayer);
-            ChatComponentTranslation announceMsg = new ChatComponentTranslation("chat.lotr.killedByBounty", entityplayer.getCommandSenderName(), killer.getCommandSenderName());
+            ChatComponentTranslation announceMsg = new ChatComponentTranslation("chat.lotr.killedByBounty", new Object[]{entityplayer.getCommandSenderName(), killer.getCommandSenderName()});
             announceMsg.getChatStyle().setColor(EnumChatFormatting.YELLOW);
             for (Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList) {
                 EntityPlayer otherPlayer = (EntityPlayer)obj;
                 if (otherPlayer == entityplayer) continue;
-                otherPlayer.addChatMessage(announceMsg);
+                otherPlayer.addChatMessage((IChatComponent)announceMsg);
             }
         }
     }
@@ -206,11 +246,11 @@ extends LOTRMiniQuest {
         if (pd.getPledgeFaction() != null) {
             return pd.getPledgeFaction();
         }
-        ArrayList<LOTRFaction> highestFactions = new ArrayList<>();
+        ArrayList<LOTRFaction> highestFactions = new ArrayList<LOTRFaction>();
         float highestAlignment = min;
         for (LOTRFaction f : LOTRFaction.getPlayableAlignmentFactions()) {
             float alignment = pd.getAlignment(f);
-            if ((alignment <= min)) continue;
+            if (!(alignment > min)) continue;
             if (alignment > highestAlignment) {
                 highestFactions.clear();
                 highestFactions.add(f);
@@ -222,7 +262,7 @@ extends LOTRMiniQuest {
         }
         if (!highestFactions.isEmpty()) {
             Random rand = entityplayer.getRNG();
-            LOTRFaction highestFaction = (highestFactions.get(rand.nextInt(highestFactions.size())));
+            LOTRFaction highestFaction = (LOTRFaction)((Object)highestFactions.get(rand.nextInt(highestFactions.size())));
             return highestFaction;
         }
         return null;
@@ -245,10 +285,10 @@ extends LOTRMiniQuest {
     @Override
     public String getQuestFailure() {
         if (this.killedByBounty) {
-            return StatCollector.translateToLocalFormatted("lotr.miniquest.bounty.killedBy", this.targetName);
+            return StatCollector.translateToLocalFormatted((String)"lotr.miniquest.bounty.killedBy", (Object[])new Object[]{this.targetName});
         }
         if (this.bountyClaimedByOther) {
-            return StatCollector.translateToLocalFormatted("lotr.miniquest.bounty.claimed", this.targetName);
+            return StatCollector.translateToLocalFormatted((String)"lotr.miniquest.bounty.claimed", (Object[])new Object[]{this.targetName});
         }
         return super.getQuestFailure();
     }
@@ -256,10 +296,10 @@ extends LOTRMiniQuest {
     @Override
     public String getQuestFailureShorthand() {
         if (this.killedByBounty) {
-            return StatCollector.translateToLocal("lotr.miniquest.bounty.killedBy.short");
+            return StatCollector.translateToLocal((String)"lotr.miniquest.bounty.killedBy.short");
         }
         if (this.bountyClaimedByOther) {
-            return StatCollector.translateToLocal("lotr.miniquest.bounty.claimed.short");
+            return StatCollector.translateToLocal((String)"lotr.miniquest.bounty.claimed.short");
         }
         return super.getQuestFailureShorthand();
     }
@@ -276,7 +316,7 @@ extends LOTRMiniQuest {
         LOTRPlayerData pd = this.getPlayerData();
         pd.addCompletedBountyQuest();
         int bComplete = pd.getCompletedBountyQuests();
-        specialReward = bComplete > 0 && bComplete % 5 == 0;
+        boolean bl = specialReward = bComplete > 0 && bComplete % 5 == 0;
         if (specialReward) {
             ItemStack trophy = new ItemStack(LOTRMod.bountyTrophy);
             this.rewardItemTable.add(trophy);
@@ -307,13 +347,13 @@ extends LOTRMiniQuest {
         return false;
     }
 
-    public enum BountyHelp {
+    public static enum BountyHelp {
         BIOME("biome"),
         WAYPOINT("wp");
 
         public final String speechName;
 
-        BountyHelp(String s) {
+        private BountyHelp(String s) {
             this.speechName = s;
         }
 
@@ -338,7 +378,7 @@ extends LOTRMiniQuest {
             if (!LOTRConfig.allowBountyQuests) {
                 return null;
             }
-            LOTRMiniQuestBounty quest = super.createQuest(npc, rand);
+            LOTRMiniQuestBounty quest = (LOTRMiniQuestBounty)super.createQuest(npc, rand);
             LOTRFaction faction = npc.getFaction();
             LOTRFactionBounties bounties = LOTRFactionBounties.forFaction(faction);
             List<LOTRFactionBounties.PlayerData> players = bounties.findBountyTargets(25);
@@ -349,12 +389,12 @@ extends LOTRMiniQuest {
             int kills = targetData.getNumKills();
             float f = kills;
             int alignment = (int)f;
-            alignment = MathHelper.clamp_int(alignment, 1, 50);
-            int coins = (int)(f * 10.0f * MathHelper.randomFloatClamp(rand, 0.75f, 1.25f));
-            coins = MathHelper.clamp_int(coins, 1, 1000);
+            alignment = MathHelper.clamp_int((int)alignment, (int)1, (int)50);
+            int coins = (int)(f * 10.0f * MathHelper.randomFloatClamp((Random)rand, (float)0.75f, (float)1.25f));
+            coins = MathHelper.clamp_int((int)coins, (int)1, (int)1000);
             quest.targetID = targetData.playerID;
             String username = targetData.findUsername();
-            if (StringUtils.isBlank(username)) {
+            if (StringUtils.isBlank((CharSequence)username)) {
                 username = quest.targetID.toString();
             }
             quest.targetName = username;

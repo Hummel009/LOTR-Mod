@@ -1,41 +1,202 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  cpw.mods.fml.common.FMLLog
+ *  cpw.mods.fml.common.network.NetworkRegistry
+ *  cpw.mods.fml.common.network.NetworkRegistry$TargetPoint
+ *  cpw.mods.fml.common.network.simpleimpl.IMessage
+ *  cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper
+ *  cpw.mods.fml.relauncher.Side
+ *  cpw.mods.fml.relauncher.SideOnly
+ *  net.minecraft.block.Block
+ *  net.minecraft.command.IEntitySelector
+ *  net.minecraft.enchantment.EnchantmentHelper
+ *  net.minecraft.entity.Entity
+ *  net.minecraft.entity.EntityCreature
+ *  net.minecraft.entity.EntityLiving
+ *  net.minecraft.entity.EntityLivingBase
+ *  net.minecraft.entity.IEntityLivingData
+ *  net.minecraft.entity.IRangedAttackMob
+ *  net.minecraft.entity.SharedMonsterAttributes
+ *  net.minecraft.entity.ai.EntityAIBase
+ *  net.minecraft.entity.ai.EntityAITasks
+ *  net.minecraft.entity.ai.EntitySenses
+ *  net.minecraft.entity.ai.RandomPositionGenerator
+ *  net.minecraft.entity.ai.attributes.BaseAttributeMap
+ *  net.minecraft.entity.ai.attributes.IAttribute
+ *  net.minecraft.entity.ai.attributes.IAttributeInstance
+ *  net.minecraft.entity.ai.attributes.RangedAttribute
+ *  net.minecraft.entity.item.EntityItem
+ *  net.minecraft.entity.player.EntityPlayer
+ *  net.minecraft.entity.player.EntityPlayerMP
+ *  net.minecraft.entity.player.PlayerCapabilities
+ *  net.minecraft.entity.projectile.EntityArrow
+ *  net.minecraft.init.Blocks
+ *  net.minecraft.init.Items
+ *  net.minecraft.inventory.Container
+ *  net.minecraft.inventory.IInventory
+ *  net.minecraft.inventory.InventoryBasic
+ *  net.minecraft.item.EnumAction
+ *  net.minecraft.item.Item
+ *  net.minecraft.item.ItemStack
+ *  net.minecraft.nbt.NBTBase
+ *  net.minecraft.nbt.NBTTagCompound
+ *  net.minecraft.nbt.NBTTagList
+ *  net.minecraft.nbt.NBTTagString
+ *  net.minecraft.pathfinding.PathNavigate
+ *  net.minecraft.server.management.PlayerManager
+ *  net.minecraft.util.AxisAlignedBB
+ *  net.minecraft.util.ChunkCoordinates
+ *  net.minecraft.util.DamageSource
+ *  net.minecraft.util.MathHelper
+ *  net.minecraft.util.MovingObjectPosition
+ *  net.minecraft.util.ResourceLocation
+ *  net.minecraft.util.StatCollector
+ *  net.minecraft.util.Vec3
+ *  net.minecraft.world.EnumSkyBlock
+ *  net.minecraft.world.World
+ *  net.minecraft.world.WorldServer
+ *  net.minecraft.world.biome.BiomeGenBase
+ *  net.minecraft.world.chunk.Chunk
+ */
 package lotr.common.entity.npc;
 
+import cpw.mods.fml.common.FMLLog;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import java.awt.Color;
 import java.lang.reflect.Constructor;
-import java.util.*;
-
-import cpw.mods.fml.common.FMLLog;
-import cpw.mods.fml.relauncher.*;
-import lotr.common.*;
-import lotr.common.entity.*;
-import lotr.common.entity.ai.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+import lotr.common.LOTRAchievement;
+import lotr.common.LOTRBannerProtection;
+import lotr.common.LOTRCommonProxy;
+import lotr.common.LOTRConfig;
+import lotr.common.LOTRDimension;
+import lotr.common.LOTRLevelData;
+import lotr.common.LOTRMod;
+import lotr.common.LOTRPlayerData;
+import lotr.common.LOTRShields;
+import lotr.common.entity.LOTREntities;
+import lotr.common.entity.LOTREntityInvasionSpawner;
+import lotr.common.entity.LOTREntityNPCRespawner;
+import lotr.common.entity.LOTREntityUtils;
+import lotr.common.entity.LOTRMountFunctions;
+import lotr.common.entity.LOTRRandomSkinEntity;
+import lotr.common.entity.ai.LOTREntityAIBurningPanic;
+import lotr.common.entity.ai.LOTREntityAIHiringPlayerHurtByTarget;
+import lotr.common.entity.ai.LOTREntityAIHiringPlayerHurtTarget;
+import lotr.common.entity.ai.LOTREntityAINPCHurtByTarget;
+import lotr.common.entity.ai.LOTREntityAINearestAttackableTargetBasic;
+import lotr.common.entity.ai.LOTRNPCTargetSelector;
 import lotr.common.entity.animal.LOTREntityHorse;
-import lotr.common.entity.item.*;
-import lotr.common.entity.projectile.*;
+import lotr.common.entity.item.LOTREntityArrowPoisoned;
+import lotr.common.entity.item.LOTREntityTraderRespawn;
+import lotr.common.entity.npc.LOTRBannerBearer;
+import lotr.common.entity.npc.LOTRBoss;
+import lotr.common.entity.npc.LOTRBossInfo;
+import lotr.common.entity.npc.LOTRCharacter;
+import lotr.common.entity.npc.LOTREntityOrc;
+import lotr.common.entity.npc.LOTREntityQuestInfo;
+import lotr.common.entity.npc.LOTREntityWarg;
+import lotr.common.entity.npc.LOTRFamilyInfo;
+import lotr.common.entity.npc.LOTRHiredNPCInfo;
+import lotr.common.entity.npc.LOTRInventoryHiredReplacedItems;
+import lotr.common.entity.npc.LOTRInventoryNPCItems;
+import lotr.common.entity.npc.LOTRMercenary;
+import lotr.common.entity.npc.LOTRNPCMount;
+import lotr.common.entity.npc.LOTRSpeech;
+import lotr.common.entity.npc.LOTRTradeEntry;
+import lotr.common.entity.npc.LOTRTradeable;
+import lotr.common.entity.npc.LOTRTraderNPCInfo;
+import lotr.common.entity.npc.LOTRTravellingTrader;
+import lotr.common.entity.npc.LOTRTravellingTraderInfo;
+import lotr.common.entity.npc.LOTRUnitTradeable;
+import lotr.common.entity.projectile.LOTREntityCrossbowBolt;
+import lotr.common.entity.projectile.LOTREntityPebble;
+import lotr.common.entity.projectile.LOTREntityPlate;
 import lotr.common.fac.LOTRFaction;
-import lotr.common.inventory.*;
-import lotr.common.item.*;
-import lotr.common.network.*;
-import lotr.common.quest.*;
+import lotr.common.inventory.LOTRContainerAnvil;
+import lotr.common.inventory.LOTRContainerCoinExchange;
+import lotr.common.inventory.LOTRContainerTrade;
+import lotr.common.inventory.LOTRContainerUnitTrade;
+import lotr.common.item.LOTRItemBanner;
+import lotr.common.item.LOTRItemBow;
+import lotr.common.item.LOTRItemCrossbow;
+import lotr.common.item.LOTRItemLeatherHat;
+import lotr.common.item.LOTRItemModifierTemplate;
+import lotr.common.item.LOTRItemOwnership;
+import lotr.common.item.LOTRItemPartyHat;
+import lotr.common.item.LOTRItemPouch;
+import lotr.common.item.LOTRItemSpear;
+import lotr.common.item.LOTRItemTrident;
+import lotr.common.item.LOTRWeaponStats;
+import lotr.common.network.LOTRPacketHandler;
+import lotr.common.network.LOTRPacketNPCCombatStance;
+import lotr.common.network.LOTRPacketNPCFX;
+import lotr.common.network.LOTRPacketNPCIsEating;
+import lotr.common.quest.LOTRMiniQuest;
+import lotr.common.quest.LOTRMiniQuestFactory;
 import lotr.common.world.LOTRUtumnoLevel;
 import lotr.common.world.biome.LOTRBiome;
 import lotr.common.world.structure.LOTRChestContents;
+import net.minecraft.block.Block;
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.*;
-import net.minecraft.entity.ai.*;
-import net.minecraft.entity.ai.attributes.*;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.IEntityLivingData;
+import net.minecraft.entity.IRangedAttackMob;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.entity.ai.EntityAITasks;
+import net.minecraft.entity.ai.EntitySenses;
+import net.minecraft.entity.ai.RandomPositionGenerator;
+import net.minecraft.entity.ai.attributes.BaseAttributeMap;
+import net.minecraft.entity.ai.attributes.IAttribute;
+import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.entity.ai.attributes.RangedAttribute;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.*;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerCapabilities;
 import net.minecraft.entity.projectile.EntityArrow;
-import net.minecraft.init.*;
-import net.minecraft.inventory.*;
-import net.minecraft.item.*;
-import net.minecraft.nbt.*;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryBasic;
+import net.minecraft.item.EnumAction;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
+import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.server.management.PlayerManager;
-import net.minecraft.util.*;
-import net.minecraft.world.*;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
+import net.minecraft.util.Vec3;
+import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraft.world.chunk.Chunk;
 
 public abstract class LOTREntityNPC
 extends EntityCreature
@@ -59,7 +220,7 @@ LOTRRandomSkinEntity {
     private boolean isConquestSpawning = false;
     public boolean liftBannerRestrictions = false;
     private boolean addedBurningPanic = false;
-    public List<LOTRFaction> killBonusFactions = new ArrayList<>();
+    public List<LOTRFaction> killBonusFactions = new ArrayList<LOTRFaction>();
     private UUID invasionID = null;
     private boolean isTargetSeeker = false;
     public String npcLocationName;
@@ -98,7 +259,7 @@ LOTRRandomSkinEntity {
     public ResourceLocation npcCape;
     public int npcTalkTick = 0;
     private boolean hurtOnlyByPlates = true;
-    private List<ItemStack> enpouchedDrops = new ArrayList<>();
+    private List<ItemStack> enpouchedDrops = new ArrayList<ItemStack>();
     private boolean enpouchNPCDrops = false;
 
     public LOTREntityNPC(World world) {
@@ -119,10 +280,10 @@ LOTRRandomSkinEntity {
         this.hiredNPCInfo = new LOTRHiredNPCInfo(this);
         this.traderNPCInfo = new LOTRTraderNPCInfo(this);
         if (this instanceof LOTRTravellingTrader) {
-            this.travellingTraderInfo = new LOTRTravellingTraderInfo((LOTRTravellingTrader)(this));
+            this.travellingTraderInfo = new LOTRTravellingTraderInfo((LOTRTravellingTrader)((Object)this));
         }
         if (this instanceof LOTRBoss) {
-            this.bossInfo = new LOTRBossInfo((LOTRBoss)(this));
+            this.bossInfo = new LOTRBossInfo((LOTRBoss)((Object)this));
         }
         this.setupNPCGender();
         this.setupNPCName();
@@ -160,9 +321,9 @@ LOTRRandomSkinEntity {
 
     public int addTargetTasks(boolean seekTargets, Class<? extends LOTREntityAINearestAttackableTargetBasic> c) {
         this.targetTasks.taskEntries.clear();
-        this.targetTasks.addTask(1, new LOTREntityAIHiringPlayerHurtByTarget(this));
-        this.targetTasks.addTask(2, new LOTREntityAIHiringPlayerHurtTarget(this));
-        this.targetTasks.addTask(3, new LOTREntityAINPCHurtByTarget(this, false));
+        this.targetTasks.addTask(1, (EntityAIBase)new LOTREntityAIHiringPlayerHurtByTarget(this));
+        this.targetTasks.addTask(2, (EntityAIBase)new LOTREntityAIHiringPlayerHurtTarget(this));
+        this.targetTasks.addTask(3, (EntityAIBase)new LOTREntityAINPCHurtByTarget(this, false));
         this.isTargetSeeker = seekTargets;
         if (seekTargets) {
             return LOTREntityNPC.addTargetTasks(this, 4, c);
@@ -173,11 +334,11 @@ LOTRRandomSkinEntity {
     public static int addTargetTasks(EntityCreature entity, int index, Class<? extends LOTREntityAINearestAttackableTargetBasic> c) {
         try {
             Constructor<? extends LOTREntityAINearestAttackableTargetBasic> constructor = c.getConstructor(EntityCreature.class, Class.class, Integer.TYPE, Boolean.TYPE, IEntitySelector.class);
-            entity.targetTasks.addTask(index, constructor.newInstance(entity, EntityPlayer.class, 0, true, null));
-            entity.targetTasks.addTask(index, constructor.newInstance(entity, EntityLiving.class, 0, true, new LOTRNPCTargetSelector(entity)));
+            entity.targetTasks.addTask(index, (EntityAIBase)constructor.newInstance(new Object[]{entity, EntityPlayer.class, 0, true, null}));
+            entity.targetTasks.addTask(index, (EntityAIBase)constructor.newInstance(new Object[]{entity, EntityLiving.class, 0, true, new LOTRNPCTargetSelector((EntityLiving)entity)}));
         }
         catch (Exception e) {
-            FMLLog.severe("Error adding LOTR target tasks to entity " + entity.toString());
+            FMLLog.severe((String)("Error adding LOTR target tasks to entity " + entity.toString()), (Object[])new Object[0]);
             e.printStackTrace();
         }
         return index;
@@ -185,8 +346,9 @@ LOTRRandomSkinEntity {
 
     @SideOnly(value=Side.CLIENT)
     public boolean isInRangeToRenderDist(double dist) {
+        LOTRPlayerData data;
         EntityPlayer entityplayer = LOTRMod.proxy.getClientPlayer();
-        if (entityplayer != null && !(LOTRLevelData.getData(entityplayer)).getMiniQuestsForEntity(this, true).isEmpty()) {
+        if (entityplayer != null && !(data = LOTRLevelData.getData(entityplayer)).getMiniQuestsForEntity(this, true).isEmpty()) {
             return true;
         }
         return super.isInRangeToRenderDist(dist);
@@ -228,7 +390,7 @@ LOTRRandomSkinEntity {
         }
         return data;
     }
-    
+
     public LOTRNPCMount createMountToRide() {
         return new LOTREntityHorse(this.worldObj);
     }
@@ -267,7 +429,7 @@ LOTRRandomSkinEntity {
         if (npcName.equals(entityName)) {
             return entityName;
         }
-        return StatCollector.translateToLocalFormatted("entity.lotr.generic.entityName", npcName, entityName);
+        return StatCollector.translateToLocalFormatted((String)"entity.lotr.generic.entityName", (Object[])new Object[]{npcName, entityName});
     }
 
     public String getEntityClassName() {
@@ -315,7 +477,7 @@ LOTRRandomSkinEntity {
     }
 
     public final void setAttackTarget(EntityLivingBase target) {
-        boolean speak = target != null && this.getEntitySenses().canSee(target) && this.rand.nextInt(3) == 0;
+        boolean speak = target != null && this.getEntitySenses().canSee((Entity)target) && this.rand.nextInt(3) == 0;
         this.setAttackTarget(target, speak);
     }
 
@@ -329,7 +491,7 @@ LOTRRandomSkinEntity {
                 EntityPlayer entityplayer;
                 String speechBank;
                 if (this.getAttackSound() != null) {
-                    this.worldObj.playSoundAtEntity(this, this.getAttackSound(), this.getSoundVolume(), this.getSoundPitch());
+                    this.worldObj.playSoundAtEntity((Entity)this, this.getAttackSound(), this.getSoundVolume(), this.getSoundPitch());
                 }
                 if (target instanceof EntityPlayer && speak && (speechBank = this.getSpeechBank(entityplayer = (EntityPlayer)target)) != null) {
                     IEntitySelector selectorAttackingNPCs = new IEntitySelector(){
@@ -343,7 +505,7 @@ LOTRRandomSkinEntity {
                         }
                     };
                     double range = 16.0;
-                    List nearbyMobs = this.worldObj.getEntitiesWithinAABBExcludingEntity(this, this.boundingBox.expand(range, range, range), selectorAttackingNPCs);
+                    List nearbyMobs = this.worldObj.getEntitiesWithinAABBExcludingEntity((Entity)this, this.boundingBox.expand(range, range, range), selectorAttackingNPCs);
                     if (nearbyMobs.size() <= 5) {
                         this.sendSpeechBank(entityplayer, speechBank);
                     }
@@ -392,6 +554,7 @@ LOTRRandomSkinEntity {
     }
 
     public void onLivingUpdate() {
+        double speedSq;
         super.onLivingUpdate();
         this.rescaleNPC(this.getNPCScale());
         this.updateCombat();
@@ -408,6 +571,7 @@ LOTRRandomSkinEntity {
             this.travellingTraderInfo.onUpdate();
         }
         if ((this instanceof LOTRTradeable || this instanceof LOTRUnitTradeable) && !this.worldObj.isRemote) {
+            double dSqToInitHome;
             int preventKidnap;
             if (!this.setInitialHome) {
                 if (this.hasHome()) {
@@ -418,12 +582,12 @@ LOTRRandomSkinEntity {
                 }
                 this.setInitialHome = true;
             }
-            if ((preventKidnap = LOTRConfig.preventTraderKidnap) > 0 && this.setInitialHome && this.initHomeRange > 0 && (this.getDistanceSq(this.initHomeX + 0.5, this.initHomeY + 0.5, this.initHomeZ + 0.5)) > preventKidnap * preventKidnap) {
+            if ((preventKidnap = LOTRConfig.preventTraderKidnap) > 0 && this.setInitialHome && this.initHomeRange > 0 && (dSqToInitHome = this.getDistanceSq((double)this.initHomeX + 0.5, (double)this.initHomeY + 0.5, (double)this.initHomeZ + 0.5)) > (double)(preventKidnap * preventKidnap)) {
                 if (this.ridingEntity != null) {
                     this.mountEntity(null);
                 }
                 this.worldObj.getChunkFromBlockCoords(this.initHomeX, this.initHomeZ);
-                this.setLocationAndAngles(this.initHomeX + 0.5, this.initHomeY, this.initHomeZ + 0.5, this.rotationYaw, this.rotationPitch);
+                this.setLocationAndAngles((double)this.initHomeX + 0.5, (double)this.initHomeY, (double)this.initHomeZ + 0.5, this.rotationYaw, this.rotationPitch);
             }
         }
         if (this.bossInfo != null) {
@@ -432,16 +596,17 @@ LOTRRandomSkinEntity {
         if (!this.worldObj.isRemote && !this.addedBurningPanic) {
             LOTREntityUtils.removeAITask(this, LOTREntityAIBurningPanic.class);
             if (this.shouldBurningPanic()) {
-                this.tasks.addTask(0, new LOTREntityAIBurningPanic(this, 1.5));
+                this.tasks.addTask(0, (EntityAIBase)new LOTREntityAIBurningPanic(this, 1.5));
             }
             this.addedBurningPanic = true;
         }
         if (!this.worldObj.isRemote && this.isEntityAlive() && (this.isTrader() || this.hiredNPCInfo.isActive) && this.getAttackTarget() == null) {
+            int bannerInterval;
             float healAmount = 0.0f;
             if (this.ticksExisted % 40 == 0) {
                 healAmount += 1.0f;
             }
-            if (this.hiredNPCInfo.isActive && this.nearbyBannerFactor > 0 && this.ticksExisted % (240 - this.nearbyBannerFactor * 40) == 0) {
+            if (this.hiredNPCInfo.isActive && this.nearbyBannerFactor > 0 && this.ticksExisted % (bannerInterval = 240 - this.nearbyBannerFactor * 40) == 0) {
                 healAmount += 1.0f;
             }
             if (healAmount > 0.0f) {
@@ -496,24 +661,24 @@ LOTRRandomSkinEntity {
             int homeY = this.getHomePosition().posY;
             int homeZ = this.getHomePosition().posZ;
             int homeRange = (int)this.func_110174_bM();
-            double maxDist = homeRange + 128.0;
-            double distToHome = this.getDistance(homeX + 0.5, homeY + 0.5, homeZ + 0.5);
+            double maxDist = (double)homeRange + 128.0;
+            double distToHome = this.getDistance((double)homeX + 0.5, (double)homeY + 0.5, (double)homeZ + 0.5);
             if (distToHome > maxDist) {
                 this.detachHome();
             } else if (this.getAttackTarget() == null && this.getNavigator().noPath()) {
                 this.detachHome();
                 boolean goDirectlyHome = false;
                 if (this.worldObj.blockExists(homeX, homeY, homeZ) && this.hiredNPCInfo.isGuardMode()) {
-                    this.hiredNPCInfo.getGuardRange();
+                    int guardRange = this.hiredNPCInfo.getGuardRange();
                     goDirectlyHome = distToHome < 16.0;
                 }
                 double homeSpeed = 1.3;
                 if (goDirectlyHome) {
-                    this.getNavigator().tryMoveToXYZ(homeX + 0.5, homeY + 0.5, homeZ + 0.5, homeSpeed);
+                    this.getNavigator().tryMoveToXYZ((double)homeX + 0.5, (double)homeY + 0.5, (double)homeZ + 0.5, homeSpeed);
                 } else {
                     Vec3 path = null;
                     for (int l = 0; l < 16 && path == null; ++l) {
-                        path = RandomPositionGenerator.findRandomTargetBlockTowards(this, 8, 7, Vec3.createVectorHelper(homeX, homeY, homeZ));
+                        path = RandomPositionGenerator.findRandomTargetBlockTowards((EntityCreature)this, (int)8, (int)7, (Vec3)Vec3.createVectorHelper((double)homeX, (double)homeY, (double)homeZ));
                     }
                     if (path != null) {
                         this.getNavigator().tryMoveToXYZ(path.xCoord, path.yCoord, path.zCoord, homeSpeed);
@@ -522,10 +687,10 @@ LOTRRandomSkinEntity {
                 this.setHomeArea(homeX, homeY, homeZ, homeRange);
             }
         }
-        if (this.isChilly && (this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ) >= 0.01) {
-            double d = this.posX + MathHelper.randomFloatClamp(this.rand, -0.3f, 0.3f) * this.width;
-            double d1 = this.boundingBox.minY + MathHelper.randomFloatClamp(this.rand, 0.2f, 0.7f) * this.height;
-            double d2 = this.posZ + MathHelper.randomFloatClamp(this.rand, -0.3f, 0.3f) * this.width;
+        if (this.isChilly && (speedSq = this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ) >= 0.01) {
+            double d = this.posX + (double)(MathHelper.randomFloatClamp((Random)this.rand, (float)-0.3f, (float)0.3f) * this.width);
+            double d1 = this.boundingBox.minY + (double)(MathHelper.randomFloatClamp((Random)this.rand, (float)0.2f, (float)0.7f) * this.height);
+            double d2 = this.posZ + (double)(MathHelper.randomFloatClamp((Random)this.rand, (float)-0.3f, (float)0.3f) * this.width);
             LOTRMod.proxy.spawnParticle("chill", d, d1, d2, -this.motionX * 0.5, 0.0, -this.motionZ * 0.5);
         }
     }
@@ -539,7 +704,7 @@ LOTRRandomSkinEntity {
         boolean changedAttackMode = false;
         if (!this.worldObj.isRemote) {
             boolean isRidingMountNow;
-            isRidingMountNow = this.ridingEntity instanceof EntityLiving && this.ridingEntity.isEntityAlive() && !(this.ridingEntity instanceof LOTREntityNPC);
+            boolean bl = isRidingMountNow = this.ridingEntity instanceof EntityLiving && this.ridingEntity.isEntityAlive() && !(this.ridingEntity instanceof LOTREntityNPC);
             if (this.ridingMount != isRidingMountNow) {
                 this.setRidingHorse(isRidingMountNow);
                 changedMounted = true;
@@ -548,9 +713,9 @@ LOTRRandomSkinEntity {
         if (!this.worldObj.isRemote && !this.isChild()) {
             boolean carryingSpearWithBackup;
             ItemStack weapon = this.getEquipmentInSlot(0);
-            carryingSpearWithBackup = weapon != null && weapon.getItem() instanceof LOTRItemSpear && this.npcItemsInv.getSpearBackup() != null;
+            boolean bl = carryingSpearWithBackup = weapon != null && weapon.getItem() instanceof LOTRItemSpear && this.npcItemsInv.getSpearBackup() != null;
             if (this.getAttackTarget() != null) {
-                double d = this.getDistanceSqToEntity(this.getAttackTarget());
+                double d = this.getDistanceSqToEntity((Entity)this.getAttackTarget());
                 if (d < this.getMeleeRangeSq() || carryingSpearWithBackup) {
                     if (this.currentAttackMode != AttackMode.MELEE) {
                         this.currentAttackMode = AttackMode.MELEE;
@@ -573,16 +738,16 @@ LOTRRandomSkinEntity {
             this.onAttackModeChange(this.currentAttackMode, this.ridingMount);
         }
         if (!this.worldObj.isRemote) {
-            this.prevCombatStance = this.combatCooldown > 0;
+            boolean bl = this.prevCombatStance = this.combatCooldown > 0;
             if (this.getAttackTarget() != null) {
                 this.combatCooldown = 40;
             } else if (this.combatCooldown > 0) {
                 --this.combatCooldown;
             }
-            this.combatStance = this.combatCooldown > 0;
+            boolean bl2 = this.combatStance = this.combatCooldown > 0;
             if (this.combatStance != this.prevCombatStance) {
-                int x = MathHelper.floor_double(this.posX) >> 4;
-                int z = MathHelper.floor_double(this.posZ) >> 4;
+                int x = MathHelper.floor_double((double)this.posX) >> 4;
+                int z = MathHelper.floor_double((double)this.posZ) >> 4;
                 PlayerManager playermanager = ((WorldServer)this.worldObj).getPlayerManager();
                 List players = this.worldObj.playerEntities;
                 for (Object obj : players) {
@@ -606,9 +771,9 @@ LOTRRandomSkinEntity {
     }
 
     public double getMeleeRange() {
-        double d = 4.0 + this.width * this.width;
+        double d = 4.0 + (double)(this.width * this.width);
         if (this.ridingMount) {
-            d *= MOUNT_RANGE_BONUS;
+            d *= (double)MOUNT_RANGE_BONUS;
         }
         return d;
     }
@@ -633,19 +798,19 @@ LOTRRandomSkinEntity {
         ItemStack itemstack = this.getHeldItem();
         if (itemstack != null && !((item = itemstack.getItem()) instanceof LOTRItemSpear) && !(item instanceof LOTRItemTrident) && itemstack.getItemUseAction() == EnumAction.bow) {
             EntityLivingBase target = this.getAttackTarget();
-            return target != null && this.getDistanceSqToEntity(target) < this.getMaxCombatRangeSq();
+            return target != null && this.getDistanceSqToEntity((Entity)target) < this.getMaxCombatRangeSq();
         }
         return false;
     }
 
     private void sendCombatStance(EntityPlayerMP entityplayer) {
         LOTRPacketNPCCombatStance packet = new LOTRPacketNPCCombatStance(this.getEntityId(), this.combatStance);
-        LOTRPacketHandler.networkWrapper.sendTo(packet, entityplayer);
+        LOTRPacketHandler.networkWrapper.sendTo((IMessage)packet, entityplayer);
     }
 
     public void sendIsEatingToWatchers() {
-        int x = MathHelper.floor_double(this.posX) >> 4;
-        int z = MathHelper.floor_double(this.posZ) >> 4;
+        int x = MathHelper.floor_double((double)this.posX) >> 4;
+        int z = MathHelper.floor_double((double)this.posZ) >> 4;
         PlayerManager playermanager = ((WorldServer)this.worldObj).getPlayerManager();
         List players = this.worldObj.playerEntities;
         for (Object obj : players) {
@@ -657,7 +822,7 @@ LOTRRandomSkinEntity {
 
     private void sendIsEatingPacket(EntityPlayerMP entityplayer) {
         LOTRPacketNPCIsEating packet = new LOTRPacketNPCIsEating(this.getEntityId(), this.npcItemsInv.getIsEating());
-        LOTRPacketHandler.networkWrapper.sendTo(packet, entityplayer);
+        LOTRPacketHandler.networkWrapper.sendTo((IMessage)packet, entityplayer);
     }
 
     protected void fall(float f) {
@@ -699,9 +864,9 @@ LOTRRandomSkinEntity {
             NBTTagList bonusTags = new NBTTagList();
             for (LOTRFaction f : this.killBonusFactions) {
                 String fName = f.codeName();
-                bonusTags.appendTag(new NBTTagString(fName));
+                bonusTags.appendTag((NBTBase)new NBTTagString(fName));
             }
-            nbt.setTag("BonusFactions", bonusTags);
+            nbt.setTag("BonusFactions", (NBTBase)bonusTags);
         }
         if (this.invasionID != null) {
             nbt.setString("InvasionID", this.invasionID.toString());
@@ -762,7 +927,7 @@ LOTRRandomSkinEntity {
                 this.invasionID = UUID.fromString(invID);
             }
             catch (IllegalArgumentException e) {
-                FMLLog.warning("LOTR: Error loading NPC - %s is not a valid invasion UUID", invID);
+                FMLLog.warning((String)"LOTR: Error loading NPC - %s is not a valid invasion UUID", (Object[])new Object[]{invID});
                 e.printStackTrace();
             }
         }
@@ -775,7 +940,7 @@ LOTRRandomSkinEntity {
     }
 
     public ItemStack getPickedResult(MovingObjectPosition target) {
-        int id = LOTREntities.getEntityID(this);
+        int id = LOTREntities.getEntityID((Entity)this);
         if (LOTREntities.spawnEggs.containsKey(id)) {
             return new ItemStack(LOTRMod.spawnEgg, 1, id);
         }
@@ -797,13 +962,13 @@ LOTRRandomSkinEntity {
         if (this.isDrunkard()) {
             damage += (float)this.getEntityAttribute(npcAttackDamageDrunk).getAttributeValue();
         }
-        damage += this.nearbyBannerFactor * 0.5f;
+        damage += (float)this.nearbyBannerFactor * 0.5f;
         int knockbackModifier = 0;
         if (entity instanceof EntityLivingBase) {
-            damage += EnchantmentHelper.getEnchantmentModifierLiving(this, ((EntityLivingBase)entity));
-            knockbackModifier += EnchantmentHelper.getKnockbackModifier(this, ((EntityLivingBase)entity));
+            damage += EnchantmentHelper.getEnchantmentModifierLiving((EntityLivingBase)this, (EntityLivingBase)((EntityLivingBase)entity));
+            knockbackModifier += EnchantmentHelper.getKnockbackModifier((EntityLivingBase)this, (EntityLivingBase)((EntityLivingBase)entity));
         }
-        if (flag = entity.attackEntityFrom(DamageSource.causeMobDamage(this), damage)) {
+        if (flag = entity.attackEntityFrom(DamageSource.causeMobDamage((EntityLivingBase)this), damage)) {
             int fireAspectModifier;
             if (weapon != null && entity instanceof EntityLivingBase) {
                 int weaponItemDamage = weapon.getItemDamage();
@@ -811,17 +976,17 @@ LOTRRandomSkinEntity {
                 weapon.setItemDamage(weaponItemDamage);
             }
             if (knockbackModifier > 0) {
-                entity.addVelocity(-MathHelper.sin(this.rotationYaw * 3.1415927f / 180.0f) * knockbackModifier * 0.5f, 0.1, MathHelper.cos(this.rotationYaw * 3.1415927f / 180.0f) * knockbackModifier * 0.5f);
+                entity.addVelocity((double)(-MathHelper.sin((float)(this.rotationYaw * 3.1415927f / 180.0f)) * (float)knockbackModifier * 0.5f), 0.1, (double)(MathHelper.cos((float)(this.rotationYaw * 3.1415927f / 180.0f)) * (float)knockbackModifier * 0.5f));
                 this.motionX *= 0.6;
                 this.motionZ *= 0.6;
             }
-            if ((fireAspectModifier = EnchantmentHelper.getFireAspectModifier(this)) > 0) {
+            if ((fireAspectModifier = EnchantmentHelper.getFireAspectModifier((EntityLivingBase)this)) > 0) {
                 entity.setFire(fireAspectModifier * 4);
             }
             if (entity instanceof EntityLivingBase) {
-                EnchantmentHelper.func_151384_a(((EntityLivingBase)entity), this);
+                EnchantmentHelper.func_151384_a((EntityLivingBase)((EntityLivingBase)entity), (Entity)this);
             }
-            EnchantmentHelper.func_151385_b(this, entity);
+            EnchantmentHelper.func_151385_b((EntityLivingBase)this, (Entity)entity);
         }
         return flag;
     }
@@ -843,18 +1008,17 @@ LOTRRandomSkinEntity {
         this.worldObj.spawnEntityInWorld(arrow);
     }
 
-
     protected void npcCrossbowAttack(EntityLivingBase target, float f) {
         ItemStack heldItem = this.getHeldItem();
-        float str = 1.0f + this.getDistanceToEntity(target) / 16.0f * 0.015f;
+        float str = 1.0f + this.getDistanceToEntity((Entity)target) / 16.0f * 0.015f;
         boolean poison = this.rand.nextFloat() < this.getPoisonedArrowChance();
         ItemStack boltItem = poison ? new ItemStack(LOTRMod.crossbowBoltPoisoned) : new ItemStack(LOTRMod.crossbowBolt);
-        LOTREntityCrossbowBolt bolt = new LOTREntityCrossbowBolt(this.worldObj, this, target, boltItem, str *= LOTRItemCrossbow.getCrossbowLaunchSpeedFactor(heldItem), 1.0f);
+        LOTREntityCrossbowBolt bolt = new LOTREntityCrossbowBolt(this.worldObj, (EntityLivingBase)this, target, boltItem, str *= LOTRItemCrossbow.getCrossbowLaunchSpeedFactor(heldItem), 1.0f);
         if (heldItem != null) {
             LOTRItemCrossbow.applyCrossbowModifiers(bolt, heldItem);
         }
         this.playSound("lotr:item.crossbow", 1.0f, 1.0f / (this.rand.nextFloat() * 0.4f + 0.8f));
-        this.worldObj.spawnEntityInWorld(bolt);
+        this.worldObj.spawnEntityInWorld((Entity)bolt);
     }
 
     protected float getPoisonedArrowChance() {
@@ -866,7 +1030,7 @@ LOTRRandomSkinEntity {
         this.hiredNPCInfo.onKillEntity(entity);
         if (this.lootsExtraCoins() && !this.worldObj.isRemote && entity instanceof LOTREntityNPC && ((LOTREntityNPC)entity).canDropRares() && this.rand.nextInt(2) == 0) {
             int coins = this.getRandomCoinDropAmount();
-            if ((coins = (int)(coins * MathHelper.randomFloatClamp(this.rand, 1.0f, 3.0f))) > 0) {
+            if ((coins = (int)((float)coins * MathHelper.randomFloatClamp((Random)this.rand, (float)1.0f, (float)3.0f))) > 0) {
                 entity.dropItem(LOTRMod.silverCoin, coins);
             }
         }
@@ -883,7 +1047,7 @@ LOTRRandomSkinEntity {
         }
         if (this.nearbyBannerFactor > 0) {
             int i = 12 - this.nearbyBannerFactor;
-            float f1 = f * i;
+            float f1 = f * (float)i;
             f = f1 / 12.0f;
         }
         if ((flag = super.attackEntityFrom(damagesource, f)) && damagesource.getEntity() instanceof LOTREntityNPC) {
@@ -898,7 +1062,7 @@ LOTRRandomSkinEntity {
         }
         if (flag && !this.worldObj.isRemote && this.isInvasionSpawned() && damagesource.getEntity() instanceof EntityPlayer) {
             EntityPlayer entityplayer = (EntityPlayer)damagesource.getEntity();
-            LOTREntityInvasionSpawner invasion = LOTREntityInvasionSpawner.locateInvasionNearby(this, this.invasionID);
+            LOTREntityInvasionSpawner invasion = LOTREntityInvasionSpawner.locateInvasionNearby((Entity)this, this.invasionID);
             if (invasion != null) {
                 invasion.setWatchingInvasion((EntityPlayerMP)entityplayer, true);
             }
@@ -924,7 +1088,7 @@ LOTRRandomSkinEntity {
             int coinChance = 8 - i * 2;
             if (this.rand.nextInt(coinChance = Math.max(coinChance, 1)) == 0) {
                 int coins = this.getRandomCoinDropAmount();
-                this.dropItem(LOTRMod.silverCoin, coins *= MathHelper.getRandomIntegerInRange(this.rand, 1, i + 1));
+                this.dropItem(LOTRMod.silverCoin, coins *= MathHelper.getRandomIntegerInRange((Random)this.rand, (int)1, (int)(i + 1)));
             }
             int rareChance = 50 - i * 5;
             if (this.rand.nextInt(rareChance = Math.max(rareChance, 1)) == 0) {
@@ -973,7 +1137,7 @@ LOTRRandomSkinEntity {
                 if (this.rand.nextInt(chillChance = Math.max(chillChance, 1)) == 0) {
                     int chills = 1;
                     if (i > 0) {
-                        float x = MathHelper.randomFloatClamp(this.rand, 0.0f, i * 0.667f);
+                        float x = MathHelper.randomFloatClamp((Random)this.rand, (float)0.0f, (float)((float)i * 0.667f));
                         while (x > 1.0f) {
                             x -= 1.0f;
                             ++chills;
@@ -1017,13 +1181,13 @@ LOTRRandomSkinEntity {
                     boolean dropGuaranteed;
                     ItemStack equipmentDrop = this.getEquipmentInSlot(j);
                     if (equipmentDrop == null) continue;
-                    dropGuaranteed = this.equipmentDropChances[j] >= 1.0f;
+                    boolean bl = dropGuaranteed = this.equipmentDropChances[j] >= 1.0f;
                     if (!dropGuaranteed) {
                         int chance = 20 * equipmentCount - i * 4 * equipmentCount;
                         if (this.rand.nextInt(chance = Math.max(chance, 1)) != 0) continue;
                     }
                     if (!dropGuaranteed) {
-                        int dropDamage = MathHelper.floor_double(equipmentDrop.getItem().getMaxDamage() * (0.5f + this.rand.nextFloat() * 0.25f));
+                        int dropDamage = MathHelper.floor_double((double)((float)equipmentDrop.getItem().getMaxDamage() * (0.5f + this.rand.nextFloat() * 0.25f)));
                         equipmentDrop.setItemDamage(dropDamage);
                     }
                     this.entityDropItem(equipmentDrop, 0.0f);
@@ -1035,7 +1199,7 @@ LOTRRandomSkinEntity {
 
     protected void dropChestContents(LOTRChestContents itemPool, int min, int max) {
         InventoryBasic drops = new InventoryBasic("drops", false, max * 5);
-        LOTRChestContents.fillInventory(drops, this.rand, itemPool, MathHelper.getRandomIntegerInRange(this.rand, min, max), true);
+        LOTRChestContents.fillInventory((IInventory)drops, this.rand, itemPool, MathHelper.getRandomIntegerInRange((Random)this.rand, (int)min, (int)max), true);
         for (int i = 0; i < drops.getSizeInventory(); ++i) {
             ItemStack item = drops.getStackInSlot(i);
             if (item == null) continue;
@@ -1097,6 +1261,9 @@ LOTRRandomSkinEntity {
         this.enpouchNPCDrops = false;
         this.dropItemList(this.enpouchedDrops, false);
         if (!this.worldObj.isRemote && damagesource.getEntity() instanceof EntityPlayer) {
+            LOTREntityPebble pebble;
+            float size;
+            float alignment;
             entityplayer = (EntityPlayer)damagesource.getEntity();
             if (this.hurtOnlyByPlates && damagesource.getSourceOfDamage() instanceof LOTREntityPlate) {
                 if (LOTRLevelData.getData(entityplayer).getAlignment(this.getFaction()) < 0.0f) {
@@ -1104,7 +1271,7 @@ LOTRRandomSkinEntity {
                 }
                 LOTRLevelData.getData(entityplayer).addAchievement(LOTRAchievement.killUsingOnlyPlates);
             }
-            if (damagesource.getSourceOfDamage() instanceof LOTREntityPebble && ((LOTREntityPebble)damagesource.getSourceOfDamage()).isSling() && (this.width * this.width * this.height) > 5.0f && (LOTRLevelData.getData(entityplayer).getAlignment(this.getFaction())) < 0.0f) {
+            if (damagesource.getSourceOfDamage() instanceof LOTREntityPebble && (pebble = (LOTREntityPebble)damagesource.getSourceOfDamage()).isSling() && (size = this.width * this.width * this.height) > 5.0f && (alignment = LOTRLevelData.getData(entityplayer).getAlignment(this.getFaction())) < 0.0f) {
                 LOTRLevelData.getData(entityplayer).addAchievement(LOTRAchievement.killLargeMobWithSlingshot);
             }
             if (this instanceof LOTREntityOrc) {
@@ -1119,13 +1286,13 @@ LOTRRandomSkinEntity {
         }
         if (!this.worldObj.isRemote && (this instanceof LOTRTradeable || this instanceof LOTRUnitTradeable) && this.shouldTraderRespawn) {
             LOTREntityTraderRespawn entity = new LOTREntityTraderRespawn(this.worldObj);
-            entity.setLocationAndAngles(this.posX, this.boundingBox.minY + this.height / 2.0f, this.posZ, 0.0f, 0.0f);
+            entity.setLocationAndAngles(this.posX, this.boundingBox.minY + (double)(this.height / 2.0f), this.posZ, 0.0f, 0.0f);
             entity.copyTraderDataFrom(this);
-            this.worldObj.spawnEntityInWorld(entity);
+            this.worldObj.spawnEntityInWorld((Entity)entity);
             entity.onSpawn();
         }
         this.questInfo.onDeath();
-        if (!this.worldObj.isRemote && this.isInvasionSpawned() && (entityplayer = LOTRMod.getDamagingPlayerIncludingUnits(damagesource)) != null && (invasion = LOTREntityInvasionSpawner.locateInvasionNearby(this, this.invasionID)) != null) {
+        if (!this.worldObj.isRemote && this.isInvasionSpawned() && (entityplayer = LOTRMod.getDamagingPlayerIncludingUnits(damagesource)) != null && (invasion = LOTREntityInvasionSpawner.locateInvasionNearby((Entity)this, this.invasionID)) != null) {
             invasion.addPlayerKill(entityplayer);
             if (damagesource.getEntity() == entityplayer) {
                 invasion.setWatchingInvasion((EntityPlayerMP)entityplayer, true);
@@ -1143,7 +1310,7 @@ LOTRRandomSkinEntity {
     }
 
     public void fillPouchFromListAndRetainUnfilled(ItemStack pouch, List<ItemStack> items) {
-        ArrayList<ItemStack> pouchContents = new ArrayList<>();
+        ArrayList<ItemStack> pouchContents = new ArrayList<ItemStack>();
         while (!items.isEmpty()) {
             pouchContents.add(items.remove(0));
             if (pouchContents.size() < LOTRItemPouch.getCapacity(pouch)) continue;
@@ -1207,9 +1374,9 @@ LOTRRandomSkinEntity {
 
     private boolean isValidLightLevelForDarkSpawn() {
         BiomeGenBase biome;
-        int i = MathHelper.floor_double(this.posX);
-        int j = MathHelper.floor_double(this.boundingBox.minY);
-        int k = MathHelper.floor_double(this.posZ);
+        int i = MathHelper.floor_double((double)this.posX);
+        int j = MathHelper.floor_double((double)this.boundingBox.minY);
+        int k = MathHelper.floor_double((double)this.posZ);
         if (this.spawnsInDarkness && (biome = this.worldObj.getBiomeGenForCoords(i, k)) instanceof LOTRBiome && ((LOTRBiome)biome).canSpawnHostilesInDay()) {
             return true;
         }
@@ -1237,7 +1404,7 @@ LOTRRandomSkinEntity {
     public boolean getCanSpawnHere() {
         if ((!this.spawnsInDarkness || this.liftSpawnRestrictions || this.isConquestSpawning && this.conquestSpawnIgnoresDarkness() || this.isValidLightLevelForDarkSpawn()) && super.getCanSpawnHere()) {
             if (!this.liftBannerRestrictions) {
-                if (LOTRBannerProtection.isProtected(this.worldObj, this, LOTRBannerProtection.forNPC(this), false)) {
+                if (LOTRBannerProtection.isProtected(this.worldObj, (Entity)this, LOTRBannerProtection.forNPC((EntityLiving)this), false)) {
                     return false;
                 }
                 if (!this.isConquestSpawning && LOTREntityNPCRespawner.isSpawnBlocked(this)) {
@@ -1254,7 +1421,7 @@ LOTRRandomSkinEntity {
             return 0;
         }
         int multiplier = 1;
-        BiomeGenBase biome = this.worldObj.getBiomeGenForCoords(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.posZ));
+        BiomeGenBase biome = this.worldObj.getBiomeGenForCoords(MathHelper.floor_double((double)this.posX), MathHelper.floor_double((double)this.posZ));
         if (biome instanceof LOTRBiome) {
             multiplier = ((LOTRBiome)biome).spawnCountMultiplier();
         }
@@ -1281,7 +1448,7 @@ LOTRRandomSkinEntity {
         String location = null;
         String objective = null;
         if (this.npcLocationName != null) {
-            location = !this.hasSpecificLocationName ? StatCollector.translateToLocalFormatted(this.npcLocationName, this.getNPCName()) : this.npcLocationName;
+            location = !this.hasSpecificLocationName ? StatCollector.translateToLocalFormatted((String)this.npcLocationName, (Object[])new Object[]{this.getNPCName()}) : this.npcLocationName;
         }
         if (miniquest != null) {
             objective = miniquest.getProgressedObjectiveInSpeech();
@@ -1369,7 +1536,7 @@ LOTRRandomSkinEntity {
 
     public float getDrunkenSpeechFactor() {
         if (this.rand.nextInt(3) == 0) {
-            return MathHelper.randomFloatClamp(this.rand, 0.0f, 0.3f);
+            return MathHelper.randomFloatClamp((Random)this.rand, (float)0.0f, (float)0.3f);
         }
         return 0.0f;
     }
@@ -1409,7 +1576,7 @@ LOTRRandomSkinEntity {
     }
 
     private void updateNearbyBanners() {
-        if (this.getFaction() == LOTRFaction.UNALIGNED) {
+        if (this.getFaction() == LOTRFaction.UNALIGNED || this instanceof LOTRBannerBearer) {
             this.nearbyBannerFactor = 0;
         } else {
             double range = 16.0;
@@ -1417,7 +1584,7 @@ LOTRRandomSkinEntity {
 
                 public boolean isEntityApplicable(Entity entity) {
                     EntityLivingBase living = (EntityLivingBase)entity;
-                    return living != LOTREntityNPC.this && living.isEntityAlive() && LOTRMod.getNPCFaction(living) == LOTREntityNPC.this.getFaction();
+                    return living != LOTREntityNPC.this && living.isEntityAlive() && LOTRMod.getNPCFaction((Entity)living) == LOTREntityNPC.this.getFaction();
                 }
             });
             this.nearbyBannerFactor = Math.min(bannerBearers.size(), 5);
@@ -1427,7 +1594,7 @@ LOTRRandomSkinEntity {
     public final ItemStack getEquipmentInSlot(int i) {
         if (this.worldObj.isRemote) {
             if (!this.initFestiveItems) {
-                this.festiveRand.setSeed(this.getEntityId() * 341873128712L);
+                this.festiveRand.setSeed((long)this.getEntityId() * 341873128712L);
                 if (LOTRMod.isHalloween()) {
                     if (this.festiveRand.nextInt(3) == 0) {
                         this.festiveItems[4] = this.festiveRand.nextInt(10) == 0 ? new ItemStack(Blocks.lit_pumpkin) : new ItemStack(Blocks.pumpkin);
@@ -1483,13 +1650,13 @@ LOTRRandomSkinEntity {
     public void spawnHearts() {
         if (!this.worldObj.isRemote) {
             LOTRPacketNPCFX packet = new LOTRPacketNPCFX(this.getEntityId(), LOTRPacketNPCFX.FXType.HEARTS);
-            LOTRPacketHandler.networkWrapper.sendToAllAround(packet, LOTRPacketHandler.nearEntity(this, 32.0));
+            LOTRPacketHandler.networkWrapper.sendToAllAround((IMessage)packet, LOTRPacketHandler.nearEntity((Entity)this, 32.0));
         } else {
             for (int i = 0; i < 8; ++i) {
                 double d = this.rand.nextGaussian() * 0.02;
                 double d1 = this.rand.nextGaussian() * 0.02;
                 double d2 = this.rand.nextGaussian() * 0.02;
-                this.worldObj.spawnParticle("heart", this.posX + this.rand.nextFloat() * this.width * 2.0f - this.width, this.posY + 0.5 + this.rand.nextFloat() * this.height, this.posZ + this.rand.nextFloat() * this.width * 2.0f - this.width, d, d1, d2);
+                this.worldObj.spawnParticle("heart", this.posX + (double)(this.rand.nextFloat() * this.width * 2.0f) - (double)this.width, this.posY + 0.5 + (double)(this.rand.nextFloat() * this.height), this.posZ + (double)(this.rand.nextFloat() * this.width * 2.0f) - (double)this.width, d, d1, d2);
             }
         }
     }
@@ -1497,13 +1664,13 @@ LOTRRandomSkinEntity {
     public void spawnSmokes() {
         if (!this.worldObj.isRemote) {
             LOTRPacketNPCFX packet = new LOTRPacketNPCFX(this.getEntityId(), LOTRPacketNPCFX.FXType.SMOKE);
-            LOTRPacketHandler.networkWrapper.sendToAllAround(packet, LOTRPacketHandler.nearEntity(this, 32.0));
+            LOTRPacketHandler.networkWrapper.sendToAllAround((IMessage)packet, LOTRPacketHandler.nearEntity((Entity)this, 32.0));
         } else {
             for (int i = 0; i < 8; ++i) {
                 double d = this.rand.nextGaussian() * 0.02;
                 double d1 = this.rand.nextGaussian() * 0.02;
                 double d2 = this.rand.nextGaussian() * 0.02;
-                this.worldObj.spawnParticle("smoke", this.posX + this.rand.nextFloat() * this.width * 2.0f - this.width, this.posY + 0.5 + this.rand.nextFloat() * this.height, this.posZ + this.rand.nextFloat() * this.width * 2.0f - this.width, d, d1, d2);
+                this.worldObj.spawnParticle("smoke", this.posX + (double)(this.rand.nextFloat() * this.width * 2.0f) - (double)this.width, this.posY + 0.5 + (double)(this.rand.nextFloat() * this.height), this.posZ + (double)(this.rand.nextFloat() * this.width * 2.0f) - (double)this.width, d, d1, d2);
             }
         }
     }
@@ -1514,24 +1681,24 @@ LOTRRandomSkinEntity {
         }
         if (!this.worldObj.isRemote) {
             LOTRPacketNPCFX packet = new LOTRPacketNPCFX(this.getEntityId(), LOTRPacketNPCFX.FXType.EATING);
-            LOTRPacketHandler.networkWrapper.sendToAllAround(packet, LOTRPacketHandler.nearEntity(this, 32.0));
+            LOTRPacketHandler.networkWrapper.sendToAllAround((IMessage)packet, LOTRPacketHandler.nearEntity((Entity)this, 32.0));
         } else {
             for (int i = 0; i < 5; ++i) {
-                Vec3 vec1 = Vec3.createVectorHelper((this.rand.nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0);
+                Vec3 vec1 = Vec3.createVectorHelper((double)(((double)this.rand.nextFloat() - 0.5) * 0.1), (double)(Math.random() * 0.1 + 0.1), (double)0.0);
                 vec1.rotateAroundX(-this.rotationPitch * 3.1415927f / 180.0f);
                 vec1.rotateAroundY(-this.rotationYaw * 3.1415927f / 180.0f);
-                Vec3 vec2 = Vec3.createVectorHelper((this.rand.nextFloat() - 0.5) * 0.3, (-this.rand.nextFloat()) * 0.6 - 0.3, 0.6);
+                Vec3 vec2 = Vec3.createVectorHelper((double)(((double)this.rand.nextFloat() - 0.5) * 0.3), (double)((double)(-this.rand.nextFloat()) * 0.6 - 0.3), (double)0.6);
                 vec2.rotateAroundX(-this.rotationPitch * 3.1415927f / 180.0f);
                 vec2.rotateAroundY(-this.rotationYaw * 3.1415927f / 180.0f);
-                vec2 = vec2.addVector(this.posX, this.posY + this.getEyeHeight(), this.posZ);
-                this.worldObj.spawnParticle("iconcrack_" + Item.getIdFromItem(this.getHeldItem().getItem()), vec2.xCoord, vec2.yCoord, vec2.zCoord, vec1.xCoord, vec1.yCoord + 0.05, vec1.zCoord);
+                vec2 = vec2.addVector(this.posX, this.posY + (double)this.getEyeHeight(), this.posZ);
+                this.worldObj.spawnParticle("iconcrack_" + Item.getIdFromItem((Item)this.getHeldItem().getItem()), vec2.xCoord, vec2.yCoord, vec2.zCoord, vec1.xCoord, vec1.yCoord + 0.05, vec1.zCoord);
             }
         }
     }
 
     public ItemStack getHeldItemLeft() {
         if (this instanceof LOTRBannerBearer) {
-            LOTRBannerBearer bannerBearer = (LOTRBannerBearer)(this);
+            LOTRBannerBearer bannerBearer = (LOTRBannerBearer)((Object)this);
             return new ItemStack(LOTRMod.banner, 1, bannerBearer.getBannerType().bannerID);
         }
         if (this.isTrader()) {
@@ -1564,7 +1731,7 @@ LOTRRandomSkinEntity {
         this.invasionID = id;
     }
 
-    protected enum AttackMode {
+    protected static enum AttackMode {
         MELEE,
         RANGED,
         IDLE;

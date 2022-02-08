@@ -1,27 +1,610 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  cpw.mods.fml.common.FMLCommonHandler
+ *  cpw.mods.fml.common.Mod
+ *  cpw.mods.fml.common.Mod$EventHandler
+ *  cpw.mods.fml.common.Mod$Instance
+ *  cpw.mods.fml.common.ModContainer
+ *  cpw.mods.fml.common.SidedProxy
+ *  cpw.mods.fml.common.event.FMLInitializationEvent
+ *  cpw.mods.fml.common.event.FMLMissingMappingsEvent
+ *  cpw.mods.fml.common.event.FMLMissingMappingsEvent$MissingMapping
+ *  cpw.mods.fml.common.event.FMLPostInitializationEvent
+ *  cpw.mods.fml.common.event.FMLPreInitializationEvent
+ *  cpw.mods.fml.common.event.FMLServerStartingEvent
+ *  cpw.mods.fml.common.network.IGuiHandler
+ *  cpw.mods.fml.common.network.NetworkRegistry
+ *  cpw.mods.fml.common.registry.GameRegistry
+ *  cpw.mods.fml.common.registry.GameRegistry$Type
+ *  net.minecraft.block.Block
+ *  net.minecraft.block.Block$SoundType
+ *  net.minecraft.block.BlockChest
+ *  net.minecraft.block.BlockFire
+ *  net.minecraft.block.BlockLeaves
+ *  net.minecraft.block.BlockPressurePlate
+ *  net.minecraft.block.BlockPressurePlate$Sensitivity
+ *  net.minecraft.block.BlockSapling
+ *  net.minecraft.block.BlockWeb
+ *  net.minecraft.block.material.Material
+ *  net.minecraft.command.CommandTime
+ *  net.minecraft.command.ICommand
+ *  net.minecraft.command.IEntitySelector
+ *  net.minecraft.command.server.CommandMessage
+ *  net.minecraft.creativetab.CreativeTabs
+ *  net.minecraft.entity.Entity
+ *  net.minecraft.entity.EntityCreature
+ *  net.minecraft.entity.EntityList
+ *  net.minecraft.entity.EntityLiving
+ *  net.minecraft.entity.EntityLivingBase
+ *  net.minecraft.entity.item.EntityItem
+ *  net.minecraft.entity.player.EntityPlayer
+ *  net.minecraft.entity.player.PlayerCapabilities
+ *  net.minecraft.init.Blocks
+ *  net.minecraft.init.Items
+ *  net.minecraft.inventory.IInventory
+ *  net.minecraft.item.Item
+ *  net.minecraft.item.Item$ToolMaterial
+ *  net.minecraft.item.ItemArmor
+ *  net.minecraft.item.ItemArmor$ArmorMaterial
+ *  net.minecraft.item.ItemBlock
+ *  net.minecraft.item.ItemFood
+ *  net.minecraft.item.ItemLeaves
+ *  net.minecraft.item.ItemPotion
+ *  net.minecraft.item.ItemSeedFood
+ *  net.minecraft.item.ItemStack
+ *  net.minecraft.nbt.NBTBase
+ *  net.minecraft.nbt.NBTTagCompound
+ *  net.minecraft.potion.Potion
+ *  net.minecraft.server.MinecraftServer
+ *  net.minecraft.server.management.ServerConfigurationManager
+ *  net.minecraft.util.DamageSource
+ *  net.minecraft.util.EnumChatFormatting
+ *  net.minecraft.util.RegistryNamespaced
+ *  net.minecraft.world.GameRules
+ *  net.minecraft.world.IBlockAccess
+ *  net.minecraft.world.Teleporter
+ *  net.minecraft.world.World
+ *  net.minecraft.world.WorldServer
+ *  net.minecraft.world.WorldType
+ *  net.minecraft.world.biome.BiomeGenBase
+ *  net.minecraft.world.chunk.Chunk
+ *  net.minecraft.world.chunk.IChunkProvider
+ *  net.minecraftforge.common.DimensionManager
+ *  net.minecraftforge.oredict.OreDictionary
+ */
 package lotr.common;
 
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.SidedProxy;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLMissingMappingsEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.network.IGuiHandler;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.registry.GameRegistry;
 import java.awt.Color;
 import java.lang.reflect.Field;
-import java.util.*;
-
-import cpw.mods.fml.common.*;
-import cpw.mods.fml.common.event.*;
-import cpw.mods.fml.common.event.FMLMissingMappingsEvent.MissingMapping;
-import cpw.mods.fml.common.network.*;
-import cpw.mods.fml.common.registry.GameRegistry;
-import lotr.common.block.*;
-import lotr.common.command.*;
-import lotr.common.enchant.*;
-import lotr.common.entity.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+import lotr.common.LOTRAchievement;
+import lotr.common.LOTRChatEvents;
+import lotr.common.LOTRCommonProxy;
+import lotr.common.LOTRConfig;
+import lotr.common.LOTRCreativeTabs;
+import lotr.common.LOTRDimension;
+import lotr.common.LOTREventHandler;
+import lotr.common.LOTRGuiMessageTypes;
+import lotr.common.LOTRLevelData;
+import lotr.common.LOTRLore;
+import lotr.common.LOTRPlayerData;
+import lotr.common.LOTRPotionChanges;
+import lotr.common.LOTRReflection;
+import lotr.common.LOTRShields;
+import lotr.common.LOTRTickHandlerServer;
+import lotr.common.LOTRTitle;
+import lotr.common.block.LOTRBlockAleHorn;
+import lotr.common.block.LOTRBlockAlloyForge;
+import lotr.common.block.LOTRBlockAngmarTable;
+import lotr.common.block.LOTRBlockArmorStand;
+import lotr.common.block.LOTRBlockBanana;
+import lotr.common.block.LOTRBlockBarrel;
+import lotr.common.block.LOTRBlockBars;
+import lotr.common.block.LOTRBlockBeacon;
+import lotr.common.block.LOTRBlockBed;
+import lotr.common.block.LOTRBlockBerryBush;
+import lotr.common.block.LOTRBlockBirdCage;
+import lotr.common.block.LOTRBlockBirdCageWood;
+import lotr.common.block.LOTRBlockBlackroot;
+import lotr.common.block.LOTRBlockBlueDwarvenTable;
+import lotr.common.block.LOTRBlockBone;
+import lotr.common.block.LOTRBlockBookshelfStorage;
+import lotr.common.block.LOTRBlockBreeTable;
+import lotr.common.block.LOTRBlockBrick;
+import lotr.common.block.LOTRBlockBrick2;
+import lotr.common.block.LOTRBlockBrick3;
+import lotr.common.block.LOTRBlockBrick4;
+import lotr.common.block.LOTRBlockBrick5;
+import lotr.common.block.LOTRBlockBrick6;
+import lotr.common.block.LOTRBlockButterflyJar;
+import lotr.common.block.LOTRBlockButton;
+import lotr.common.block.LOTRBlockChandelier;
+import lotr.common.block.LOTRBlockChest;
+import lotr.common.block.LOTRBlockClayMug;
+import lotr.common.block.LOTRBlockClayTile;
+import lotr.common.block.LOTRBlockClayTileDyed;
+import lotr.common.block.LOTRBlockClover;
+import lotr.common.block.LOTRBlockCobblebrick;
+import lotr.common.block.LOTRBlockCommandTable;
+import lotr.common.block.LOTRBlockCoralReef;
+import lotr.common.block.LOTRBlockCorn;
+import lotr.common.block.LOTRBlockCorruptMallorn;
+import lotr.common.block.LOTRBlockDaleTable;
+import lotr.common.block.LOTRBlockDartTrap;
+import lotr.common.block.LOTRBlockDate;
+import lotr.common.block.LOTRBlockDaub;
+import lotr.common.block.LOTRBlockDeadPlant;
+import lotr.common.block.LOTRBlockDirtPath;
+import lotr.common.block.LOTRBlockDolAmrothTable;
+import lotr.common.block.LOTRBlockDolGuldurTable;
+import lotr.common.block.LOTRBlockDoor;
+import lotr.common.block.LOTRBlockDorwinionTable;
+import lotr.common.block.LOTRBlockDoubleFlower;
+import lotr.common.block.LOTRBlockDoubleTorch;
+import lotr.common.block.LOTRBlockDunlendingTable;
+import lotr.common.block.LOTRBlockDwarvenForge;
+import lotr.common.block.LOTRBlockDwarvenTable;
+import lotr.common.block.LOTRBlockElvenForge;
+import lotr.common.block.LOTRBlockElvenPortal;
+import lotr.common.block.LOTRBlockElvenTable;
+import lotr.common.block.LOTRBlockElvenTorch;
+import lotr.common.block.LOTRBlockEntJar;
+import lotr.common.block.LOTRBlockFallenLeaves;
+import lotr.common.block.LOTRBlockFangornPlant;
+import lotr.common.block.LOTRBlockFangornRiverweed;
+import lotr.common.block.LOTRBlockFence;
+import lotr.common.block.LOTRBlockFenceGate;
+import lotr.common.block.LOTRBlockFenceVanilla;
+import lotr.common.block.LOTRBlockFlaxCrop;
+import lotr.common.block.LOTRBlockFlower;
+import lotr.common.block.LOTRBlockFlowerPot;
+import lotr.common.block.LOTRBlockFruitLeaves;
+import lotr.common.block.LOTRBlockFruitSapling;
+import lotr.common.block.LOTRBlockFruitWood;
+import lotr.common.block.LOTRBlockGate;
+import lotr.common.block.LOTRBlockGateDwarven;
+import lotr.common.block.LOTRBlockGateDwarvenIthildin;
+import lotr.common.block.LOTRBlockGemStorage;
+import lotr.common.block.LOTRBlockGlass;
+import lotr.common.block.LOTRBlockGlassBottle;
+import lotr.common.block.LOTRBlockGlassPane;
+import lotr.common.block.LOTRBlockGoblet;
+import lotr.common.block.LOTRBlockGondorianTable;
+import lotr.common.block.LOTRBlockGoran;
+import lotr.common.block.LOTRBlockGrapevine;
+import lotr.common.block.LOTRBlockGrapevineRed;
+import lotr.common.block.LOTRBlockGrapevineWhite;
+import lotr.common.block.LOTRBlockGrass;
+import lotr.common.block.LOTRBlockGravel;
+import lotr.common.block.LOTRBlockGuldurilBrick;
+import lotr.common.block.LOTRBlockGulfTable;
+import lotr.common.block.LOTRBlockGundabadTable;
+import lotr.common.block.LOTRBlockHalfTrollTable;
+import lotr.common.block.LOTRBlockHaradFlower;
+import lotr.common.block.LOTRBlockHearth;
+import lotr.common.block.LOTRBlockHighElvenTable;
+import lotr.common.block.LOTRBlockHithlainRope;
+import lotr.common.block.LOTRBlockHobbitOven;
+import lotr.common.block.LOTRBlockHobbitTable;
+import lotr.common.block.LOTRBlockKebab;
+import lotr.common.block.LOTRBlockKebabStand;
+import lotr.common.block.LOTRBlockLadder;
+import lotr.common.block.LOTRBlockLeaves;
+import lotr.common.block.LOTRBlockLeaves2;
+import lotr.common.block.LOTRBlockLeaves3;
+import lotr.common.block.LOTRBlockLeaves4;
+import lotr.common.block.LOTRBlockLeaves5;
+import lotr.common.block.LOTRBlockLeaves6;
+import lotr.common.block.LOTRBlockLeaves7;
+import lotr.common.block.LOTRBlockLeaves8;
+import lotr.common.block.LOTRBlockLeaves9;
+import lotr.common.block.LOTRBlockLeavesBase;
+import lotr.common.block.LOTRBlockLeavesVanilla1;
+import lotr.common.block.LOTRBlockLeavesVanilla2;
+import lotr.common.block.LOTRBlockLeekCrop;
+import lotr.common.block.LOTRBlockLettuceCrop;
+import lotr.common.block.LOTRBlockMallornTorch;
+import lotr.common.block.LOTRBlockMarshLights;
+import lotr.common.block.LOTRBlockMechanisedRail;
+import lotr.common.block.LOTRBlockMillstone;
+import lotr.common.block.LOTRBlockMobSpawner;
+import lotr.common.block.LOTRBlockMordorDirt;
+import lotr.common.block.LOTRBlockMordorGrass;
+import lotr.common.block.LOTRBlockMordorMoss;
+import lotr.common.block.LOTRBlockMordorThorn;
+import lotr.common.block.LOTRBlockMoredainTable;
+import lotr.common.block.LOTRBlockMorgulFlower;
+import lotr.common.block.LOTRBlockMorgulPortal;
+import lotr.common.block.LOTRBlockMorgulShroom;
+import lotr.common.block.LOTRBlockMorgulTable;
+import lotr.common.block.LOTRBlockMorgulTorch;
+import lotr.common.block.LOTRBlockMud;
+import lotr.common.block.LOTRBlockMudFarmland;
+import lotr.common.block.LOTRBlockMudGrass;
+import lotr.common.block.LOTRBlockMug;
+import lotr.common.block.LOTRBlockNearHaradTable;
+import lotr.common.block.LOTRBlockObsidianGravel;
+import lotr.common.block.LOTRBlockOrcBomb;
+import lotr.common.block.LOTRBlockOrcChain;
+import lotr.common.block.LOTRBlockOrcForge;
+import lotr.common.block.LOTRBlockOrcPlating;
+import lotr.common.block.LOTRBlockOre;
+import lotr.common.block.LOTRBlockOreGem;
+import lotr.common.block.LOTRBlockOreMordorVariant;
+import lotr.common.block.LOTRBlockOreStorage;
+import lotr.common.block.LOTRBlockOreStorage2;
+import lotr.common.block.LOTRBlockPillar;
+import lotr.common.block.LOTRBlockPillar2;
+import lotr.common.block.LOTRBlockPillar3;
+import lotr.common.block.LOTRBlockPipeweedCrop;
+import lotr.common.block.LOTRBlockPipeweedPlant;
+import lotr.common.block.LOTRBlockPlaceableFood;
+import lotr.common.block.LOTRBlockPlanks;
+import lotr.common.block.LOTRBlockPlanks2;
+import lotr.common.block.LOTRBlockPlanks3;
+import lotr.common.block.LOTRBlockPlanksBase;
+import lotr.common.block.LOTRBlockPlanksRotten;
+import lotr.common.block.LOTRBlockPlate;
+import lotr.common.block.LOTRBlockPressurePlate;
+import lotr.common.block.LOTRBlockQuagmire;
+import lotr.common.block.LOTRBlockQuenditeGrass;
+import lotr.common.block.LOTRBlockRangerTable;
+import lotr.common.block.LOTRBlockRedBrick;
+import lotr.common.block.LOTRBlockRedClay;
+import lotr.common.block.LOTRBlockReed;
+import lotr.common.block.LOTRBlockReedBars;
+import lotr.common.block.LOTRBlockReedDry;
+import lotr.common.block.LOTRBlockRemains;
+import lotr.common.block.LOTRBlockReplacement;
+import lotr.common.block.LOTRBlockRhunFire;
+import lotr.common.block.LOTRBlockRhunFireJar;
+import lotr.common.block.LOTRBlockRhunFlower;
+import lotr.common.block.LOTRBlockRhunTable;
+import lotr.common.block.LOTRBlockRivendellTable;
+import lotr.common.block.LOTRBlockRock;
+import lotr.common.block.LOTRBlockRohirricTable;
+import lotr.common.block.LOTRBlockRope;
+import lotr.common.block.LOTRBlockRottenLog;
+import lotr.common.block.LOTRBlockRottenSlab;
+import lotr.common.block.LOTRBlockSand;
+import lotr.common.block.LOTRBlockSandstone;
+import lotr.common.block.LOTRBlockSapling;
+import lotr.common.block.LOTRBlockSapling2;
+import lotr.common.block.LOTRBlockSapling3;
+import lotr.common.block.LOTRBlockSapling4;
+import lotr.common.block.LOTRBlockSapling5;
+import lotr.common.block.LOTRBlockSapling6;
+import lotr.common.block.LOTRBlockSapling7;
+import lotr.common.block.LOTRBlockSapling8;
+import lotr.common.block.LOTRBlockSapling9;
+import lotr.common.block.LOTRBlockSaplingBase;
+import lotr.common.block.LOTRBlockScorchedSlab;
+import lotr.common.block.LOTRBlockScorchedStone;
+import lotr.common.block.LOTRBlockScorchedWall;
+import lotr.common.block.LOTRBlockSignCarved;
+import lotr.common.block.LOTRBlockSkullCup;
+import lotr.common.block.LOTRBlockSlab;
+import lotr.common.block.LOTRBlockSlab10;
+import lotr.common.block.LOTRBlockSlab11;
+import lotr.common.block.LOTRBlockSlab12;
+import lotr.common.block.LOTRBlockSlab13;
+import lotr.common.block.LOTRBlockSlab14;
+import lotr.common.block.LOTRBlockSlab2;
+import lotr.common.block.LOTRBlockSlab3;
+import lotr.common.block.LOTRBlockSlab4;
+import lotr.common.block.LOTRBlockSlab5;
+import lotr.common.block.LOTRBlockSlab6;
+import lotr.common.block.LOTRBlockSlab7;
+import lotr.common.block.LOTRBlockSlab8;
+import lotr.common.block.LOTRBlockSlab9;
+import lotr.common.block.LOTRBlockSlabBase;
+import lotr.common.block.LOTRBlockSlabBone;
+import lotr.common.block.LOTRBlockSlabClayTile;
+import lotr.common.block.LOTRBlockSlabClayTileDyed;
+import lotr.common.block.LOTRBlockSlabClayTileDyed2;
+import lotr.common.block.LOTRBlockSlabDirt;
+import lotr.common.block.LOTRBlockSlabGravel;
+import lotr.common.block.LOTRBlockSlabSand;
+import lotr.common.block.LOTRBlockSlabThatch;
+import lotr.common.block.LOTRBlockSlabV;
+import lotr.common.block.LOTRBlockSmoothStone;
+import lotr.common.block.LOTRBlockSmoothStoneV;
+import lotr.common.block.LOTRBlockSpawnerChest;
+import lotr.common.block.LOTRBlockStainedGlass;
+import lotr.common.block.LOTRBlockStainedGlassPane;
+import lotr.common.block.LOTRBlockStairs;
+import lotr.common.block.LOTRBlockStalactite;
+import lotr.common.block.LOTRBlockTallGrass;
+import lotr.common.block.LOTRBlockTauredainTable;
+import lotr.common.block.LOTRBlockTermite;
+import lotr.common.block.LOTRBlockThatch;
+import lotr.common.block.LOTRBlockThatchFloor;
+import lotr.common.block.LOTRBlockTrapdoor;
+import lotr.common.block.LOTRBlockTreasurePile;
+import lotr.common.block.LOTRBlockTrollTotem;
+import lotr.common.block.LOTRBlockTurnipCrop;
+import lotr.common.block.LOTRBlockUmbarTable;
+import lotr.common.block.LOTRBlockUnsmeltery;
+import lotr.common.block.LOTRBlockUrukTable;
+import lotr.common.block.LOTRBlockUtumnoBrick;
+import lotr.common.block.LOTRBlockUtumnoBrickEntrance;
+import lotr.common.block.LOTRBlockUtumnoPillar;
+import lotr.common.block.LOTRBlockUtumnoPortal;
+import lotr.common.block.LOTRBlockUtumnoReturnLight;
+import lotr.common.block.LOTRBlockUtumnoReturnPortal;
+import lotr.common.block.LOTRBlockUtumnoReturnPortalBase;
+import lotr.common.block.LOTRBlockUtumnoSlab;
+import lotr.common.block.LOTRBlockUtumnoSlab2;
+import lotr.common.block.LOTRBlockUtumnoStairs;
+import lotr.common.block.LOTRBlockUtumnoWall;
+import lotr.common.block.LOTRBlockVine;
+import lotr.common.block.LOTRBlockWall;
+import lotr.common.block.LOTRBlockWall2;
+import lotr.common.block.LOTRBlockWall3;
+import lotr.common.block.LOTRBlockWall4;
+import lotr.common.block.LOTRBlockWall5;
+import lotr.common.block.LOTRBlockWallBone;
+import lotr.common.block.LOTRBlockWallClayTile;
+import lotr.common.block.LOTRBlockWallClayTileDyed;
+import lotr.common.block.LOTRBlockWallV;
+import lotr.common.block.LOTRBlockWaste;
+import lotr.common.block.LOTRBlockWeaponRack;
+import lotr.common.block.LOTRBlockWineGlass;
+import lotr.common.block.LOTRBlockWood;
+import lotr.common.block.LOTRBlockWood2;
+import lotr.common.block.LOTRBlockWood3;
+import lotr.common.block.LOTRBlockWood4;
+import lotr.common.block.LOTRBlockWood5;
+import lotr.common.block.LOTRBlockWood6;
+import lotr.common.block.LOTRBlockWood7;
+import lotr.common.block.LOTRBlockWood8;
+import lotr.common.block.LOTRBlockWood9;
+import lotr.common.block.LOTRBlockWoodBars;
+import lotr.common.block.LOTRBlockWoodBase;
+import lotr.common.block.LOTRBlockWoodBeam;
+import lotr.common.block.LOTRBlockWoodBeam1;
+import lotr.common.block.LOTRBlockWoodBeam2;
+import lotr.common.block.LOTRBlockWoodBeam3;
+import lotr.common.block.LOTRBlockWoodBeam4;
+import lotr.common.block.LOTRBlockWoodBeam5;
+import lotr.common.block.LOTRBlockWoodBeam6;
+import lotr.common.block.LOTRBlockWoodBeam7;
+import lotr.common.block.LOTRBlockWoodBeam8;
+import lotr.common.block.LOTRBlockWoodBeam9;
+import lotr.common.block.LOTRBlockWoodBeamFruit;
+import lotr.common.block.LOTRBlockWoodBeamRotten;
+import lotr.common.block.LOTRBlockWoodBeamS;
+import lotr.common.block.LOTRBlockWoodBeamV1;
+import lotr.common.block.LOTRBlockWoodBeamV2;
+import lotr.common.block.LOTRBlockWoodElvenTable;
+import lotr.common.block.LOTRBlockWoodElvenTorch;
+import lotr.common.block.LOTRBlockWoodSlab;
+import lotr.common.block.LOTRBlockWoodSlab2;
+import lotr.common.block.LOTRBlockWoodSlab3;
+import lotr.common.block.LOTRBlockWoodSlab4;
+import lotr.common.block.LOTRBlockWoodSlab5;
+import lotr.common.block.LOTRBlockYamCrop;
+import lotr.common.block.LOTRItemBlockWeaponRack;
+import lotr.common.block.LOTRItemPlantableBlock;
+import lotr.common.command.LOTRCommandAchievement;
+import lotr.common.command.LOTRCommandAdminHideMap;
+import lotr.common.command.LOTRCommandAlignment;
+import lotr.common.command.LOTRCommandAlignmentSee;
+import lotr.common.command.LOTRCommandAllowStructures;
+import lotr.common.command.LOTRCommandBanStructures;
+import lotr.common.command.LOTRCommandConquest;
+import lotr.common.command.LOTRCommandDate;
+import lotr.common.command.LOTRCommandEnableAlignmentZones;
+import lotr.common.command.LOTRCommandEnchant;
+import lotr.common.command.LOTRCommandFactionRelations;
+import lotr.common.command.LOTRCommandFastTravelClock;
+import lotr.common.command.LOTRCommandFellowship;
+import lotr.common.command.LOTRCommandFellowshipMessage;
+import lotr.common.command.LOTRCommandInvasion;
+import lotr.common.command.LOTRCommandMessageFixed;
+import lotr.common.command.LOTRCommandPledgeCooldown;
+import lotr.common.command.LOTRCommandSpawnDamping;
+import lotr.common.command.LOTRCommandStructureTimelapse;
+import lotr.common.command.LOTRCommandSummon;
+import lotr.common.command.LOTRCommandTime;
+import lotr.common.command.LOTRCommandTimeVanilla;
+import lotr.common.command.LOTRCommandWaypointCooldown;
+import lotr.common.command.LOTRCommandWaypoints;
+import lotr.common.enchant.LOTREnchantment;
+import lotr.common.enchant.LOTREnchantmentCombining;
+import lotr.common.entity.LOTREntities;
+import lotr.common.entity.LOTREntityRegistry;
 import lotr.common.entity.item.LOTREntityPortal;
-import lotr.common.entity.npc.*;
+import lotr.common.entity.npc.LOTREntityNPC;
+import lotr.common.entity.npc.LOTRHiredNPCInfo;
+import lotr.common.entity.npc.LOTRNames;
+import lotr.common.entity.npc.LOTRSpeech;
 import lotr.common.fac.LOTRFaction;
 import lotr.common.fellowship.LOTRFellowship;
-import lotr.common.item.*;
+import lotr.common.item.LOTRItemAncientItem;
+import lotr.common.item.LOTRItemAncientItemParts;
+import lotr.common.item.LOTRItemAnduril;
+import lotr.common.item.LOTRItemAnimalJar;
+import lotr.common.item.LOTRItemArmor;
+import lotr.common.item.LOTRItemArmorStand;
+import lotr.common.item.LOTRItemArrowPoisoned;
+import lotr.common.item.LOTRItemAxe;
+import lotr.common.item.LOTRItemBalrogWhip;
+import lotr.common.item.LOTRItemBanner;
+import lotr.common.item.LOTRItemBarrel;
+import lotr.common.item.LOTRItemBattleaxe;
+import lotr.common.item.LOTRItemBearRug;
+import lotr.common.item.LOTRItemBed;
+import lotr.common.item.LOTRItemBerry;
+import lotr.common.item.LOTRItemBlockGoran;
+import lotr.common.item.LOTRItemBlockMetadata;
+import lotr.common.item.LOTRItemBlowgun;
+import lotr.common.item.LOTRItemBone;
+import lotr.common.item.LOTRItemBossTrophy;
+import lotr.common.item.LOTRItemBottlePoison;
+import lotr.common.item.LOTRItemBow;
+import lotr.common.item.LOTRItemBrandingIron;
+import lotr.common.item.LOTRItemChisel;
+import lotr.common.item.LOTRItemCoin;
+import lotr.common.item.LOTRItemCommandHorn;
+import lotr.common.item.LOTRItemCommandSword;
+import lotr.common.item.LOTRItemConker;
+import lotr.common.item.LOTRItemConquestHorn;
+import lotr.common.item.LOTRItemCrossbow;
+import lotr.common.item.LOTRItemCrossbowBolt;
+import lotr.common.item.LOTRItemDagger;
+import lotr.common.item.LOTRItemDaleCracker;
+import lotr.common.item.LOTRItemDart;
+import lotr.common.item.LOTRItemDoor;
+import lotr.common.item.LOTRItemDoubleFlower;
+import lotr.common.item.LOTRItemDoubleTorch;
+import lotr.common.item.LOTRItemDye;
+import lotr.common.item.LOTRItemEnchantment;
+import lotr.common.item.LOTRItemEntDraught;
+import lotr.common.item.LOTRItemFallenLeaves;
+import lotr.common.item.LOTRItemFeatherDyed;
+import lotr.common.item.LOTRItemFenceVanilla;
+import lotr.common.item.LOTRItemFirePot;
+import lotr.common.item.LOTRItemFood;
+import lotr.common.item.LOTRItemGandalfStaffGrey;
+import lotr.common.item.LOTRItemGandalfStaffWhite;
+import lotr.common.item.LOTRItemGate;
+import lotr.common.item.LOTRItemGem;
+import lotr.common.item.LOTRItemGemWithAnvilNameColor;
+import lotr.common.item.LOTRItemGiraffeRug;
+import lotr.common.item.LOTRItemGlamdring;
+import lotr.common.item.LOTRItemGlassBottle;
+import lotr.common.item.LOTRItemGrapeSeeds;
+import lotr.common.item.LOTRItemGuldurilCrystal;
+import lotr.common.item.LOTRItemHammer;
+import lotr.common.item.LOTRItemHangingFruit;
+import lotr.common.item.LOTRItemHaradRobes;
+import lotr.common.item.LOTRItemHaradTurban;
+import lotr.common.item.LOTRItemHobbitPipe;
+import lotr.common.item.LOTRItemHoe;
+import lotr.common.item.LOTRItemKaftan;
+import lotr.common.item.LOTRItemKebab;
+import lotr.common.item.LOTRItemKebabStand;
+import lotr.common.item.LOTRItemLance;
+import lotr.common.item.LOTRItemLeatherHat;
+import lotr.common.item.LOTRItemLeaves;
+import lotr.common.item.LOTRItemLionRug;
+import lotr.common.item.LOTRItemManFlesh;
+import lotr.common.item.LOTRItemMatch;
+import lotr.common.item.LOTRItemMattock;
+import lotr.common.item.LOTRItemMechanism;
+import lotr.common.item.LOTRItemMobSpawner;
+import lotr.common.item.LOTRItemModifierTemplate;
+import lotr.common.item.LOTRItemMorgulShroom;
+import lotr.common.item.LOTRItemMountArmor;
+import lotr.common.item.LOTRItemMug;
+import lotr.common.item.LOTRItemMugMorgulDraught;
+import lotr.common.item.LOTRItemMugTauredainCure;
+import lotr.common.item.LOTRItemMugTermite;
+import lotr.common.item.LOTRItemMysteryWeb;
+import lotr.common.item.LOTRItemNPCRespawner;
+import lotr.common.item.LOTRItemOrcBomb;
+import lotr.common.item.LOTRItemOrcSkullStaff;
+import lotr.common.item.LOTRItemPartyHat;
+import lotr.common.item.LOTRItemPebble;
+import lotr.common.item.LOTRItemPickaxe;
+import lotr.common.item.LOTRItemPike;
+import lotr.common.item.LOTRItemPlaceableFood;
+import lotr.common.item.LOTRItemPlate;
+import lotr.common.item.LOTRItemPolearm;
+import lotr.common.item.LOTRItemPolearmLong;
+import lotr.common.item.LOTRItemPotion;
+import lotr.common.item.LOTRItemPouch;
+import lotr.common.item.LOTRItemQuenditeCrystal;
+import lotr.common.item.LOTRItemRedBook;
+import lotr.common.item.LOTRItemReeds;
+import lotr.common.item.LOTRItemRhunFireJar;
+import lotr.common.item.LOTRItemRing;
+import lotr.common.item.LOTRItemRingil;
+import lotr.common.item.LOTRItemSalt;
+import lotr.common.item.LOTRItemSauronMace;
+import lotr.common.item.LOTRItemSeeds;
+import lotr.common.item.LOTRItemShovel;
+import lotr.common.item.LOTRItemSling;
+import lotr.common.item.LOTRItemSpawnEgg;
+import lotr.common.item.LOTRItemSpear;
+import lotr.common.item.LOTRItemStew;
+import lotr.common.item.LOTRItemSting;
+import lotr.common.item.LOTRItemStructureSpawner;
+import lotr.common.item.LOTRItemSword;
+import lotr.common.item.LOTRItemTallGrass;
+import lotr.common.item.LOTRItemTermite;
+import lotr.common.item.LOTRItemThrowingAxe;
+import lotr.common.item.LOTRItemTreasurePile;
+import lotr.common.item.LOTRItemTrident;
+import lotr.common.item.LOTRItemTrollStatue;
+import lotr.common.item.LOTRItemUtumnoKey;
+import lotr.common.item.LOTRItemVessel;
+import lotr.common.item.LOTRItemVine;
+import lotr.common.item.LOTRItemWargskinRug;
+import lotr.common.item.LOTRItemWaterPlant;
+import lotr.common.item.LOTRItemWithAnvilNameColor;
+import lotr.common.item.LOTRMaterial;
+import lotr.common.item.LOTRPoisonedDrinks;
 import lotr.common.network.LOTRPacketHandler;
 import lotr.common.quest.LOTRMiniQuestFactory;
-import lotr.common.recipe.*;
-import lotr.common.tileentity.*;
+import lotr.common.recipe.LOTRBrewingRecipes;
+import lotr.common.recipe.LOTREntJarRecipes;
+import lotr.common.recipe.LOTRMillstoneRecipes;
+import lotr.common.recipe.LOTRRecipes;
+import lotr.common.tileentity.LOTRTileEntityAlloyForge;
+import lotr.common.tileentity.LOTRTileEntityAnimalJar;
+import lotr.common.tileentity.LOTRTileEntityArmorStand;
+import lotr.common.tileentity.LOTRTileEntityBarrel;
+import lotr.common.tileentity.LOTRTileEntityBeacon;
+import lotr.common.tileentity.LOTRTileEntityBookshelf;
+import lotr.common.tileentity.LOTRTileEntityChest;
+import lotr.common.tileentity.LOTRTileEntityCommandTable;
+import lotr.common.tileentity.LOTRTileEntityCorruptMallorn;
+import lotr.common.tileentity.LOTRTileEntityDartTrap;
+import lotr.common.tileentity.LOTRTileEntityDwarvenDoor;
+import lotr.common.tileentity.LOTRTileEntityDwarvenForge;
+import lotr.common.tileentity.LOTRTileEntityElvenForge;
+import lotr.common.tileentity.LOTRTileEntityElvenPortal;
+import lotr.common.tileentity.LOTRTileEntityEntJar;
+import lotr.common.tileentity.LOTRTileEntityFlowerPot;
+import lotr.common.tileentity.LOTRTileEntityGulduril;
+import lotr.common.tileentity.LOTRTileEntityHobbitOven;
+import lotr.common.tileentity.LOTRTileEntityKebabStand;
+import lotr.common.tileentity.LOTRTileEntityMillstone;
+import lotr.common.tileentity.LOTRTileEntityMobSpawner;
+import lotr.common.tileentity.LOTRTileEntityMorgulPortal;
+import lotr.common.tileentity.LOTRTileEntityMug;
+import lotr.common.tileentity.LOTRTileEntityOrcForge;
+import lotr.common.tileentity.LOTRTileEntityPlate;
+import lotr.common.tileentity.LOTRTileEntitySign;
+import lotr.common.tileentity.LOTRTileEntitySignCarved;
+import lotr.common.tileentity.LOTRTileEntitySignCarvedIthildin;
+import lotr.common.tileentity.LOTRTileEntitySpawnerChest;
+import lotr.common.tileentity.LOTRTileEntityTrollTotem;
+import lotr.common.tileentity.LOTRTileEntityUnsmeltery;
+import lotr.common.tileentity.LOTRTileEntityUtumnoPortal;
+import lotr.common.tileentity.LOTRTileEntityUtumnoReturnPortal;
+import lotr.common.tileentity.LOTRTileEntityWeaponRack;
 import lotr.common.util.LOTRLog;
 import lotr.common.world.LOTRWorldTypeMiddleEarth;
 import lotr.common.world.biome.LOTRBiome;
@@ -29,28 +612,59 @@ import lotr.common.world.map.LOTRRoads;
 import lotr.common.world.spawning.LOTRInvasions;
 import lotr.common.world.structure.LOTRStructures;
 import lotr.common.world.structure2.scan.LOTRStructureScan;
-import net.minecraft.block.*;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockChest;
+import net.minecraft.block.BlockFire;
+import net.minecraft.block.BlockLeaves;
+import net.minecraft.block.BlockPressurePlate;
+import net.minecraft.block.BlockSapling;
+import net.minecraft.block.BlockWeb;
 import net.minecraft.block.material.Material;
-import net.minecraft.command.*;
+import net.minecraft.command.CommandTime;
+import net.minecraft.command.ICommand;
+import net.minecraft.command.IEntitySelector;
 import net.minecraft.command.server.CommandMessage;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.*;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.*;
+import net.minecraft.entity.player.PlayerCapabilities;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemArmor;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemFood;
+import net.minecraft.item.ItemLeaves;
+import net.minecraft.item.ItemPotion;
+import net.minecraft.item.ItemSeedFood;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.*;
-import net.minecraft.world.*;
+import net.minecraft.server.management.ServerConfigurationManager;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.RegistryNamespaced;
+import net.minecraft.world.GameRules;
+import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.Teleporter;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.WorldType;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.oredict.OreDictionary;
 
-@Mod(modid = "lotr", version = "Prod. Hummel009", name = "The Lord of the Rings Mod", dependencies = "required-after:Forge@[10.13.4.1558,);before:Botania;before:DragonAPI;before:TwilightForest", guiFactory = "lotr.client.gui.config.LOTRGuiFactory")
+@Mod(modid="lotr", name="The Lord of the Rings Mod", version="Update v36.12 for Minecraft 1.7.10", dependencies="required-after:Forge@[10.13.4.1558,);before:Botania;before:DragonAPI;before:TwilightForest", guiFactory="lotr.client.gui.config.LOTRGuiFactory")
 public class LOTRMod {
     @SidedProxy(clientSide="lotr.client.LOTRClientProxy", serverSide="lotr.common.LOTRCommonProxy")
     public static LOTRCommonProxy proxy;
@@ -1577,21 +2191,24 @@ public class LOTRMod {
     public static WorldType worldTypeMiddleEarth;
     public static WorldType worldTypeMiddleEarthClassic;
 
-        @Mod.EventHandler
+    /*
+     * Opcode count of 16732 triggered aggressive code reduction.  Override with --aggressivesizethreshold.
+     */
+    @Mod.EventHandler
     public void preload(FMLPreInitializationEvent event) {
         LOTRLog.findLogger();
-        NetworkRegistry.INSTANCE.registerGuiHandler(this, proxy);
+        NetworkRegistry.INSTANCE.registerGuiHandler((Object)this, (IGuiHandler)proxy);
         serverTickHandler = new LOTRTickHandlerServer();
         modEventHandler = new LOTREventHandler();
         packetHandler = new LOTRPacketHandler();
         worldTypeMiddleEarth = new LOTRWorldTypeMiddleEarth("middleEarth");
         worldTypeMiddleEarthClassic = new LOTRWorldTypeMiddleEarth("meClassic");
-        LOTRBlockReplacement.replaceVanillaBlock(Blocks.leaves, new LOTRBlockLeavesVanilla1(), ItemLeaves.class);
-        LOTRBlockReplacement.replaceVanillaBlock(Blocks.leaves2, new LOTRBlockLeavesVanilla2(), ItemLeaves.class);
-        LOTRBlockReplacement.replaceVanillaBlock(Blocks.fence, new LOTRBlockFenceVanilla(), LOTRItemFenceVanilla.class);
+        LOTRBlockReplacement.replaceVanillaBlock((Block)Blocks.leaves, (Block)new LOTRBlockLeavesVanilla1(), ItemLeaves.class);
+        LOTRBlockReplacement.replaceVanillaBlock((Block)Blocks.leaves2, (Block)new LOTRBlockLeavesVanilla2(), ItemLeaves.class);
+        LOTRBlockReplacement.replaceVanillaBlock(Blocks.fence, (Block)new LOTRBlockFenceVanilla(), LOTRItemFenceVanilla.class);
         LOTRBlockReplacement.replaceVanillaBlock(Blocks.cake, new LOTRBlockPlaceableFood().setBlockTextureName("cake"), null);
         LOTRBlockReplacement.replaceVanillaItem(Items.cake, new LOTRItemPlaceableFood(Blocks.cake).setTextureName("cake").setCreativeTab(CreativeTabs.tabFood));
-        LOTRBlockReplacement.replaceVanillaItem(Items.potionitem, new LOTRItemPotion().setTextureName("potion"));
+        LOTRBlockReplacement.replaceVanillaItem((Item)Items.potionitem, new LOTRItemPotion().setTextureName("potion"));
         LOTRBlockReplacement.replaceVanillaItem(Items.glass_bottle, new LOTRItemGlassBottle().setTextureName("potion_bottle_empty"));
         rock = new LOTRBlockRock().setBlockName("lotr:rock");
         oreCopper = new LOTRBlockOre().setBlockName("lotr:oreCopper");
@@ -1642,7 +2259,7 @@ public class LOTRMod {
         stairsRohanBrick = new LOTRBlockStairs(brick, 4).setBlockName("lotr:stairsRohanBrick");
         oreQuendite = new LOTRBlockOre().setLightLevel(0.75f).setBlockName("lotr:oreQuendite");
         mallornTorchSilver = new LOTRBlockMallornTorch(15857914).setBlockName("lotr:mallornTorch");
-        spawnerChest = new LOTRBlockSpawnerChest(Blocks.chest).setBlockName("lotr:spawnerChest");
+        spawnerChest = new LOTRBlockSpawnerChest((Block)Blocks.chest).setBlockName("lotr:spawnerChest");
         quenditeGrass = new LOTRBlockQuenditeGrass().setHardness(3.0f).setStepSound(Block.soundTypeGrass).setBlockName("lotr:quenditeGrass");
         pressurePlateMordorRock = new LOTRBlockPressurePlate("lotr:rock_mordor", Material.rock, BlockPressurePlate.Sensitivity.mobs).setHardness(0.5f).setStepSound(Block.soundTypeStone).setBlockName("lotr:pressurePlateMordorRock");
         pressurePlateGondorRock = new LOTRBlockPressurePlate("lotr:rock_gondor", Material.rock, BlockPressurePlate.Sensitivity.mobs).setHardness(0.5f).setStepSound(Block.soundTypeStone).setBlockName("lotr:pressurePlateGondorRock");
@@ -1671,7 +2288,7 @@ public class LOTRMod {
         slabSingle2 = new LOTRBlockSlab2(false).setHardness(2.0f).setResistance(10.0f).setStepSound(Block.soundTypeStone).setBlockName("lotr:slabSingle2");
         slabDouble2 = new LOTRBlockSlab2(true).setHardness(2.0f).setResistance(10.0f).setStepSound(Block.soundTypeStone).setBlockName("lotr:slabDouble2");
         stairsMirkOak = new LOTRBlockStairs(planks, 2).setBlockName("lotr:stairsMirkOak");
-        webUngoliant = new BlockWeb().setLightOpacity(2).setHardness(2.0f).setCreativeTab(LOTRCreativeTabs.tabDeco).setBlockName("lotr:webUngoliant");
+        webUngoliant = new BlockWeb().setLightOpacity(2).setHardness(2.0f).setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabDeco).setBlockName("lotr:webUngoliant");
         woodElvenTable = new LOTRBlockWoodElvenTable().setBlockName("lotr:woodElvenCraftingTable");
         woodElvenBed = new LOTRBlockBed(planks, 2).setBlockName("lotr:woodElvenBed");
         gondorianTable = new LOTRBlockGondorianTable().setBlockName("lotr:gondorianCraftingTable");
@@ -2052,7 +2669,7 @@ public class LOTRMod {
         rhunFlower = new LOTRBlockRhunFlower().setBlockName("lotr:rhunFlower");
         chestMallorn = new LOTRBlockChest(Material.wood, planks, 1, "mallorn").setHardness(2.5f).setStepSound(Block.soundTypeWood).setBlockName("lotr:chestMallorn");
         stairsCobblestoneMossy = new LOTRBlockStairs(Blocks.mossy_cobblestone, 0).setCreativeTab(CreativeTabs.tabBlock).setBlockName("lotr:stairsCobblestoneMossy");
-        marzipanBlock = new LOTRBlockPlaceableFood(0.4375f, 0.375f).setFoodStats(3, 0.3f).setCreativeTab(LOTRCreativeTabs.tabFood).setBlockName("lotr:marzipanBlock");
+        marzipanBlock = new LOTRBlockPlaceableFood(0.4375f, 0.375f).setFoodStats(3, 0.3f).setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabFood).setBlockName("lotr:marzipanBlock");
         mallornTorchBlue = new LOTRBlockMallornTorch(5954815).setBlockName("lotr:mallornTorchBlue");
         mallornTorchGold = new LOTRBlockMallornTorch(15722587).setBlockName("lotr:mallornTorchGold");
         mallornTorchGreen = new LOTRBlockMallornTorch(5564515).setBlockName("lotr:mallornTorchGreen");
@@ -2288,11 +2905,11 @@ public class LOTRMod {
         pillar3 = new LOTRBlockPillar3().setBlockName("lotr:pillar3");
         goldRing = new LOTRItemRing().setUnlocalizedName("lotr:goldRing");
         pouch = new LOTRItemPouch().setUnlocalizedName("lotr:pouch");
-        copper = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:copper");
-        tin = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:tin");
-        bronze = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:bronze");
-        silver = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:silver");
-        mithril = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:mithril");
+        copper = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:copper");
+        tin = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:tin");
+        bronze = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:bronze");
+        silver = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:silver");
+        mithril = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:mithril");
         shovelBronze = new LOTRItemShovel(LOTRMaterial.BRONZE).setUnlocalizedName("lotr:shovelBronze");
         pickaxeBronze = new LOTRItemPickaxe(LOTRMaterial.BRONZE).setUnlocalizedName("lotr:pickaxeBronze");
         axeBronze = new LOTRItemAxe(LOTRMaterial.BRONZE).setUnlocalizedName("lotr:axeBronze");
@@ -2302,13 +2919,13 @@ public class LOTRMod {
         bodyBronze = new LOTRItemArmor(LOTRMaterial.BRONZE, 1).setUnlocalizedName("lotr:bodyBronze");
         legsBronze = new LOTRItemArmor(LOTRMaterial.BRONZE, 2).setUnlocalizedName("lotr:legsBronze");
         bootsBronze = new LOTRItemArmor(LOTRMaterial.BRONZE, 3).setUnlocalizedName("lotr:bootsBronze");
-        silverNugget = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:silverNugget");
+        silverNugget = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:silverNugget");
         silverRing = new LOTRItemRing().setUnlocalizedName("lotr:silverRing");
-        mithrilNugget = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:mithrilNugget");
+        mithrilNugget = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:mithrilNugget");
         mithrilRing = new LOTRItemRing().setUnlocalizedName("lotr:mithrilRing");
         hobbitPipe = new LOTRItemHobbitPipe().setUnlocalizedName("lotr:hobbitPipe");
-        pipeweed = new Item().setCreativeTab(LOTRCreativeTabs.tabMisc).setUnlocalizedName("lotr:pipeweed");
-        clayMug = new Item().setCreativeTab(LOTRCreativeTabs.tabFood).setUnlocalizedName("lotr:clayMug");
+        pipeweed = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMisc).setUnlocalizedName("lotr:pipeweed");
+        clayMug = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabFood).setUnlocalizedName("lotr:clayMug");
         mug = new LOTRItemVessel().setUnlocalizedName("lotr:mug");
         mugWater = new LOTRItemMug(true, false).setUnlocalizedName("lotr:mugWater");
         mugMilk = new LOTRItemMug(true, false).setCuresEffects().setUnlocalizedName("lotr:mugMilk");
@@ -2322,24 +2939,24 @@ public class LOTRMod {
         bodyOrc = new LOTRItemArmor(LOTRMaterial.MORDOR, 1).setUnlocalizedName("lotr:bodyOrc");
         legsOrc = new LOTRItemArmor(LOTRMaterial.MORDOR, 2).setUnlocalizedName("lotr:legsOrc");
         bootsOrc = new LOTRItemArmor(LOTRMaterial.MORDOR, 3).setUnlocalizedName("lotr:bootsOrc");
-        orcSteel = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:orcSteel");
+        orcSteel = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:orcSteel");
         battleaxeOrc = new LOTRItemBattleaxe(LOTRMaterial.MORDOR).setUnlocalizedName("lotr:battleaxeOrc");
         lembas = new LOTRItemFood(20, 2.0f, false).setUnlocalizedName("lotr:lembas");
-        nauriteGem = new LOTRItemWithAnvilNameColor(EnumChatFormatting.DARK_RED).setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:naurite");
+        nauriteGem = new LOTRItemWithAnvilNameColor(EnumChatFormatting.DARK_RED).setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:naurite");
         daggerOrc = new LOTRItemDagger(LOTRMaterial.MORDOR).setUnlocalizedName("lotr:daggerOrc");
         daggerOrcPoisoned = new LOTRItemDagger(LOTRMaterial.MORDOR, LOTRItemDagger.DaggerEffect.POISON).setUnlocalizedName("lotr:daggerOrcPoisoned");
         sting = new LOTRItemSting().setIsElvenBlade().setUnlocalizedName("lotr:sting");
         spawnEgg = new LOTRItemSpawnEgg().setUnlocalizedName("lotr:spawnEgg");
-        pipeweedLeaf = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:pipeweedLeaf");
+        pipeweedLeaf = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:pipeweedLeaf");
         pipeweedSeeds = new LOTRItemSeeds(pipeweedCrop, Blocks.farmland).setUnlocalizedName("lotr:pipeweedSeeds");
         structureSpawner = new LOTRItemStructureSpawner().setUnlocalizedName("lotr:structureSpawner");
-        lettuce = new ItemSeedFood(3, 0.4f, lettuceCrop, Blocks.farmland).setCreativeTab(LOTRCreativeTabs.tabFood).setUnlocalizedName("lotr:lettuce");
+        lettuce = new ItemSeedFood(3, 0.4f, lettuceCrop, Blocks.farmland).setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabFood).setUnlocalizedName("lotr:lettuce");
         shovelMithril = new LOTRItemShovel(LOTRMaterial.MITHRIL).setUnlocalizedName("lotr:shovelMithril");
         pickaxeMithril = new LOTRItemPickaxe(LOTRMaterial.MITHRIL).setUnlocalizedName("lotr:pickaxeMithril");
         axeMithril = new LOTRItemAxe(LOTRMaterial.MITHRIL).setUnlocalizedName("lotr:axeMithril");
         swordMithril = new LOTRItemSword(LOTRMaterial.MITHRIL).setUnlocalizedName("lotr:swordMithril");
         hoeMithril = new LOTRItemHoe(LOTRMaterial.MITHRIL).setUnlocalizedName("lotr:hoeMithril");
-        orcTorchItem = new LOTRItemDoubleTorch(orcTorch).setCreativeTab(LOTRCreativeTabs.tabDeco).setUnlocalizedName("lotr:orcTorch");
+        orcTorchItem = new LOTRItemDoubleTorch(orcTorch).setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabDeco).setUnlocalizedName("lotr:orcTorch");
         sauronMace = new LOTRItemSauronMace().setUnlocalizedName("lotr:sauronMace");
         gandalfStaffWhite = new LOTRItemGandalfStaffWhite().setUnlocalizedName("lotr:gandalfStaffWhite");
         swordGondor = new LOTRItemSword(LOTRMaterial.GONDOR).setUnlocalizedName("lotr:swordGondor");
@@ -2358,7 +2975,7 @@ public class LOTRMod {
         spearMithril = new LOTRItemSpear(LOTRMaterial.MITHRIL).setUnlocalizedName("lotr:spearMithril");
         anduril = new LOTRItemAnduril().setUnlocalizedName("lotr:anduril");
         dye = new LOTRItemDye().setUnlocalizedName("lotr:dye");
-        mallornStick = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setFull3D().setUnlocalizedName("lotr:mallornStick");
+        mallornStick = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setFull3D().setUnlocalizedName("lotr:mallornStick");
         shovelMallorn = new LOTRItemShovel(LOTRMaterial.MALLORN).setUnlocalizedName("lotr:shovelMallorn");
         pickaxeMallorn = new LOTRItemPickaxe(LOTRMaterial.MALLORN).setUnlocalizedName("lotr:pickaxeMallorn");
         axeMallorn = new LOTRItemAxe(LOTRMaterial.MALLORN).setUnlocalizedName("lotr:axeMallorn");
@@ -2375,12 +2992,12 @@ public class LOTRMod {
         bodyElven = new LOTRItemArmor(LOTRMaterial.GALADHRIM, 1).setUnlocalizedName("lotr:bodyElven");
         legsElven = new LOTRItemArmor(LOTRMaterial.GALADHRIM, 2).setUnlocalizedName("lotr:legsElven");
         bootsElven = new LOTRItemArmor(LOTRMaterial.GALADHRIM, 3).setUnlocalizedName("lotr:bootsElven");
-        silverCoin = new LOTRItemCoin().setCreativeTab(LOTRCreativeTabs.tabMisc).setUnlocalizedName("lotr:coin");
+        silverCoin = new LOTRItemCoin().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMisc).setUnlocalizedName("lotr:coin");
         gammon = new LOTRItemFood(8, 0.8f, true).setUnlocalizedName("lotr:gammon");
-        clayPlate = new Item().setCreativeTab(LOTRCreativeTabs.tabFood).setUnlocalizedName("lotr:clayPlate");
+        clayPlate = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabFood).setUnlocalizedName("lotr:clayPlate");
         plate = new LOTRItemPlate(plateBlock).setUnlocalizedName("lotr:plate");
         elvenBow = new LOTRItemBow(LOTRMaterial.GALADHRIM, 1.25).setDrawTime(16).setUnlocalizedName("lotr:elvenBow");
-        fur = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:wargFur");
+        fur = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:wargFur");
         helmetFur = new LOTRItemArmor(LOTRMaterial.FUR, 0).setUnlocalizedName("lotr:helmetWarg");
         bodyFur = new LOTRItemArmor(LOTRMaterial.FUR, 1).setUnlocalizedName("lotr:bodyWarg");
         legsFur = new LOTRItemArmor(LOTRMaterial.FUR, 2).setUnlocalizedName("lotr:legsWarg");
@@ -2392,13 +3009,13 @@ public class LOTRMod {
         blacksmithHammer = new LOTRItemHammer(LOTRMaterial.GONDOR).setUnlocalizedName("lotr:blacksmithHammer");
         daggerGondor = new LOTRItemDagger(LOTRMaterial.GONDOR).setUnlocalizedName("lotr:daggerGondor");
         daggerElven = new LOTRItemDagger(LOTRMaterial.GALADHRIM).setIsElvenBlade().setUnlocalizedName("lotr:daggerElven");
-        hobbitRing = new Item().setCreativeTab(LOTRCreativeTabs.tabMisc).setUnlocalizedName("lotr:hobbitRing");
+        hobbitRing = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMisc).setUnlocalizedName("lotr:hobbitRing");
         elvenBedItem = new LOTRItemBed(elvenBed).setUnlocalizedName("lotr:elvenBed");
         wargBone = new LOTRItemBone().setUnlocalizedName("lotr:wargBone");
         appleGreen = new LOTRItemFood(4, 0.3f, false).setUnlocalizedName("lotr:appleGreen");
         pear = new LOTRItemFood(4, 0.3f, false).setUnlocalizedName("lotr:pear");
         cherry = new LOTRItemFood(2, 0.2f, false).setUnlocalizedName("lotr:cherry");
-        dwarfSteel = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:dwarfSteel");
+        dwarfSteel = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:dwarfSteel");
         shovelDwarven = new LOTRItemShovel(LOTRMaterial.DWARVEN).setUnlocalizedName("lotr:shovelDwarven");
         pickaxeDwarven = new LOTRItemPickaxe(LOTRMaterial.DWARVEN).setUnlocalizedName("lotr:pickaxeDwarven");
         axeDwarven = new LOTRItemAxe(LOTRMaterial.DWARVEN).setUnlocalizedName("lotr:axeDwarven");
@@ -2416,7 +3033,7 @@ public class LOTRMod {
         bodyDwarven = new LOTRItemArmor(LOTRMaterial.DWARVEN, 1).setUnlocalizedName("lotr:bodyDwarven");
         legsDwarven = new LOTRItemArmor(LOTRMaterial.DWARVEN, 2).setUnlocalizedName("lotr:legsDwarven");
         bootsDwarven = new LOTRItemArmor(LOTRMaterial.DWARVEN, 3).setUnlocalizedName("lotr:bootsDwarven");
-        galvorn = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:galvorn");
+        galvorn = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:galvorn");
         helmetGalvorn = new LOTRItemArmor(LOTRMaterial.GALVORN, 0).setUnlocalizedName("lotr:helmetGalvorn");
         bodyGalvorn = new LOTRItemArmor(LOTRMaterial.GALVORN, 1).setUnlocalizedName("lotr:bodyGalvorn");
         legsGalvorn = new LOTRItemArmor(LOTRMaterial.GALVORN, 2).setUnlocalizedName("lotr:legsGalvorn");
@@ -2433,7 +3050,7 @@ public class LOTRMod {
         hobbitBone = new LOTRItemBone().setUnlocalizedName("lotr:hobbitBone");
         commandHorn = new LOTRItemCommandHorn().setUnlocalizedName("lotr:commandHorn");
         throwingAxeDwarven = new LOTRItemThrowingAxe(LOTRMaterial.DWARVEN).setUnlocalizedName("lotr:throwingAxeDwarven");
-        urukSteel = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:urukSteel");
+        urukSteel = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:urukSteel");
         shovelUruk = new LOTRItemShovel(LOTRMaterial.URUK).setUnlocalizedName("lotr:shovelUruk");
         pickaxeUruk = new LOTRItemPickaxe(LOTRMaterial.URUK).setUnlocalizedName("lotr:pickaxeUruk");
         axeUruk = new LOTRItemAxe(LOTRMaterial.URUK).setUnlocalizedName("lotr:axeUruk");
@@ -2498,7 +3115,7 @@ public class LOTRMod {
         entDraught = new LOTRItemEntDraught().setUnlocalizedName("lotr:entDraught");
         mugDwarvenAle = new LOTRItemMug(0.4f).setDrinkStats(3, 0.3f).setUnlocalizedName("lotr:mugDwarvenAle");
         maggotyBread = new LOTRItemFood(4, 0.5f, false).setPotionEffect(Potion.hunger.id, 20, 0, 0.4f).setUnlocalizedName("lotr:maggotyBread");
-        morgulSteel = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:morgulSteel");
+        morgulSteel = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:morgulSteel");
         morgulBlade = new LOTRItemSword(LOTRMaterial.MORGUL).setUnlocalizedName("lotr:morgulBlade");
         helmetMorgul = new LOTRItemArmor(LOTRMaterial.MORGUL, 0, "helmet").setUnlocalizedName("lotr:helmetMorgul");
         bodyMorgul = new LOTRItemArmor(LOTRMaterial.MORGUL, 1).setUnlocalizedName("lotr:bodyMorgul");
@@ -2523,8 +3140,8 @@ public class LOTRMod {
         rabbitCooked = new LOTRItemFood(6, 0.6f, true).setUnlocalizedName("lotr:rabbitCooked");
         rabbitStew = new LOTRItemStew(10, 0.8f, true).setUnlocalizedName("lotr:rabbitStew");
         mugVodka = new LOTRItemMug(1.75f).setDrinkStats(3, 0.3f).setUnlocalizedName("lotr:mugVodka");
-        sulfur = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:sulfur");
-        saltpeter = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:saltpeter");
+        sulfur = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:sulfur");
+        saltpeter = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:saltpeter");
         commandSword = new LOTRItemCommandSword().setUnlocalizedName("lotr:commandSword");
         hobbitPancake = new LOTRItemFood(4, 0.6f, false).setUnlocalizedName("lotr:hobbitPancake");
         bottlePoison = new LOTRItemBottlePoison().setUnlocalizedName("lotr:bottlePoison");
@@ -2557,14 +3174,14 @@ public class LOTRMod {
         banana = new LOTRItemHangingFruit(2, 0.5f, false, bananaBlock).setUnlocalizedName("lotr:banana");
         bananaBread = new LOTRItemFood(5, 0.6f, false).setUnlocalizedName("lotr:bananaBread");
         bananaCakeItem = new LOTRItemPlaceableFood(bananaCake).setUnlocalizedName("lotr:bananaCake");
-        lionFur = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:lionFur");
+        lionFur = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:lionFur");
         lionRaw = new LOTRItemFood(3, 0.3f, true).setUnlocalizedName("lotr:lionRaw");
         lionCooked = new LOTRItemFood(8, 0.8f, true).setUnlocalizedName("lotr:lionCooked");
         zebraRaw = new LOTRItemFood(2, 0.1f, true).setUnlocalizedName("lotr:zebraRaw");
         zebraCooked = new LOTRItemFood(6, 0.6f, true).setUnlocalizedName("lotr:zebraCooked");
         rhinoRaw = new LOTRItemFood(2, 0.1f, true).setUnlocalizedName("lotr:rhinoRaw");
         rhinoCooked = new LOTRItemFood(7, 0.4f, true).setUnlocalizedName("lotr:rhinoCooked");
-        rhinoHorn = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:rhinoHorn");
+        rhinoHorn = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:rhinoHorn");
         battleaxeRohan = new LOTRItemBattleaxe(LOTRMaterial.ROHAN).setUnlocalizedName("lotr:battleaxeRohan");
         lionBedItem = new LOTRItemBed(lionBed).setUnlocalizedName("lotr:lionBed");
         scimitarNearHarad = new LOTRItemSword(LOTRMaterial.UMBAR).setUnlocalizedName("lotr:scimitarNearHarad");
@@ -2572,8 +3189,8 @@ public class LOTRMod {
         bodyNearHarad = new LOTRItemArmor(LOTRMaterial.NEAR_HARAD, 1).setUnlocalizedName("lotr:bodyNearHarad");
         legsNearHarad = new LOTRItemArmor(LOTRMaterial.NEAR_HARAD, 2).setUnlocalizedName("lotr:legsNearHarad");
         bootsNearHarad = new LOTRItemArmor(LOTRMaterial.NEAR_HARAD, 3).setUnlocalizedName("lotr:bootsNearHarad");
-        gemsbokHide = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:gemsbokHide");
-        gemsbokHorn = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:gemsbokHorn");
+        gemsbokHide = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:gemsbokHide");
+        gemsbokHorn = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:gemsbokHorn");
         helmetGemsbok = new LOTRItemArmor(LOTRMaterial.GEMSBOK, 0).setUnlocalizedName("lotr:helmetGemsbok");
         bodyGemsbok = new LOTRItemArmor(LOTRMaterial.GEMSBOK, 1).setUnlocalizedName("lotr:bodyGemsbok");
         legsGemsbok = new LOTRItemArmor(LOTRMaterial.GEMSBOK, 2).setUnlocalizedName("lotr:legsGemsbok");
@@ -2600,7 +3217,7 @@ public class LOTRMod {
         nearHaradBow = new LOTRItemBow(LOTRMaterial.NEAR_HARAD, 1.1).setDrawTime(25).setUnlocalizedName("lotr:nearHaradBow");
         date = new LOTRItemHangingFruit(2, 0.3f, false, dateBlock).setUnlocalizedName("lotr:date");
         mugAraq = new LOTRItemMug(1.4f).setDrinkStats(4, 0.4f).setUnlocalizedName("lotr:mugAraq");
-        blueDwarfSteel = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:blueDwarfSteel");
+        blueDwarfSteel = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:blueDwarfSteel");
         shovelBlueDwarven = new LOTRItemShovel(LOTRMaterial.BLUE_DWARVEN).setUnlocalizedName("lotr:shovelBlueDwarven");
         pickaxeBlueDwarven = new LOTRItemPickaxe(LOTRMaterial.BLUE_DWARVEN).setUnlocalizedName("lotr:pickaxeBlueDwarven");
         axeBlueDwarven = new LOTRItemAxe(LOTRMaterial.BLUE_DWARVEN).setUnlocalizedName("lotr:axeBlueDwarven");
@@ -2616,7 +3233,7 @@ public class LOTRMod {
         bodyBlueDwarven = new LOTRItemArmor(LOTRMaterial.BLUE_DWARVEN, 1).setUnlocalizedName("lotr:bodyBlueDwarven");
         legsBlueDwarven = new LOTRItemArmor(LOTRMaterial.BLUE_DWARVEN, 2).setUnlocalizedName("lotr:legsBlueDwarven");
         bootsBlueDwarven = new LOTRItemArmor(LOTRMaterial.BLUE_DWARVEN, 3).setUnlocalizedName("lotr:bootsBlueDwarven");
-        dwarvenRing = new Item().setCreativeTab(LOTRCreativeTabs.tabMisc).setUnlocalizedName("lotr:dwarvenRing");
+        dwarvenRing = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMisc).setUnlocalizedName("lotr:dwarvenRing");
         spearDwarven = new LOTRItemSpear(LOTRMaterial.DWARVEN).setUnlocalizedName("lotr:spearDwarven");
         spearBlueDwarven = new LOTRItemSpear(LOTRMaterial.BLUE_DWARVEN).setUnlocalizedName("lotr:spearBlueDwarven");
         horseArmorIron = new LOTRItemMountArmor(ItemArmor.ArmorMaterial.IRON, LOTRItemMountArmor.Mount.HORSE).setTemplateItem(Items.iron_horse_armor).setUnlocalizedName("lotr:horseArmorIron");
@@ -2659,7 +3276,7 @@ public class LOTRMod {
         legsUtumno = new LOTRItemArmor(LOTRMaterial.UTUMNO, 2).setUnlocalizedName("lotr:legsUtumno");
         bootsUtumno = new LOTRItemArmor(LOTRMaterial.UTUMNO, 3).setUnlocalizedName("lotr:bootsUtumno");
         flaxSeeds = new LOTRItemSeeds(flaxCrop, Blocks.farmland).setUnlocalizedName("lotr:flaxSeeds");
-        flax = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:flax");
+        flax = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:flax");
         blueberry = new LOTRItemBerry().setUnlocalizedName("lotr:blueberry");
         blackberry = new LOTRItemBerry().setUnlocalizedName("lotr:blackberry");
         raspberry = new LOTRItemBerry().setUnlocalizedName("lotr:raspberry");
@@ -2667,7 +3284,7 @@ public class LOTRMod {
         elderberry = new LOTRItemBerry().setUnlocalizedName("lotr:elderberry");
         chestnut = new LOTRItemConker().setUnlocalizedName("lotr:chestnut");
         chestnutRoast = new LOTRItemFood(2, 0.2f, false).setUnlocalizedName("lotr:chestnutRoast");
-        blackUrukSteel = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:blackUrukSteel");
+        blackUrukSteel = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:blackUrukSteel");
         scimitarBlackUruk = new LOTRItemSword(LOTRMaterial.BLACK_URUK).setUnlocalizedName("lotr:scimitarBlackUruk");
         daggerBlackUruk = new LOTRItemDagger(LOTRMaterial.BLACK_URUK).setUnlocalizedName("lotr:daggerBlackUruk");
         daggerBlackUrukPoisoned = new LOTRItemDagger(LOTRMaterial.BLACK_URUK, LOTRItemDagger.DaggerEffect.POISON).setUnlocalizedName("lotr:daggerBlackUrukPoisoned");
@@ -2729,14 +3346,14 @@ public class LOTRMod {
         legsDwarvenMithril = new LOTRItemArmor(LOTRMaterial.DWARVEN, 2, "mithril_2").setUnlocalizedName("lotr:legsDwarvenMithril");
         bootsDwarvenMithril = new LOTRItemArmor(LOTRMaterial.DWARVEN, 3, "mithril_1").setUnlocalizedName("lotr:bootsDwarvenMithril");
         torogStew = new LOTRItemStew(8, 0.6f, true).setUnlocalizedName("lotr:torogStew");
-        elfSteel = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:elfSteel");
+        elfSteel = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:elfSteel");
         swordDolAmroth = new LOTRItemSword(LOTRMaterial.DOL_AMROTH).setUnlocalizedName("lotr:swordDolAmroth");
         helmetDolAmroth = new LOTRItemArmor(LOTRMaterial.DOL_AMROTH, 0, "wingedHelmet").setUnlocalizedName("lotr:helmetDolAmroth");
         bodyDolAmroth = new LOTRItemArmor(LOTRMaterial.DOL_AMROTH, 1, "wingedBody").setUnlocalizedName("lotr:bodyDolAmroth");
         legsDolAmroth = new LOTRItemArmor(LOTRMaterial.DOL_AMROTH, 2).setUnlocalizedName("lotr:legsDolAmroth");
         bootsDolAmroth = new LOTRItemArmor(LOTRMaterial.DOL_AMROTH, 3).setUnlocalizedName("lotr:bootsDolAmroth");
         horseArmorDolAmroth = new LOTRItemMountArmor(LOTRMaterial.DOL_AMROTH, LOTRItemMountArmor.Mount.HORSE).setUnlocalizedName("lotr:horseArmorDolAmroth");
-        swanFeather = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:swanFeather");
+        swanFeather = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:swanFeather");
         daggerMoredain = new LOTRItemDagger(LOTRMaterial.MOREDAIN).setUnlocalizedName("lotr:daggerMoredain");
         daggerMoredainPoisoned = new LOTRItemDagger(LOTRMaterial.MOREDAIN, LOTRItemDagger.DaggerEffect.POISON).setUnlocalizedName("lotr:daggerMoredainPoisoned");
         battleaxeMoredain = new LOTRItemBattleaxe(LOTRMaterial.MOREDAIN).setUnlocalizedName("lotr:battleaxeMoredain");
@@ -2779,7 +3396,7 @@ public class LOTRMod {
         bodyRohanMarshal = new LOTRItemArmor(LOTRMaterial.ROHAN_MARSHAL, 1).setUnlocalizedName("lotr:bodyRohanMarshal");
         legsRohanMarshal = new LOTRItemArmor(LOTRMaterial.ROHAN_MARSHAL, 2).setUnlocalizedName("lotr:legsRohanMarshal");
         bootsRohanMarshal = new LOTRItemArmor(LOTRMaterial.ROHAN_MARSHAL, 3).setUnlocalizedName("lotr:bootsRohanMarshal");
-        obsidianShard = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:obsidianShard");
+        obsidianShard = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:obsidianShard");
         shovelTauredain = new LOTRItemShovel(LOTRMaterial.TAUREDAIN).setUnlocalizedName("lotr:shovelTauredain");
         pickaxeTauredain = new LOTRItemPickaxe(LOTRMaterial.TAUREDAIN).setUnlocalizedName("lotr:pickaxeTauredain");
         axeTauredain = new LOTRItemAxe(LOTRMaterial.TAUREDAIN).setUnlocalizedName("lotr:axeTauredain");
@@ -2810,7 +3427,7 @@ public class LOTRMod {
         muttonCooked = new LOTRItemFood(8, 0.8f, true).setUnlocalizedName("lotr:muttonCooked");
         maceNearHarad = new LOTRItemHammer(LOTRMaterial.UMBAR).setUnlocalizedName("lotr:maceNearHarad");
         mugTauredainCocoa = new LOTRItemMug(0.0f).setDrinkStats(6, 0.6f).addPotionEffect(Potion.damageBoost.id, 40).addPotionEffect(Potion.moveSpeed.id, 40).setUnlocalizedName("lotr:mugTauredainCocoa");
-        hithlain = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:hithlain");
+        hithlain = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:hithlain");
         helmetHithlain = new LOTRItemArmor(LOTRMaterial.HITHLAIN, 0).setUnlocalizedName("lotr:helmetHithlain");
         bodyHithlain = new LOTRItemArmor(LOTRMaterial.HITHLAIN, 1).setUnlocalizedName("lotr:bodyHithlain");
         legsHithlain = new LOTRItemArmor(LOTRMaterial.HITHLAIN, 2).setUnlocalizedName("lotr:legsHithlain");
@@ -2819,13 +3436,13 @@ public class LOTRMod {
         boarArmorBlueDwarven = new LOTRItemMountArmor(LOTRMaterial.BLUE_DWARVEN, LOTRItemMountArmor.Mount.BOAR).setUnlocalizedName("lotr:boarArmorBlueDwarven");
         pikeHalfTroll = new LOTRItemPike(LOTRMaterial.HALF_TROLL).setUnlocalizedName("lotr:pikeHalfTroll");
         pikeIron = new LOTRItemPike(Item.ToolMaterial.IRON).setUnlocalizedName("lotr:pikeIron");
-        tauredainDoubleTorchItem = new LOTRItemDoubleTorch(tauredainDoubleTorch).setCreativeTab(LOTRCreativeTabs.tabDeco).setUnlocalizedName("lotr:tauredainDoubleTorch");
+        tauredainDoubleTorchItem = new LOTRItemDoubleTorch(tauredainDoubleTorch).setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabDeco).setUnlocalizedName("lotr:tauredainDoubleTorch");
         helmetTauredainGold = new LOTRItemArmor(LOTRMaterial.TAUREDAIN_GOLD, 0, "helmet").setUnlocalizedName("lotr:helmetTauredainGold");
         bodyTauredainGold = new LOTRItemArmor(LOTRMaterial.TAUREDAIN_GOLD, 1).setUnlocalizedName("lotr:bodyTauredainGold");
         legsTauredainGold = new LOTRItemArmor(LOTRMaterial.TAUREDAIN_GOLD, 2).setUnlocalizedName("lotr:legsTauredainGold");
         bootsTauredainGold = new LOTRItemArmor(LOTRMaterial.TAUREDAIN_GOLD, 3).setUnlocalizedName("lotr:bootsTauredainGold");
         mugTauredainCure = new LOTRItemMugTauredainCure().setUnlocalizedName("lotr:mugTauredainCure");
-        tauredainAmulet = new Item().setCreativeTab(LOTRCreativeTabs.tabMisc).setUnlocalizedName("lotr:tauredainAmulet");
+        tauredainAmulet = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMisc).setUnlocalizedName("lotr:tauredainAmulet");
         pikeDwarven = new LOTRItemPike(LOTRMaterial.DWARVEN).setUnlocalizedName("lotr:pikeDwarven");
         pikeBlueDwarven = new LOTRItemPike(LOTRMaterial.BLUE_DWARVEN).setUnlocalizedName("lotr:pikeBlueDwarven");
         corn = new LOTRItemFood(2, 0.3f, false).setUnlocalizedName("lotr:corn");
@@ -2840,9 +3457,9 @@ public class LOTRMod {
         battleaxeGundabadUruk = new LOTRItemBattleaxe(LOTRMaterial.GUNDABAD_URUK).setUnlocalizedName("lotr:battleaxeGundabadUruk");
         hammerGundabadUruk = new LOTRItemHammer(LOTRMaterial.GUNDABAD_URUK).setUnlocalizedName("lotr:hammerGundabadUruk");
         helmetUrukBerserker = new LOTRItemArmor(LOTRMaterial.URUK, 0, "helmet_berserker").setUnlocalizedName("lotr:helmetUrukBerserker");
-        scimitarUrukBerserker = new LOTRItemSword(LOTRMaterial.URUK).addWeaponDamage(1.0f).setUnlocalizedName("lotr:scimitarUrukBerserker");
+        scimitarUrukBerserker = new LOTRItemSword(LOTRMaterial.URUK).addWeaponDamage(0.0f).setUnlocalizedName("lotr:scimitarUrukBerserker");
         mugCornLiquor = new LOTRItemMug(1.0f).setDrinkStats(3, 0.3f).setUnlocalizedName("lotr:mugCornLiquor");
-        gateGear = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:gateGear");
+        gateGear = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:gateGear");
         furBedItem = new LOTRItemBed(furBed).setUnlocalizedName("lotr:wargFurBed");
         deerRaw = new LOTRItemFood(3, 0.3f, true).setUnlocalizedName("lotr:deerRaw");
         deerCooked = new LOTRItemFood(8, 0.8f, true).setUnlocalizedName("lotr:deerCooked");
@@ -2855,9 +3472,9 @@ public class LOTRMod {
         longspearWoodElven = new LOTRItemPolearmLong(LOTRMaterial.WOOD_ELVEN).setUnlocalizedName("lotr:longspearWoodElven");
         ringil = new LOTRItemRingil().setUnlocalizedName("lotr:ringil");
         halberdMithril = new LOTRItemPolearmLong(LOTRMaterial.MITHRIL).setUnlocalizedName("lotr:halberdMithril");
-        leek = new ItemSeedFood(2, 0.3f, leekCrop, Blocks.farmland).setCreativeTab(LOTRCreativeTabs.tabFood).setUnlocalizedName("lotr:leek");
+        leek = new ItemSeedFood(2, 0.3f, leekCrop, Blocks.farmland).setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabFood).setUnlocalizedName("lotr:leek");
         leekSoup = new LOTRItemStew(8, 0.8f, false).setUnlocalizedName("lotr:leekSoup");
-        turnip = new ItemSeedFood(2, 0.3f, turnipCrop, Blocks.farmland).setCreativeTab(LOTRCreativeTabs.tabFood).setUnlocalizedName("lotr:turnip");
+        turnip = new ItemSeedFood(2, 0.3f, turnipCrop, Blocks.farmland).setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabFood).setUnlocalizedName("lotr:turnip");
         camelRaw = new LOTRItemFood(2, 0.2f, true).setUnlocalizedName("lotr:camelRaw");
         camelCooked = new LOTRItemFood(6, 0.6f, true).setUnlocalizedName("lotr:camelCooked");
         swordDale = new LOTRItemSword(LOTRMaterial.DALE).setUnlocalizedName("lotr:swordDale");
@@ -2912,13 +3529,13 @@ public class LOTRMod {
         polearmAngmar = new LOTRItemPolearm(LOTRMaterial.ANGMAR).setUnlocalizedName("lotr:polearmAngmar");
         pikeDolGuldur = new LOTRItemPike(LOTRMaterial.DOL_GULDUR).setUnlocalizedName("lotr:pikeDolGuldur");
         turnipCooked = new LOTRItemFood(6, 0.6f, false).setUnlocalizedName("lotr:turnipCooked");
-        kineArawHorn = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:kineArawHorn");
+        kineArawHorn = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:kineArawHorn");
         melonSoup = new LOTRItemStew(5, 0.5f, false).setUnlocalizedName("lotr:melonSoup");
         ceramicMug = new LOTRItemVessel().setUnlocalizedName("lotr:ceramicMug");
         pikeNearHarad = new LOTRItemPike(LOTRMaterial.UMBAR).setUnlocalizedName("lotr:pikeNearHarad");
         almond = new LOTRItemFood(2, 0.2f, false).setUnlocalizedName("lotr:almond");
         wildberry = new LOTRItemBerry().setPoisonous().setUnlocalizedName("lotr:wildberry");
-        blackrootStick = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setFull3D().setUnlocalizedName("lotr:blackrootStick");
+        blackrootStick = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setFull3D().setUnlocalizedName("lotr:blackrootStick");
         plum = new LOTRItemFood(4, 0.3f, false).setUnlocalizedName("lotr:plum");
         helmetLossarnach = new LOTRItemArmor(LOTRMaterial.LOSSARNACH, 0).setUnlocalizedName("lotr:helmetLossarnach");
         bodyLossarnach = new LOTRItemArmor(LOTRMaterial.LOSSARNACH, 1).setUnlocalizedName("lotr:bodyLossarnach");
@@ -2970,9 +3587,9 @@ public class LOTRMod {
         waterskin = new LOTRItemVessel().setUnlocalizedName("lotr:waterskin");
         aleHorn = new LOTRItemVessel().setUnlocalizedName("lotr:aleHorn");
         aleHornGold = new LOTRItemVessel().setUnlocalizedName("lotr:aleHornGold");
-        horn = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:horn");
+        horn = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:horn");
         chisel = new LOTRItemChisel(signCarved).setUnlocalizedName("lotr:chisel");
-        ithildin = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:ithildin");
+        ithildin = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:ithildin");
         chiselIthildin = new LOTRItemChisel(signCarvedIthildin).setUnlocalizedName("lotr:chiselIthildin");
         helmetArnor = new LOTRItemArmor(LOTRMaterial.ARNOR, 0, "helmet").setUnlocalizedName("lotr:helmetArnor");
         bodyArnor = new LOTRItemArmor(LOTRMaterial.ARNOR, 1).setUnlocalizedName("lotr:bodyArnor");
@@ -2991,10 +3608,10 @@ public class LOTRMod {
         bootsRhun = new LOTRItemArmor(LOTRMaterial.RHUN, 3).setUnlocalizedName("lotr:bootsRhun");
         rhunBow = new LOTRItemBow(LOTRMaterial.RHUN).setDrawTime(16).setUnlocalizedName("lotr:rhunBow");
         horseArmorRhunGold = new LOTRItemMountArmor(LOTRMaterial.RHUN_GOLD, LOTRItemMountArmor.Mount.HORSE).setUnlocalizedName("lotr:horseArmorRhunGold");
-        gildedIron = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:gildedIron");
+        gildedIron = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:gildedIron");
         mugTermiteTequila = new LOTRItemMugTermite(1.5f).setDrinkStats(3, 0.3f).setUnlocalizedName("lotr:mugTermiteTequila");
         rhunFirePot = new LOTRItemFirePot().setUnlocalizedName("lotr:rhunFirePot");
-        yam = new ItemSeedFood(1, 0.4f, yamCrop, Blocks.farmland).setPotionEffect(Potion.hunger.id, 15, 0, 0.4f).setCreativeTab(LOTRCreativeTabs.tabFood).setUnlocalizedName("lotr:yam");
+        yam = new ItemSeedFood(1, 0.4f, yamCrop, Blocks.farmland).setPotionEffect(Potion.hunger.id, 15, 0, 0.4f).setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabFood).setUnlocalizedName("lotr:yam");
         yamRoast = new LOTRItemFood(6, 0.6f, false).setUnlocalizedName("lotr:yamRoast");
         bodyKaftan = new LOTRItemKaftan(1).setUnlocalizedName("lotr:bodyKaftan");
         legsKaftan = new LOTRItemKaftan(2).setUnlocalizedName("lotr:legsKaftan");
@@ -3053,7 +3670,7 @@ public class LOTRMod {
         bountyTrophy = new LOTRItemEnchantment(LOTREnchantment.headhunting).setUnlocalizedName("lotr:bountyTrophy");
         swordMoredain = new LOTRItemSword(LOTRMaterial.MOREDAIN_BRONZE).setUnlocalizedName("lotr:swordMoredain");
         modTemplate = new LOTRItemModifierTemplate().setUnlocalizedName("lotr:modTemplate");
-        mithrilMail = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:mithrilMail");
+        mithrilMail = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:mithrilMail");
         mithrilBook = new LOTRItemEnchantment(LOTREnchantment.protectMithril).setUnlocalizedName("lotr:mithrilBook");
         helmetGulfHarad = new LOTRItemArmor(LOTRMaterial.GULF_HARAD, 0).setUnlocalizedName("lotr:helmetGulfHarad");
         bodyGulfHarad = new LOTRItemArmor(LOTRMaterial.GULF_HARAD, 1, "body").setUnlocalizedName("lotr:bodyGulfHarad");
@@ -3102,12 +3719,12 @@ public class LOTRMod {
         daggerBlackNumenoreanPoisoned = new LOTRItemDagger(LOTRMaterial.BLACK_NUMENOREAN, LOTRItemDagger.DaggerEffect.POISON).setUnlocalizedName("lotr:daggerBlackNumenoreanPoisoned");
         spearBlackNumenorean = new LOTRItemSpear(LOTRMaterial.BLACK_NUMENOREAN).setUnlocalizedName("lotr:spearBlackNumenorean");
         maceBlackNumenorean = new LOTRItemHammer(LOTRMaterial.BLACK_NUMENOREAN).setUnlocalizedName("lotr:maceBlackNumenorean");
-        redClayBall = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:redClayBall");
+        redClayBall = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:redClayBall");
         gandalfStaffGrey = new LOTRItemGandalfStaffGrey().setUnlocalizedName("lotr:gandalfStaffGrey");
         glamdring = new LOTRItemGlamdring().setUnlocalizedName("lotr:glamdring");
         brandingIron = new LOTRItemBrandingIron().setUnlocalizedName("lotr:brandingIron");
         mechanism = new LOTRItemMechanism().setUnlocalizedName("lotr:mechanism");
-        ironNugget = new Item().setCreativeTab(LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:ironNugget");
+        ironNugget = new Item().setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMaterials).setUnlocalizedName("lotr:ironNugget");
         try {
             String prefix = "lotr:";
             for (Field field : LOTRMod.class.getFields()) {
@@ -3115,12 +3732,12 @@ public class LOTRMod {
                 Block block;
                 if (field.get(null) instanceof Block && !((block = (Block)field.get(null)) instanceof LOTRBlockMechanisedRail)) {
                     newName = block.getUnlocalizedName().substring(prefix.length());
-                    field.set(null, block.setBlockTextureName(newName));
+                    field.set(null, (Object)block.setBlockTextureName(newName));
                 }
                 if (!(field.get(null) instanceof Item)) continue;
                 Item item = (Item)field.get(null);
                 newName = item.getUnlocalizedName().substring(prefix.length());
-                field.set(null, item.setTextureName(newName));
+                field.set(null, (Object)item.setTextureName(newName));
             }
         }
         catch (Exception e) {
@@ -3158,7 +3775,7 @@ public class LOTRMod {
         LOTRBlockSlabBase.registerSlabs(slabSingleSand, slabDoubleSand);
         LOTRBlockSlabBase.registerSlabs(slabSingleGravel, slabDoubleGravel);
         LOTRBlockSlabBase.registerSlabs(slabBoneSingle, slabBoneDouble);
-        LOTRBlockFallenLeaves.assignLeaves(fallenLeaves, Blocks.leaves, Blocks.leaves2);
+        LOTRBlockFallenLeaves.assignLeaves(fallenLeaves, new Block[]{Blocks.leaves, Blocks.leaves2});
         LOTRBlockFallenLeaves.assignLeaves(fallenLeavesLOTR, leaves, fruitLeaves, leaves2, leaves3);
         LOTRBlockFallenLeaves.assignLeaves(fallenLeavesLOTR2, leaves4, leaves5, leaves6, leaves7);
         LOTRBlockFallenLeaves.assignLeaves(fallenLeavesLOTR3, leaves8, leaves9);
@@ -4774,39 +5391,39 @@ public class LOTRMod {
         blockGem.setHarvestLevel("pickaxe", 2);
         blockGem.setHarvestLevel("pickaxe", 0, 8);
         redClay.setHarvestLevel("shovel", 0);
-        GameRegistry.registerTileEntity(LOTRTileEntityBeacon.class, "LOTRBeacon");
-        GameRegistry.registerTileEntity(LOTRTileEntityHobbitOven.class, "LOTROven");
-        GameRegistry.registerTileEntity(LOTRTileEntityMobSpawner.class, "LOTRMobSpawner");
-        GameRegistry.registerTileEntity(LOTRTileEntityPlate.class, "LOTRPlate");
-        GameRegistry.registerTileEntity(LOTRTileEntityElvenPortal.class, "LOTRElvenPortal");
-        GameRegistry.registerTileEntity(LOTRTileEntityDwarvenForge.class, "LOTRForge");
-        GameRegistry.registerTileEntity(LOTRTileEntityFlowerPot.class, "LOTRFlowerPot");
-        GameRegistry.registerTileEntity(LOTRTileEntitySpawnerChest.class, "LOTRSpawnerChest");
-        GameRegistry.registerTileEntity(LOTRTileEntityGulduril.class, "LOTRGulduril");
-        GameRegistry.registerTileEntity(LOTRTileEntityDwarvenDoor.class, "LOTRDwarvenDoor");
-        GameRegistry.registerTileEntity(LOTRTileEntityMorgulPortal.class, "LOTRMorgulPortal");
-        GameRegistry.registerTileEntity(LOTRTileEntityBarrel.class, "LOTRBarrel");
-        GameRegistry.registerTileEntity(LOTRTileEntityArmorStand.class, "LOTRArmorStand");
-        GameRegistry.registerTileEntity(LOTRTileEntityMug.class, "LOTRMug");
-        GameRegistry.registerTileEntity(LOTRTileEntityEntJar.class, "LOTREntJar");
-        GameRegistry.registerTileEntity(LOTRTileEntityOrcForge.class, "LOTROrcForge");
-        GameRegistry.registerTileEntity(LOTRTileEntityTrollTotem.class, "LOTRTrollTotem");
-        GameRegistry.registerTileEntity(LOTRTileEntityUtumnoPortal.class, "LOTRUtumnoPortal");
-        GameRegistry.registerTileEntity(LOTRTileEntityUtumnoReturnPortal.class, "LOTRUtumnoReturnPortal");
-        GameRegistry.registerTileEntity(LOTRTileEntityCommandTable.class, "LOTRCommandTable");
-        GameRegistry.registerTileEntity(LOTRTileEntityAnimalJar.class, "LOTRButterflyJar");
-        GameRegistry.registerTileEntity(LOTRTileEntityElvenForge.class, "LOTRElvenForge");
-        GameRegistry.registerTileEntity(LOTRTileEntityUnsmeltery.class, "LOTRUnsmeltery");
-        GameRegistry.registerTileEntity(LOTRTileEntityCorruptMallorn.class, "LOTRCorruptMallorn");
-        GameRegistry.registerTileEntity(LOTRTileEntityAlloyForge.class, "LOTRAlloyForge");
-        GameRegistry.registerTileEntity(LOTRTileEntityDartTrap.class, "LOTRDartTrap");
-        GameRegistry.registerTileEntity(LOTRTileEntityChest.class, "LOTRChest");
-        GameRegistry.registerTileEntity(LOTRTileEntityWeaponRack.class, "LOTRWeaponRack");
-        GameRegistry.registerTileEntity(LOTRTileEntityKebabStand.class, "LOTRKebabStand");
-        GameRegistry.registerTileEntity(LOTRTileEntitySignCarved.class, "LOTRSignCarved");
-        GameRegistry.registerTileEntity(LOTRTileEntitySignCarvedIthildin.class, "LOTRSignCarvedIthildin");
-        GameRegistry.registerTileEntity(LOTRTileEntityMillstone.class, "LOTRMillstone");
-        GameRegistry.registerTileEntity(LOTRTileEntityBookshelf.class, "LOTRBookshelf");
+        GameRegistry.registerTileEntity(LOTRTileEntityBeacon.class, (String)"LOTRBeacon");
+        GameRegistry.registerTileEntity(LOTRTileEntityHobbitOven.class, (String)"LOTROven");
+        GameRegistry.registerTileEntity(LOTRTileEntityMobSpawner.class, (String)"LOTRMobSpawner");
+        GameRegistry.registerTileEntity(LOTRTileEntityPlate.class, (String)"LOTRPlate");
+        GameRegistry.registerTileEntity(LOTRTileEntityElvenPortal.class, (String)"LOTRElvenPortal");
+        GameRegistry.registerTileEntity(LOTRTileEntityDwarvenForge.class, (String)"LOTRForge");
+        GameRegistry.registerTileEntity(LOTRTileEntityFlowerPot.class, (String)"LOTRFlowerPot");
+        GameRegistry.registerTileEntity(LOTRTileEntitySpawnerChest.class, (String)"LOTRSpawnerChest");
+        GameRegistry.registerTileEntity(LOTRTileEntityGulduril.class, (String)"LOTRGulduril");
+        GameRegistry.registerTileEntity(LOTRTileEntityDwarvenDoor.class, (String)"LOTRDwarvenDoor");
+        GameRegistry.registerTileEntity(LOTRTileEntityMorgulPortal.class, (String)"LOTRMorgulPortal");
+        GameRegistry.registerTileEntity(LOTRTileEntityBarrel.class, (String)"LOTRBarrel");
+        GameRegistry.registerTileEntity(LOTRTileEntityArmorStand.class, (String)"LOTRArmorStand");
+        GameRegistry.registerTileEntity(LOTRTileEntityMug.class, (String)"LOTRMug");
+        GameRegistry.registerTileEntity(LOTRTileEntityEntJar.class, (String)"LOTREntJar");
+        GameRegistry.registerTileEntity(LOTRTileEntityOrcForge.class, (String)"LOTROrcForge");
+        GameRegistry.registerTileEntity(LOTRTileEntityTrollTotem.class, (String)"LOTRTrollTotem");
+        GameRegistry.registerTileEntity(LOTRTileEntityUtumnoPortal.class, (String)"LOTRUtumnoPortal");
+        GameRegistry.registerTileEntity(LOTRTileEntityUtumnoReturnPortal.class, (String)"LOTRUtumnoReturnPortal");
+        GameRegistry.registerTileEntity(LOTRTileEntityCommandTable.class, (String)"LOTRCommandTable");
+        GameRegistry.registerTileEntity(LOTRTileEntityAnimalJar.class, (String)"LOTRButterflyJar");
+        GameRegistry.registerTileEntity(LOTRTileEntityElvenForge.class, (String)"LOTRElvenForge");
+        GameRegistry.registerTileEntity(LOTRTileEntityUnsmeltery.class, (String)"LOTRUnsmeltery");
+        GameRegistry.registerTileEntity(LOTRTileEntityCorruptMallorn.class, (String)"LOTRCorruptMallorn");
+        GameRegistry.registerTileEntity(LOTRTileEntityAlloyForge.class, (String)"LOTRAlloyForge");
+        GameRegistry.registerTileEntity(LOTRTileEntityDartTrap.class, (String)"LOTRDartTrap");
+        GameRegistry.registerTileEntity(LOTRTileEntityChest.class, (String)"LOTRChest");
+        GameRegistry.registerTileEntity(LOTRTileEntityWeaponRack.class, (String)"LOTRWeaponRack");
+        GameRegistry.registerTileEntity(LOTRTileEntityKebabStand.class, (String)"LOTRKebabStand");
+        GameRegistry.registerTileEntity(LOTRTileEntitySignCarved.class, (String)"LOTRSignCarved");
+        GameRegistry.registerTileEntity(LOTRTileEntitySignCarvedIthildin.class, (String)"LOTRSignCarvedIthildin");
+        GameRegistry.registerTileEntity(LOTRTileEntityMillstone.class, (String)"LOTRMillstone");
+        GameRegistry.registerTileEntity(LOTRTileEntityBookshelf.class, (String)"LOTRBookshelf");
         LOTRDimension.registerDimensions();
         LOTRSpeech.loadAllSpeechBanks();
         LOTRNames.loadAllNameBanks();
@@ -4837,44 +5454,44 @@ public class LOTRMod {
             if (biome == null) continue;
             Color water = new Color(biome.waterColorMultiplier);
             float[] rgb = water.getColorComponents(null);
-            int r = (int)(baseR * rgb[0]);
-            int g = (int)(baseG * rgb[1]);
-            int b = (int)(baseB * rgb[2]);
+            int r = (int)((float)baseR * rgb[0]);
+            int g = (int)((float)baseG * rgb[1]);
+            int b = (int)((float)baseB * rgb[2]);
             biome.waterColorMultiplier = new Color(r, g, b).getRGB();
         }
     }
 
     @Mod.EventHandler
     public void onServerStarting(FMLServerStartingEvent event) {
-        WorldServer world = DimensionManager.getWorld(0);
-        proxy.testReflection(world);
+        WorldServer world = DimensionManager.getWorld((int)0);
+        proxy.testReflection((World)world);
         LOTRReflection.removeCommand(CommandTime.class);
-        event.registerServerCommand(new LOTRCommandTimeVanilla());
-        event.registerServerCommand(new LOTRCommandTime());
+        event.registerServerCommand((ICommand)new LOTRCommandTimeVanilla());
+        event.registerServerCommand((ICommand)new LOTRCommandTime());
         LOTRReflection.removeCommand(CommandMessage.class);
-        event.registerServerCommand(new LOTRCommandMessageFixed());
-        event.registerServerCommand(new LOTRCommandAlignment());
-        event.registerServerCommand(new LOTRCommandFastTravelClock());
-        event.registerServerCommand(new LOTRCommandWaypointCooldown());
-        event.registerServerCommand(new LOTRCommandSummon());
-        event.registerServerCommand(new LOTRCommandDate());
-        event.registerServerCommand(new LOTRCommandWaypoints());
-        event.registerServerCommand(new LOTRCommandAchievement());
-        event.registerServerCommand(new LOTRCommandStructureTimelapse());
-        event.registerServerCommand(new LOTRCommandAlignmentSee());
-        event.registerServerCommand(new LOTRCommandFellowship());
-        event.registerServerCommand(new LOTRCommandFellowshipMessage());
-        event.registerServerCommand(new LOTRCommandEnableAlignmentZones());
-        event.registerServerCommand(new LOTRCommandEnchant());
-        event.registerServerCommand(new LOTRCommandSpawnDamping());
-        event.registerServerCommand(new LOTRCommandFactionRelations());
-        event.registerServerCommand(new LOTRCommandPledgeCooldown());
-        event.registerServerCommand(new LOTRCommandConquest());
-        event.registerServerCommand(new LOTRCommandInvasion());
+        event.registerServerCommand((ICommand)new LOTRCommandMessageFixed());
+        event.registerServerCommand((ICommand)new LOTRCommandAlignment());
+        event.registerServerCommand((ICommand)new LOTRCommandFastTravelClock());
+        event.registerServerCommand((ICommand)new LOTRCommandWaypointCooldown());
+        event.registerServerCommand((ICommand)new LOTRCommandSummon());
+        event.registerServerCommand((ICommand)new LOTRCommandDate());
+        event.registerServerCommand((ICommand)new LOTRCommandWaypoints());
+        event.registerServerCommand((ICommand)new LOTRCommandAchievement());
+        event.registerServerCommand((ICommand)new LOTRCommandStructureTimelapse());
+        event.registerServerCommand((ICommand)new LOTRCommandAlignmentSee());
+        event.registerServerCommand((ICommand)new LOTRCommandFellowship());
+        event.registerServerCommand((ICommand)new LOTRCommandFellowshipMessage());
+        event.registerServerCommand((ICommand)new LOTRCommandEnableAlignmentZones());
+        event.registerServerCommand((ICommand)new LOTRCommandEnchant());
+        event.registerServerCommand((ICommand)new LOTRCommandSpawnDamping());
+        event.registerServerCommand((ICommand)new LOTRCommandFactionRelations());
+        event.registerServerCommand((ICommand)new LOTRCommandPledgeCooldown());
+        event.registerServerCommand((ICommand)new LOTRCommandConquest());
+        event.registerServerCommand((ICommand)new LOTRCommandInvasion());
         if (event.getServer().isDedicatedServer()) {
-            event.registerServerCommand(new LOTRCommandBanStructures());
-            event.registerServerCommand(new LOTRCommandAllowStructures());
-            event.registerServerCommand(new LOTRCommandAdminHideMap());
+            event.registerServerCommand((ICommand)new LOTRCommandBanStructures());
+            event.registerServerCommand((ICommand)new LOTRCommandAllowStructures());
+            event.registerServerCommand((ICommand)new LOTRCommandAdminHideMap());
         }
     }
 
@@ -4884,8 +5501,7 @@ public class LOTRMod {
         String prefixOldItem = "lotr:item.lotr:";
         String prefixNewTile = "lotr:tile.";
         String prefixNewItem = "lotr:item.";
-        List<MissingMapping> mappingsLOTR = event.get();
-        for (FMLMissingMappingsEvent.MissingMapping mapping : mappingsLOTR) {
+        for (FMLMissingMappingsEvent.MissingMapping mapping : event.get()) {
             Item item;
             Block block;
             String newName;
@@ -4907,21 +5523,21 @@ public class LOTRMod {
 
     private void registerBlock(Block block) {
         String prefixUnlocal = "tile:lotr.";
-        GameRegistry.registerBlock(block, "tile." + block.getUnlocalizedName().substring(prefixUnlocal.length()));
+        GameRegistry.registerBlock((Block)block, (String)("tile." + block.getUnlocalizedName().substring(prefixUnlocal.length())));
     }
 
     private void registerBlock(Block block, Class<? extends ItemBlock> itemClass) {
         String prefixUnlocal = "tile:lotr.";
-        GameRegistry.registerBlock(block, itemClass, "tile." + block.getUnlocalizedName().substring(prefixUnlocal.length()));
+        GameRegistry.registerBlock((Block)block, itemClass, (String)("tile." + block.getUnlocalizedName().substring(prefixUnlocal.length())));
     }
 
     private void registerItem(Item item) {
         String prefixUnlocal = "item:lotr.";
-        GameRegistry.registerItem(item, "item." + item.getUnlocalizedName().substring(prefixUnlocal.length()));
+        GameRegistry.registerItem((Item)item, (String)("item." + item.getUnlocalizedName().substring(prefixUnlocal.length())));
     }
 
     public static ModContainer getModContainer() {
-        return FMLCommonHandler.instance().findContainerFor(instance);
+        return FMLCommonHandler.instance().findContainerFor((Object)instance);
     }
 
     public static LOTRFaction getNPCFaction(Entity entity) {
@@ -4939,7 +5555,7 @@ public class LOTRMod {
             }
             return npc.getFaction();
         }
-        String s = EntityList.getEntityString(entity);
+        String s = EntityList.getEntityString((Entity)entity);
         if (LOTREntityRegistry.registeredNPCs.get(s) != null) {
             LOTREntityRegistry.RegistryInfo info = (LOTREntityRegistry.RegistryInfo)LOTREntityRegistry.registeredNPCs.get(s);
             return info.alignmentFaction;
@@ -4951,7 +5567,7 @@ public class LOTRMod {
         Chunk chunk = world.getChunkProvider().provideChunk(i >> 4, k >> 4);
         for (int j = chunk.getTopFilledSegment() + 15; j > 0; --j) {
             Block block = world.getBlock(i, j, k);
-            if (!block.getMaterial().blocksMovement() || block.getMaterial() == Material.leaves || block.isFoliage(world, i, j, k)) continue;
+            if (!block.getMaterial().blocksMovement() || block.getMaterial() == Material.leaves || block.isFoliage((IBlockAccess)world, i, j, k)) continue;
             return j + 1;
         }
         return -1;
@@ -4970,7 +5586,7 @@ public class LOTRMod {
             entity.worldObj.removeEntity(entity);
             entity.isDead = false;
             minecraftserver.getConfigurationManager().transferEntityToWorld(entity, oldDimension, oldWorld, newWorld, teleporter);
-            Entity newEntity = EntityList.createEntityByName(EntityList.getEntityString(entity), newWorld);
+            Entity newEntity = EntityList.createEntityByName((String)EntityList.getEntityString((Entity)entity), (World)newWorld);
             if (newEntity != null) {
                 newEntity.copyDataFrom(entity, true);
                 newWorld.spawnEntityInWorld(newEntity);
@@ -4997,14 +5613,14 @@ public class LOTRMod {
                     i1 = item.stackSize;
                 }
                 item.stackSize -= i1;
-                EntityItem entityItem = new EntityItem(world, i + f, j + f1, k + f2, new ItemStack(item.getItem(), i1, item.getItemDamage()));
+                EntityItem entityItem = new EntityItem(world, (double)((float)i + f), (double)((float)j + f1), (double)((float)k + f2), new ItemStack(item.getItem(), i1, item.getItemDamage()));
                 if (item.hasTagCompound()) {
                     entityItem.getEntityItem().setTagCompound((NBTTagCompound)item.getTagCompound().copy());
                 }
                 entityItem.motionX = world.rand.nextGaussian() * 0.05000000074505806;
                 entityItem.motionY = world.rand.nextGaussian() * 0.05000000074505806 + 0.20000000298023224;
                 entityItem.motionZ = world.rand.nextGaussian() * 0.05000000074505806;
-                world.spawnEntityInWorld(entityItem);
+                world.spawnEntityInWorld((Entity)entityItem);
             }
         }
     }
@@ -5063,15 +5679,15 @@ public class LOTRMod {
                 }
             }
         }
-		Entity targetNPC = null;
+        EntityLivingBase targetNPC = null;
         LOTRFaction targetNPCFaction = null;
-		if (LOTRMod.getNPCFaction(target) != LOTRFaction.UNALIGNED || target instanceof LOTREntityNPC) {
-			targetNPC = target;
-		} else if (LOTRMod.getNPCFaction(target.riddenByEntity) != LOTRFaction.UNALIGNED || target.riddenByEntity instanceof LOTREntityNPC) {
-			targetNPC = target.riddenByEntity;
-		}
+        if (LOTRMod.getNPCFaction((Entity)target) != LOTRFaction.UNALIGNED) {
+            targetNPC = target;
+        } else if (LOTRMod.getNPCFaction(target.riddenByEntity) != LOTRFaction.UNALIGNED) {
+            targetNPC = (EntityLivingBase) target.riddenByEntity;
+        }
         if (targetNPC != null) {
-            targetNPCFaction = LOTRMod.getNPCFaction(targetNPC);
+            targetNPCFaction = LOTRMod.getNPCFaction((Entity)targetNPC);
             if (targetNPC instanceof LOTREntityNPC) {
                 LOTREntityNPC targetLotrNPC = (LOTREntityNPC)targetNPC;
                 LOTRHiredNPCInfo hiredInfo = targetLotrNPC.hiredNPCInfo;
@@ -5106,7 +5722,7 @@ public class LOTRMod {
         if (target == null || !target.isEntityAlive()) {
             return false;
         }
-        LOTRFaction attackerFaction = LOTRMod.getNPCFaction(attacker);
+        LOTRFaction attackerFaction = LOTRMod.getNPCFaction((Entity)attacker);
         if (attacker instanceof LOTREntityNPC) {
             LOTREntityNPC npc = (LOTREntityNPC)attacker;
             EntityPlayer hiringPlayer = npc.hiredNPCInfo.getHiringPlayer();
@@ -5121,16 +5737,17 @@ public class LOTRMod {
                     targetNPC = (LOTREntityNPC)target.riddenByEntity;
                 }
                 if (targetNPC != null && targetNPC.hiredNPCInfo.isActive) {
+                    LOTRFaction targetFaction;
                     UUID hiringPlayerUUID = npc.hiredNPCInfo.getHiringPlayerUUID();
                     UUID targetHiringPlayerUUID = targetNPC.hiredNPCInfo.getHiringPlayerUUID();
-                    if (hiringPlayerUUID != null && targetHiringPlayerUUID != null && hiringPlayerUUID.equals(targetHiringPlayerUUID) && !attackerFaction.isBadRelation(LOTRMod.getNPCFaction(targetNPC))) {
+                    if (hiringPlayerUUID != null && targetHiringPlayerUUID != null && hiringPlayerUUID.equals(targetHiringPlayerUUID) && !attackerFaction.isBadRelation(targetFaction = LOTRMod.getNPCFaction((Entity)targetNPC))) {
                         return false;
                     }
                 }
             }
         }
         if (attackerFaction.allowEntityRegistry) {
-            if (attackerFaction.isGoodRelation(LOTRMod.getNPCFaction(target)) && attacker.getAttackTarget() != target) {
+            if (attackerFaction.isGoodRelation(LOTRMod.getNPCFaction((Entity)target)) && attacker.getAttackTarget() != target) {
                 return false;
             }
             if (target.riddenByEntity != null && attackerFaction.isGoodRelation(LOTRMod.getNPCFaction(target.riddenByEntity)) && attacker.getAttackTarget() != target && attacker.getAttackTarget() != target.riddenByEntity) {
@@ -5153,9 +5770,9 @@ public class LOTRMod {
     }
 
     public static boolean isOreNameEqual(ItemStack itemstack, String name) {
-        ArrayList<ItemStack> list = OreDictionary.getOres(name);
+        ArrayList<ItemStack> list = OreDictionary.getOres((String)name);
         for (ItemStack obj : list) {
-            if (!OreDictionary.itemMatches(obj, itemstack, false)) continue;
+            if (!OreDictionary.itemMatches((ItemStack)obj, (ItemStack)itemstack, (boolean)false)) continue;
             return true;
         }
         return false;

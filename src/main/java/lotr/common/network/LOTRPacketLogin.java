@@ -1,8 +1,22 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  cpw.mods.fml.common.network.simpleimpl.IMessage
+ *  cpw.mods.fml.common.network.simpleimpl.IMessageHandler
+ *  cpw.mods.fml.common.network.simpleimpl.MessageContext
+ *  io.netty.buffer.ByteBuf
+ *  net.minecraft.world.EnumDifficulty
+ */
 package lotr.common.network;
 
-import cpw.mods.fml.common.network.simpleimpl.*;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
-import lotr.common.*;
+import lotr.common.LOTRCommonProxy;
+import lotr.common.LOTRLevelData;
+import lotr.common.LOTRMod;
 import net.minecraft.world.EnumDifficulty;
 
 public class LOTRPacketLogin
@@ -21,6 +35,7 @@ implements IMessage {
     public boolean enchantingLOTR;
     public boolean strictFactionTitleRequirements;
     public boolean conquestDecay;
+    public int customWaypointMinY;
 
     public void toBytes(ByteBuf data) {
         data.writeInt(this.ringPortalX);
@@ -38,6 +53,7 @@ implements IMessage {
         data.writeBoolean(this.enchantingLOTR);
         data.writeBoolean(this.strictFactionTitleRequirements);
         data.writeBoolean(this.conquestDecay);
+        data.writeInt(this.customWaypointMinY);
     }
 
     public void fromBytes(ByteBuf data) {
@@ -47,7 +63,7 @@ implements IMessage {
         this.ftCooldownMax = data.readInt();
         this.ftCooldownMin = data.readInt();
         byte diff = data.readByte();
-        this.difficulty = diff >= 0 ? EnumDifficulty.getDifficultyEnum(diff) : null;
+        this.difficulty = diff >= 0 ? EnumDifficulty.getDifficultyEnum((int)diff) : null;
         this.difficultyLocked = data.readBoolean();
         this.alignmentZones = data.readBoolean();
         this.feastMode = data.readBoolean();
@@ -56,6 +72,7 @@ implements IMessage {
         this.enchantingLOTR = data.readBoolean();
         this.strictFactionTitleRequirements = data.readBoolean();
         this.conquestDecay = data.readBoolean();
+        this.customWaypointMinY = data.readInt();
     }
 
     public static class Handler
@@ -82,6 +99,7 @@ implements IMessage {
             LOTRLevelData.clientside_thisServer_enchanting = packet.enchanting;
             LOTRLevelData.clientside_thisServer_enchantingLOTR = packet.enchantingLOTR;
             LOTRLevelData.clientside_thisServer_strictFactionTitleRequirements = packet.strictFactionTitleRequirements;
+            LOTRLevelData.clientside_thisServer_customWaypointMinY = packet.customWaypointMinY;
             return null;
         }
     }

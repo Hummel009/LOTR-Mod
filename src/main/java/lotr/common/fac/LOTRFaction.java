@@ -1,17 +1,56 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  net.minecraft.command.IEntitySelector
+ *  net.minecraft.entity.EntityLivingBase
+ *  net.minecraft.entity.player.EntityPlayer
+ *  net.minecraft.util.AxisAlignedBB
+ *  net.minecraft.util.MathHelper
+ *  net.minecraft.util.StatCollector
+ *  net.minecraft.world.World
+ *  net.minecraft.world.WorldProvider
+ *  net.minecraft.world.WorldType
+ *  net.minecraft.world.storage.WorldInfo
+ */
 package lotr.common.fac;
 
 import java.awt.Color;
-import java.util.*;
-
-import lotr.common.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import lotr.common.LOTRAchievement;
+import lotr.common.LOTRAchievementRank;
+import lotr.common.LOTRDimension;
+import lotr.common.LOTRLevelData;
+import lotr.common.LOTRMod;
+import lotr.common.LOTRPlayerData;
 import lotr.common.entity.LOTRNPCSelectForInfluence;
+import lotr.common.fac.LOTRControlZone;
+import lotr.common.fac.LOTRFactionRank;
+import lotr.common.fac.LOTRFactionRelations;
+import lotr.common.fac.LOTRMapRegion;
 import lotr.common.item.LOTRItemBanner;
 import lotr.common.world.LOTRWorldProvider;
 import lotr.common.world.map.LOTRWaypoint;
+import net.minecraft.command.IEntitySelector;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.*;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldProvider;
+import net.minecraft.world.WorldType;
+import net.minecraft.world.storage.WorldInfo;
 
 public enum LOTRFaction {
     HOBBIT(5885518, LOTRDimension.DimensionRegion.WEST, new LOTRMapRegion(830, 745, 100), EnumSet.of(FactionType.TYPE_FREE, FactionType.TYPE_MAN)),
@@ -47,41 +86,42 @@ public enum LOTRFaction {
     private static Random factionRand;
     public LOTRDimension factionDimension;
     public LOTRDimension.DimensionRegion factionRegion;
+    private String factionName;
     private Color factionColor;
-    private Map<Float, float[]> facRGBCache = new HashMap<>();
-    private Set<FactionType> factionTypes = new HashSet<>();
-    public List<LOTRItemBanner.BannerType> factionBanners = new ArrayList<>();
+    private Map<Float, float[]> facRGBCache = new HashMap<Float, float[]>();
+    private Set<FactionType> factionTypes = new HashSet<FactionType>();
+    public List<LOTRItemBanner.BannerType> factionBanners = new ArrayList<LOTRItemBanner.BannerType>();
     public boolean allowPlayer;
     public boolean allowEntityRegistry;
     public boolean hasFixedAlignment;
     public int fixedAlignment;
-    private List<LOTRFactionRank> ranksSortedDescending = new ArrayList<>();
+    private List<LOTRFactionRank> ranksSortedDescending = new ArrayList<LOTRFactionRank>();
     private LOTRFactionRank pledgeRank;
     private LOTRAchievement.Category achieveCategory;
     public LOTRMapRegion factionMapInfo;
-    private List<LOTRControlZone> controlZones = new ArrayList<>();
+    private List<LOTRControlZone> controlZones = new ArrayList<LOTRControlZone>();
     public boolean isolationist = false;
     public boolean approvesWarCrimes = true;
-    private List<String> legacyAliases = new ArrayList<>();
+    private List<String> legacyAliases = new ArrayList<String>();
     public static final int CONTROL_ZONE_EXTRA_RANGE = 50;
 
-    LOTRFaction(int color, LOTRDimension.DimensionRegion region, LOTRMapRegion mapInfo, EnumSet<FactionType> types) {
+    private LOTRFaction(int color, LOTRDimension.DimensionRegion region, LOTRMapRegion mapInfo, EnumSet<FactionType> types) {
         this(color, LOTRDimension.MIDDLE_EARTH, region, mapInfo, types);
     }
 
-    LOTRFaction(int color, LOTRDimension dim, LOTRDimension.DimensionRegion region, LOTRMapRegion mapInfo, EnumSet<FactionType> types) {
+    private LOTRFaction(int color, LOTRDimension dim, LOTRDimension.DimensionRegion region, LOTRMapRegion mapInfo, EnumSet<FactionType> types) {
         this(color, dim, region, true, true, Integer.MIN_VALUE, mapInfo, types);
     }
 
-    LOTRFaction(int color, LOTRDimension dim, int alignment, EnumSet<FactionType> types) {
+    private LOTRFaction(int color, LOTRDimension dim, int alignment, EnumSet<FactionType> types) {
         this(color, dim, dim.dimensionRegions.get(0), true, true, alignment, null, types);
     }
 
-    LOTRFaction(boolean registry, int alignment) {
+    private LOTRFaction(boolean registry, int alignment) {
         this(0, null, null, false, registry, alignment, null, null);
     }
 
-    LOTRFaction(int color, LOTRDimension dim, LOTRDimension.DimensionRegion region, boolean player, boolean registry, int alignment, LOTRMapRegion mapInfo, EnumSet<FactionType> types) {
+    private LOTRFaction(int color, LOTRDimension dim, LOTRDimension.DimensionRegion region, boolean player, boolean registry, int alignment, LOTRMapRegion mapInfo, EnumSet<FactionType> types) {
         this.allowPlayer = player;
         this.allowEntityRegistry = registry;
         this.factionColor = new Color(color);
@@ -143,7 +183,10 @@ public enum LOTRFaction {
     }
 
     public LOTRFactionRank getPledgeRank() {
-        return this.pledgeRank;
+        if (this.pledgeRank != null) {
+            return this.pledgeRank;
+        }
+        return null;
     }
 
     public float getPledgeAlignment() {
@@ -358,7 +401,7 @@ public enum LOTRFaction {
         BLUE_MOUNTAINS.addControlZone(new LOTRControlZone(LOTRWaypoint.BELEGOST, 40));
         BLUE_MOUNTAINS.addControlZone(new LOTRControlZone(LOTRWaypoint.NOGROD, 40));
         BLUE_MOUNTAINS.addControlZone(new LOTRControlZone(LOTRWaypoint.THORIN_HALLS, 50));
-        BLUE_MOUNTAINS.addControlZone(new LOTRControlZone(695, 820, 80));
+        BLUE_MOUNTAINS.addControlZone(new LOTRControlZone(695.0, 820.0, 80));
         LOTRFaction.HIGH_ELF.approvesWarCrimes = false;
         HIGH_ELF.addControlZone(new LOTRControlZone(LOTRWaypoint.MITHLOND_SOUTH, 60));
         HIGH_ELF.addControlZone(new LOTRControlZone(LOTRWaypoint.FORLOND, 80));
@@ -399,7 +442,7 @@ public enum LOTRFaction {
         ISENGARD.addControlZone(new LOTRControlZone(LOTRWaypoint.EDORAS, 50));
         LOTRFaction.FANGORN.approvesWarCrimes = false;
         LOTRFaction.FANGORN.isolationist = true;
-        FANGORN.addControlZone(new LOTRControlZone(1180, 1005, 70));
+        FANGORN.addControlZone(new LOTRControlZone(1180.0, 1005.0, 70));
         LOTRFaction.ROHAN.approvesWarCrimes = false;
         ROHAN.addControlZone(new LOTRControlZone(LOTRWaypoint.ENTWADE, 150));
         ROHAN.addControlZone(new LOTRControlZone(LOTRWaypoint.ISENGARD, 100));
@@ -430,7 +473,7 @@ public enum LOTRFaction {
         NEAR_HARAD.addControlZone(new LOTRControlZone(LOTRWaypoint.CROSSINGS_OF_HARAD, 75));
         NEAR_HARAD.addControlZone(new LOTRControlZone(LOTRWaypoint.CROSSINGS_OF_POROS, 50));
         NEAR_HARAD.addControlZone(new LOTRControlZone(LOTRWaypoint.MINAS_TIRITH, 50));
-        NEAR_HARAD.addControlZone(new LOTRControlZone(1210, 1340, 75));
+        NEAR_HARAD.addControlZone(new LOTRControlZone(1210.0, 1340.0, 75));
         NEAR_HARAD.addControlZone(new LOTRControlZone(LOTRWaypoint.PELARGIR, 75));
         NEAR_HARAD.addControlZone(new LOTRControlZone(LOTRWaypoint.LINHIR, 75));
         LOTRFaction.MORWAITH.approvesWarCrimes = true;
@@ -676,7 +719,7 @@ public enum LOTRFaction {
     }
 
     public List<String> listAliases() {
-        return new ArrayList<>(this.legacyAliases);
+        return new ArrayList<String>(this.legacyAliases);
     }
 
     public static LOTRFaction forName(String name) {
@@ -703,21 +746,21 @@ public enum LOTRFaction {
         if (LOTRMod.isAprilFools()) {
             String[] names = new String[]{"Britain Stronger in Europe", "Vote Leave"};
             int i = this.ordinal();
-            i = (int)(i + (i ^ 0xF385L) + 28703L * (i * i ^ 0x30C087L));
+            i = (int)((long)i + ((long)i ^ 0xF385L) + 28703L * ((long)(i * i) ^ 0x30C087L));
             factionRand.setSeed(i);
             List<String> list = Arrays.asList(names);
             Collections.shuffle(list, factionRand);
             return list.get(0);
         }
-        return StatCollector.translateToLocal(this.untranslatedFactionName());
+        return StatCollector.translateToLocal((String)this.untranslatedFactionName());
     }
 
     public String factionEntityName() {
-        return StatCollector.translateToLocal("lotr.faction." + this.codeName() + ".entity");
+        return StatCollector.translateToLocal((String)("lotr.faction." + this.codeName() + ".entity"));
     }
 
     public String factionSubtitle() {
-        return StatCollector.translateToLocal("lotr.faction." + this.codeName() + ".subtitle");
+        return StatCollector.translateToLocal((String)("lotr.faction." + this.codeName() + ".subtitle"));
     }
 
     public LOTRFactionRank getRank(EntityPlayer entityplayer) {
@@ -731,7 +774,7 @@ public enum LOTRFaction {
 
     public LOTRFactionRank getRank(float alignment) {
         for (LOTRFactionRank rank : this.ranksSortedDescending) {
-            if (rank.isDummyRank() || (alignment < rank.alignment)) continue;
+            if (rank.isDummyRank() || !(alignment >= rank.alignment)) continue;
             return rank;
         }
         if (alignment >= 0.0f) {
@@ -792,7 +835,7 @@ public enum LOTRFaction {
             hsb[2] = Math.max(hsb[2], minBrightness);
             int alteredColor = Color.HSBtoRGB(hsb[0], hsb[1], hsb[2]);
             rgb = new Color(alteredColor).getColorComponents(null);
-            this.facRGBCache.put(minBrightness, rgb);
+            this.facRGBCache.put(Float.valueOf(minBrightness), rgb);
         }
         return rgb;
     }
@@ -826,7 +869,7 @@ public enum LOTRFaction {
     }
 
     public List<LOTRFaction> getOthersOfRelation(LOTRFactionRelations.Relation rel) {
-        ArrayList<LOTRFaction> list = new ArrayList<>();
+        ArrayList<LOTRFaction> list = new ArrayList<LOTRFaction>();
         for (LOTRFaction f : LOTRFaction.values()) {
             if (f == this || !f.isPlayableAlignmentFaction() || LOTRFactionRelations.getRelations(this, f) != rel) continue;
             list.add(f);
@@ -835,7 +878,7 @@ public enum LOTRFaction {
     }
 
     public List<LOTRFaction> getBonusesForKilling() {
-        ArrayList<LOTRFaction> list = new ArrayList<>();
+        ArrayList<LOTRFaction> list = new ArrayList<LOTRFaction>();
         for (LOTRFaction f : LOTRFaction.values()) {
             if (f == this || !this.isBadRelation(f)) continue;
             list.add(f);
@@ -844,7 +887,7 @@ public enum LOTRFaction {
     }
 
     public List<LOTRFaction> getPenaltiesForKilling() {
-        ArrayList<LOTRFaction> list = new ArrayList<>();
+        ArrayList<LOTRFaction> list = new ArrayList<LOTRFaction>();
         list.add(this);
         for (LOTRFaction f : LOTRFaction.values()) {
             if (f == this || !this.isGoodRelation(f)) continue;
@@ -854,7 +897,7 @@ public enum LOTRFaction {
     }
 
     public List<LOTRFaction> getConquestBoostRelations() {
-        ArrayList<LOTRFaction> list = new ArrayList<>();
+        ArrayList<LOTRFaction> list = new ArrayList<LOTRFaction>();
         for (LOTRFaction f : LOTRFaction.values()) {
             if (f == this || !f.isPlayableAlignmentFaction() || LOTRFactionRelations.getRelations(this, f) != LOTRFactionRelations.Relation.ALLY) continue;
             list.add(f);
@@ -875,8 +918,8 @@ public enum LOTRFaction {
             return true;
         }
         double nearbyRange = 24.0;
-        AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(d, d1, d2, d, d1, d2).expand(nearbyRange, nearbyRange, nearbyRange);
-        List nearbyNPCs = world.selectEntitiesWithinAABB(EntityLivingBase.class, aabb, new LOTRNPCSelectForInfluence(this));
+        AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox((double)d, (double)d1, (double)d2, (double)d, (double)d1, (double)d2).expand(nearbyRange, nearbyRange, nearbyRange);
+        List nearbyNPCs = world.selectEntitiesWithinAABB(EntityLivingBase.class, aabb, (IEntitySelector)new LOTRNPCSelectForInfluence(this));
         return !nearbyNPCs.isEmpty();
     }
 
@@ -893,7 +936,7 @@ public enum LOTRFaction {
     }
 
     public boolean inDefinedControlZone(World world, double d, double d1, double d2, int extraMapRange) {
-        if (world.provider instanceof LOTRWorldProvider && ((LOTRWorldProvider)world.provider).getLOTRDimension() == this.factionDimension) {
+        if (this.isFactionDimension(world)) {
             if (!LOTRFaction.controlZonesEnabled(world)) {
                 return true;
             }
@@ -905,36 +948,42 @@ public enum LOTRFaction {
         return false;
     }
 
+    private boolean isFactionDimension(World world) {
+        return world.provider instanceof LOTRWorldProvider && ((LOTRWorldProvider)world.provider).getLOTRDimension() == this.factionDimension;
+    }
+
     public int getControlZoneReducedRange() {
         return this.isolationist ? 0 : 50;
     }
 
     public float getControlZoneAlignmentMultiplier(EntityPlayer entityplayer) {
+        int reducedRange;
+        double dist;
         if (this.inControlZone(entityplayer)) {
             return 1.0f;
         }
-        int reducedRange = this.getControlZoneReducedRange();
-        double dist = this.distanceToNearestControlZoneInRange(entityplayer.posX, entityplayer.boundingBox.minY, entityplayer.posZ, reducedRange);
-        if (dist >= 0.0) {
+        if (this.isFactionDimension(entityplayer.worldObj) && (dist = this.distanceToNearestControlZoneInRange(entityplayer.worldObj, entityplayer.posX, entityplayer.boundingBox.minY, entityplayer.posZ, reducedRange = this.getControlZoneReducedRange())) >= 0.0) {
             double mapDist = LOTRWaypoint.worldToMapR(dist);
-            float frac = (float)mapDist / reducedRange;
+            float frac = (float)mapDist / (float)reducedRange;
             float mplier = 1.0f - frac;
-            mplier = MathHelper.clamp_float(mplier, 0.0f, 1.0f);
+            mplier = MathHelper.clamp_float((float)mplier, (float)0.0f, (float)1.0f);
             return mplier;
         }
         return 0.0f;
     }
 
-    public double distanceToNearestControlZoneInRange(double d, double d1, double d2, int mapRange) {
+    public double distanceToNearestControlZoneInRange(World world, double d, double d1, double d2, int mapRange) {
         double closestDist = -1.0;
-        int coordRange = LOTRWaypoint.mapToWorldR(mapRange);
-        for (LOTRControlZone zone : this.controlZones) {
-            double dx = d - zone.xCoord;
-            double dz = d2 - zone.zCoord;
-            double dSq = dx * dx + dz * dz;
-            double dToEdge = Math.sqrt(dSq) - zone.radiusCoord;
-            if ((dToEdge > coordRange) || (closestDist >= 0.0) && (dToEdge >= closestDist)) continue;
-            closestDist = dToEdge;
+        if (this.isFactionDimension(world)) {
+            int coordRange = LOTRWaypoint.mapToWorldR(mapRange);
+            for (LOTRControlZone zone : this.controlZones) {
+                double dx = d - (double)zone.xCoord;
+                double dz = d2 - (double)zone.zCoord;
+                double dSq = dx * dx + dz * dz;
+                double dToEdge = Math.sqrt(dSq) - (double)zone.radiusCoord;
+                if (!(dToEdge <= (double)coordRange) || !(closestDist < 0.0) && !(dToEdge < closestDist)) continue;
+                closestDist = dToEdge;
+            }
         }
         return closestDist;
     }
@@ -971,17 +1020,19 @@ public enum LOTRFaction {
     }
 
     public boolean sharesControlZoneWith(LOTRFaction other, int extraMapRadius) {
-        for (LOTRControlZone zone : this.controlZones) {
-            for (LOTRControlZone otherZone : other.controlZones) {
-                if (!zone.intersectsWith(otherZone, extraMapRadius)) continue;
-                return true;
+        if (other.factionDimension == this.factionDimension) {
+            for (LOTRControlZone zone : this.controlZones) {
+                for (LOTRControlZone otherZone : other.controlZones) {
+                    if (!zone.intersectsWith(otherZone, extraMapRadius)) continue;
+                    return true;
+                }
             }
         }
         return false;
     }
 
     public static List<LOTRFaction> getPlayableAlignmentFactions() {
-        ArrayList<LOTRFaction> factions = new ArrayList<>();
+        ArrayList<LOTRFaction> factions = new ArrayList<LOTRFaction>();
         for (LOTRFaction f : LOTRFaction.values()) {
             if (!f.isPlayableAlignmentFaction()) continue;
             factions.add(f);
@@ -991,7 +1042,7 @@ public enum LOTRFaction {
 
     public static List<String> getPlayableAlignmentFactionNames() {
         List<LOTRFaction> factions = LOTRFaction.getPlayableAlignmentFactions();
-        ArrayList<String> names = new ArrayList<>();
+        ArrayList<String> names = new ArrayList<String>();
         for (LOTRFaction f : factions) {
             names.add(f.codeName());
         }
@@ -999,7 +1050,7 @@ public enum LOTRFaction {
     }
 
     public static List<LOTRFaction> getAllRegional(LOTRDimension.DimensionRegion region) {
-        ArrayList<LOTRFaction> factions = new ArrayList<>();
+        ArrayList<LOTRFaction> factions = new ArrayList<LOTRFaction>();
         for (LOTRFaction f : LOTRFaction.values()) {
             if (f.factionRegion != region) continue;
             factions.add(f);
@@ -1020,7 +1071,7 @@ public enum LOTRFaction {
     }
 
     public static List<LOTRFaction> getAllOfType(boolean includeUnplayable, FactionType ... types) {
-        ArrayList<LOTRFaction> factions = new ArrayList<>();
+        ArrayList<LOTRFaction> factions = new ArrayList<LOTRFaction>();
         for (LOTRFaction f : LOTRFaction.values()) {
             if (!includeUnplayable && (!f.allowPlayer || f.hasFixedAlignment)) continue;
             boolean match = false;
@@ -1036,7 +1087,7 @@ public enum LOTRFaction {
     }
 
     public boolean isOfType(FactionType type) {
-        return this.factionTypes.contains(type);
+        return this.factionTypes.contains((Object)type);
     }
 
     static {

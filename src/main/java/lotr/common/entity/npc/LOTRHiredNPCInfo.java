@@ -1,23 +1,92 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  cpw.mods.fml.common.network.simpleimpl.IMessage
+ *  cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper
+ *  net.minecraft.block.Block
+ *  net.minecraft.entity.Entity
+ *  net.minecraft.entity.EntityLiving
+ *  net.minecraft.entity.EntityLivingBase
+ *  net.minecraft.entity.SharedMonsterAttributes
+ *  net.minecraft.entity.ai.attributes.IAttribute
+ *  net.minecraft.entity.ai.attributes.IAttributeInstance
+ *  net.minecraft.entity.item.EntityFireworkRocket
+ *  net.minecraft.entity.player.EntityPlayer
+ *  net.minecraft.entity.player.EntityPlayerMP
+ *  net.minecraft.init.Items
+ *  net.minecraft.item.Item
+ *  net.minecraft.item.ItemStack
+ *  net.minecraft.nbt.NBTBase
+ *  net.minecraft.nbt.NBTTagCompound
+ *  net.minecraft.nbt.NBTTagList
+ *  net.minecraft.pathfinding.PathNavigate
+ *  net.minecraft.server.management.PlayerManager
+ *  net.minecraft.server.management.PreYggdrasilConverter
+ *  net.minecraft.util.AxisAlignedBB
+ *  net.minecraft.util.ChatComponentTranslation
+ *  net.minecraft.util.CombatTracker
+ *  net.minecraft.util.DamageSource
+ *  net.minecraft.util.IChatComponent
+ *  net.minecraft.util.MathHelper
+ *  net.minecraft.util.StatCollector
+ *  net.minecraft.util.StringUtils
+ *  net.minecraft.world.IBlockAccess
+ *  net.minecraft.world.World
+ *  net.minecraft.world.WorldServer
+ *  net.minecraftforge.common.util.ForgeDirection
+ */
 package lotr.common.entity.npc;
 
-import java.util.*;
-
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
-import lotr.common.*;
+import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+import lotr.common.LOTRConfig;
+import lotr.common.LOTRLevelData;
+import lotr.common.LOTRMod;
+import lotr.common.LOTRPlayerData;
 import lotr.common.entity.LOTRMountFunctions;
+import lotr.common.entity.npc.LOTREntityNPC;
+import lotr.common.entity.npc.LOTRNPCMount;
+import lotr.common.entity.npc.LOTRUnitTradeEntry;
 import lotr.common.fac.LOTRFaction;
+import lotr.common.fac.LOTRFactionData;
 import lotr.common.inventory.LOTRInventoryNPC;
-import lotr.common.network.*;
-import net.minecraft.entity.*;
+import lotr.common.network.LOTRPacketHandler;
+import lotr.common.network.LOTRPacketHiredGui;
+import lotr.common.network.LOTRPacketHiredInfo;
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.IAttribute;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.item.EntityFireworkRocket;
-import net.minecraft.entity.player.*;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.*;
-import net.minecraft.server.management.*;
-import net.minecraft.util.*;
-import net.minecraft.world.*;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.pathfinding.PathNavigate;
+import net.minecraft.server.management.PlayerManager;
+import net.minecraft.server.management.PreYggdrasilConverter;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.CombatTracker;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.StatCollector;
+import net.minecraft.util.StringUtils;
+import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.ForgeDirection;
 
 public class LOTRHiredNPCInfo {
@@ -33,6 +102,7 @@ public class LOTRHiredNPCInfo {
     public int xp = 0;
     public int xpLevel = 1;
     public static final int XP_COLOR = 16733440;
+    private static final float LEVEL_UP_HEALTH_GAIN = 1.0f;
     private String hiredSquadron;
     public boolean guardMode;
     public static int GUARD_RANGE_MIN = 1;
@@ -156,7 +226,7 @@ public class LOTRHiredNPCInfo {
                     this.dismissUnit(true);
                 }
             }
-            this.inCombat = this.theEntity.getAttackTarget() != null;
+            boolean bl = this.inCombat = this.theEntity.getAttackTarget() != null;
             if (this.inCombat != this.prevInCombat) {
                 this.sendClientPacket(false);
             }
@@ -165,7 +235,7 @@ public class LOTRHiredNPCInfo {
                 String speechBank;
                 EntityPlayer hiringPlayer = this.getHiringPlayer();
                 double range = 16.0;
-                if (hiringPlayer != null && this.theEntity.getDistanceSqToEntity(hiringPlayer) < range * range && (speechBank = this.theEntity.getSpeechBank(hiringPlayer)) != null) {
+                if (hiringPlayer != null && this.theEntity.getDistanceSqToEntity((Entity)hiringPlayer) < range * range && (speechBank = this.theEntity.getSpeechBank(hiringPlayer)) != null) {
                     this.theEntity.sendSpeechBank(hiringPlayer, speechBank);
                 }
             }
@@ -174,9 +244,9 @@ public class LOTRHiredNPCInfo {
 
     public void dismissUnit(boolean isDesertion) {
         if (isDesertion) {
-            this.getHiringPlayer().addChatMessage(new ChatComponentTranslation("lotr.hiredNPC.desert", this.theEntity.getCommandSenderName()));
+            this.getHiringPlayer().addChatMessage((IChatComponent)new ChatComponentTranslation("lotr.hiredNPC.desert", new Object[]{this.theEntity.getCommandSenderName()}));
         } else {
-            this.getHiringPlayer().addChatMessage(new ChatComponentTranslation("lotr.hiredNPC.dismiss", this.theEntity.getCommandSenderName()));
+            this.getHiringPlayer().addChatMessage((IChatComponent)new ChatComponentTranslation("lotr.hiredNPC.dismiss", new Object[]{this.theEntity.getCommandSenderName()}));
         }
         if (this.hiredTask == Task.FARMER && this.hiredInventory != null) {
             this.hiredInventory.dropAllItems();
@@ -190,7 +260,7 @@ public class LOTRHiredNPCInfo {
     public void onDeath(DamageSource damagesource) {
         EntityPlayer hiringPlayer;
         if (!this.theEntity.worldObj.isRemote && this.isActive && this.getHiringPlayer() != null && LOTRLevelData.getData(hiringPlayer = this.getHiringPlayer()).getEnableHiredDeathMessages()) {
-            hiringPlayer.addChatMessage(new ChatComponentTranslation("lotr.hiredNPC.death", this.theEntity.func_110142_aN().func_151521_b()));
+            hiringPlayer.addChatMessage((IChatComponent)new ChatComponentTranslation("lotr.hiredNPC.death", new Object[]{this.theEntity.func_110142_aN().func_151521_b()}));
         }
         if (!this.theEntity.worldObj.isRemote && this.hiredInventory != null) {
             this.hiredInventory.dropAllItems();
@@ -244,9 +314,9 @@ public class LOTRHiredNPCInfo {
     public void setGuardMode(boolean flag) {
         this.guardMode = flag;
         if (flag) {
-            int i = MathHelper.floor_double(this.theEntity.posX);
-            int j = MathHelper.floor_double(this.theEntity.posY);
-            int k = MathHelper.floor_double(this.theEntity.posZ);
+            int i = MathHelper.floor_double((double)this.theEntity.posX);
+            int j = MathHelper.floor_double((double)this.theEntity.posY);
+            int k = MathHelper.floor_double((double)this.theEntity.posZ);
             this.theEntity.setHomeArea(i, j, k, this.guardRange);
         } else {
             this.theEntity.detachHome();
@@ -258,11 +328,11 @@ public class LOTRHiredNPCInfo {
     }
 
     public void setGuardRange(int range) {
-        this.guardRange = MathHelper.clamp_int(range, GUARD_RANGE_MIN, GUARD_RANGE_MAX);
+        this.guardRange = MathHelper.clamp_int((int)range, (int)GUARD_RANGE_MIN, (int)GUARD_RANGE_MAX);
         if (this.guardMode) {
-            int i = MathHelper.floor_double(this.theEntity.posX);
-            int j = MathHelper.floor_double(this.theEntity.posY);
-            int k = MathHelper.floor_double(this.theEntity.posZ);
+            int i = MathHelper.floor_double((double)this.theEntity.posX);
+            int j = MathHelper.floor_double((double)this.theEntity.posY);
+            int k = MathHelper.floor_double((double)this.theEntity.posZ);
             this.theEntity.setHomeArea(i, j, k, this.guardRange);
         }
     }
@@ -279,11 +349,11 @@ public class LOTRHiredNPCInfo {
     public String getStatusString() {
         String status = "";
         if (this.hiredTask == Task.WARRIOR) {
-            status = this.inCombat ? StatCollector.translateToLocal("lotr.hiredNPC.status.combat") : (this.isHalted() ? StatCollector.translateToLocal("lotr.hiredNPC.status.halted") : (this.guardMode ? StatCollector.translateToLocal("lotr.hiredNPC.status.guard") : StatCollector.translateToLocal("lotr.hiredNPC.status.ready")));
+            status = this.inCombat ? StatCollector.translateToLocal((String)"lotr.hiredNPC.status.combat") : (this.isHalted() ? StatCollector.translateToLocal((String)"lotr.hiredNPC.status.halted") : (this.guardMode ? StatCollector.translateToLocal((String)"lotr.hiredNPC.status.guard") : StatCollector.translateToLocal((String)"lotr.hiredNPC.status.ready")));
         } else if (this.hiredTask == Task.FARMER) {
-            status = this.guardMode ? StatCollector.translateToLocal("lotr.hiredNPC.status.farming") : StatCollector.translateToLocal("lotr.hiredNPC.status.following");
+            status = this.guardMode ? StatCollector.translateToLocal((String)"lotr.hiredNPC.status.farming") : StatCollector.translateToLocal((String)"lotr.hiredNPC.status.following");
         }
-        String s = StatCollector.translateToLocalFormatted("lotr.hiredNPC.status", status);
+        String s = StatCollector.translateToLocalFormatted((String)"lotr.hiredNPC.status", (Object[])new Object[]{status});
         return s;
     }
 
@@ -323,7 +393,7 @@ public class LOTRHiredNPCInfo {
                 if (target instanceof EntityPlayer) {
                     wasEnemy = LOTRLevelData.getData((EntityPlayer)target).getAlignment(unitFaction) < 0.0f;
                 } else {
-                    LOTRFaction targetFaction = LOTRMod.getNPCFaction(target);
+                    LOTRFaction targetFaction = LOTRMod.getNPCFaction((Entity)target);
                     if (targetFaction.isBadRelation(unitFaction) || unitFaction == LOTRFaction.RUFFIAN && targetFaction != LOTRFaction.UNALIGNED && targetFaction != LOTRFaction.RUFFIAN) {
                         wasEnemy = true;
                         addXP = 1;
@@ -332,7 +402,8 @@ public class LOTRHiredNPCInfo {
                 if (wasEnemy && this.theEntity.getRNG().nextInt(3) == 0) {
                     String speechBank;
                     EntityPlayer hiringPlayer = this.getHiringPlayer();
-                    if (hiringPlayer != null && this.theEntity.getDistanceSqToEntity(hiringPlayer) < 256.0 && (speechBank = this.theEntity.getSpeechBank(hiringPlayer)) != null) {
+                    double range = 16.0;
+                    if (hiringPlayer != null && this.theEntity.getDistanceSqToEntity((Entity)hiringPlayer) < 256.0 && (speechBank = this.theEntity.getSpeechBank(hiringPlayer)) != null) {
                         this.theEntity.sendSpeechBank(hiringPlayer, speechBank);
                     }
                 }
@@ -343,39 +414,68 @@ public class LOTRHiredNPCInfo {
         }
     }
 
-    private void addExperience(int i) {
-        this.xp += i;
-        while (this.xp >= this.totalXPForLevel(this.xpLevel + 1)) {
+    private void addExperience(int xpAdd) {
+        this.addExperience(xpAdd, true);
+    }
+
+    private void addExperience(int xpAdd, boolean passToRiderOrMount) {
+        this.xp += xpAdd;
+        while (this.xp >= LOTRHiredNPCInfo.totalXPForLevel(this.xpLevel + 1)) {
             ++this.xpLevel;
             this.markDirty();
             this.onLevelUp();
         }
         this.sendClientPacket(false);
+        if (passToRiderOrMount) {
+            this.addExperienceIfApplicable(this.theEntity.riddenByEntity, xpAdd);
+            this.addExperienceIfApplicable(this.theEntity.ridingEntity, xpAdd);
+        }
     }
 
-    public int totalXPForLevel(int lvl) {
+    private void addExperienceIfApplicable(Entity maybeNPC, int xpAdd) {
+        if (maybeNPC instanceof LOTREntityNPC) {
+            LOTREntityNPC otherNPC = (LOTREntityNPC)maybeNPC;
+            if (otherNPC.hiredNPCInfo.isActive && this.getHiringPlayerUUID().equals(otherNPC.hiredNPCInfo.getHiringPlayerUUID())) {
+                otherNPC.hiredNPCInfo.addExperience(xpAdd, false);
+            }
+        }
+    }
+
+    public static int totalXPForLevel(int lvl) {
         if (lvl <= 1) {
             return 0;
         }
-        double d = 3.0 * (lvl - 1) * Math.pow(1.08, lvl - 2);
-        return MathHelper.floor_double(d);
+        double d = 3.0 * (double)(lvl - 1) * Math.pow(1.08, lvl - 2);
+        return MathHelper.floor_double((double)d);
     }
 
     public float getProgressToNextLevel() {
-        int cap = this.totalXPForLevel(this.xpLevel + 1);
-        int start = this.totalXPForLevel(this.xpLevel);
+        int cap = LOTRHiredNPCInfo.totalXPForLevel(this.xpLevel + 1);
+        int start = LOTRHiredNPCInfo.totalXPForLevel(this.xpLevel);
         return (float)(this.xp - start) / (float)(cap - start);
     }
 
     private void onLevelUp() {
-        float healthBoost = 2.0f;
-        IAttributeInstance attrHealth = this.theEntity.getEntityAttribute(SharedMonsterAttributes.maxHealth);
-        attrHealth.setBaseValue(attrHealth.getBaseValue() + healthBoost);
-        this.theEntity.heal(healthBoost);
-        EntityPlayer hirer = this.getHiringPlayer();
-        if (hirer != null) {
-            hirer.addChatMessage(new ChatComponentTranslation("lotr.hiredNPC.levelUp", this.theEntity.getCommandSenderName(), this.xpLevel));
+        EntityPlayer hirer;
+        this.addLevelUpHealthGain((EntityLivingBase)this.theEntity);
+        Entity mount = this.theEntity.ridingEntity;
+        if (mount instanceof EntityLivingBase && !(mount instanceof LOTREntityNPC)) {
+            this.addLevelUpHealthGain((EntityLivingBase)mount);
         }
+        if ((hirer = this.getHiringPlayer()) != null) {
+            hirer.addChatMessage((IChatComponent)new ChatComponentTranslation("lotr.hiredNPC.levelUp", new Object[]{this.theEntity.getCommandSenderName(), this.xpLevel}));
+        }
+        this.spawnLevelUpFireworks();
+    }
+
+    private void addLevelUpHealthGain(EntityLivingBase gainingEntity) {
+        float healthBoost = 1.0f;
+        IAttributeInstance attrHealth = gainingEntity.getEntityAttribute(SharedMonsterAttributes.maxHealth);
+        attrHealth.setBaseValue(attrHealth.getBaseValue() + (double)healthBoost);
+        gainingEntity.heal(healthBoost);
+    }
+
+    private void spawnLevelUpFireworks() {
         boolean bigLvlUp = this.xpLevel % 5 == 0;
         World world = this.theEntity.worldObj;
         ItemStack itemstack = new ItemStack(Items.fireworks);
@@ -391,17 +491,17 @@ public class LOTRHiredNPCInfo {
             explosionData.setIntArray("Colors", colors);
             boolean effectType = bigLvlUp;
             explosionData.setByte("Type", (byte)(effectType ? 1 : 0));
-            explosionsList.appendTag(explosionData);
+            explosionsList.appendTag((NBTBase)explosionData);
         }
-        fireworkData.setTag("Explosions", explosionsList);
-        itemData.setTag("Fireworks", fireworkData);
+        fireworkData.setTag("Explosions", (NBTBase)explosionsList);
+        itemData.setTag("Fireworks", (NBTBase)fireworkData);
         itemstack.setTagCompound(itemData);
-        EntityFireworkRocket firework = new EntityFireworkRocket(world, this.theEntity.posX, this.theEntity.boundingBox.minY + this.theEntity.height, this.theEntity.posZ, itemstack);
+        EntityFireworkRocket firework = new EntityFireworkRocket(world, this.theEntity.posX, this.theEntity.boundingBox.minY + (double)this.theEntity.height, this.theEntity.posZ, itemstack);
         NBTTagCompound fireworkNBT = new NBTTagCompound();
         firework.writeEntityToNBT(fireworkNBT);
         fireworkNBT.setInteger("LifeTime", bigLvlUp ? 20 : 15);
         firework.readEntityFromNBT(fireworkNBT);
-        world.spawnEntityInWorld(firework);
+        world.spawnEntityInWorld((Entity)firework);
     }
 
     public boolean tryTeleportToHiringPlayer(boolean failsafe) {
@@ -409,9 +509,9 @@ public class LOTRHiredNPCInfo {
         if (!world.isRemote) {
             EntityPlayer entityplayer = this.getHiringPlayer();
             if (this.isActive && entityplayer != null && this.theEntity.riddenByEntity == null) {
-                int i = MathHelper.floor_double(entityplayer.posX);
-                int j = MathHelper.floor_double(entityplayer.boundingBox.minY);
-                int k = MathHelper.floor_double(entityplayer.posZ);
+                int i = MathHelper.floor_double((double)entityplayer.posX);
+                int j = MathHelper.floor_double((double)entityplayer.boundingBox.minY);
+                int k = MathHelper.floor_double((double)entityplayer.posZ);
                 float minDist = 3.0f;
                 float maxDist = 6.0f;
                 float extraDist = this.theEntity.width / 2.0f;
@@ -423,25 +523,26 @@ public class LOTRHiredNPCInfo {
                 int attempts = 120;
                 for (int l = 0; l < attempts; ++l) {
                     float yExtra;
+                    float height;
                     double d2;
                     float angle = world.rand.nextFloat() * 3.1415927f * 2.0f;
-                    float sin = MathHelper.sin(angle);
-                    float cos = MathHelper.cos(angle);
-                    float r = MathHelper.randomFloatClamp(world.rand, minDist, maxDist);
-                    int i1 = MathHelper.floor_double(i + 0.5 + cos * r);
-                    int k1 = MathHelper.floor_double(k + 0.5 + sin * r);
-                    double d = i1 + 0.5;
+                    float sin = MathHelper.sin((float)angle);
+                    float cos = MathHelper.cos((float)angle);
+                    float r = MathHelper.randomFloatClamp((Random)world.rand, (float)minDist, (float)maxDist);
+                    int i1 = MathHelper.floor_double((double)((double)i + 0.5 + (double)(cos * r)));
+                    int k1 = MathHelper.floor_double((double)((double)k + 0.5 + (double)(sin * r)));
+                    double d = (double)i1 + 0.5;
                     float halfWidth = this.theEntity.width / 2.0f;
-                    int j1 = MathHelper.getRandomIntegerInRange(world.rand, j - 4, j + 4);
+                    int j1 = MathHelper.getRandomIntegerInRange((Random)world.rand, (int)(j - 4), (int)(j + 4));
                     double d1 = j1;
-                    AxisAlignedBB npcBB = AxisAlignedBB.getBoundingBox(d - halfWidth, d1 + (yExtra = -this.theEntity.yOffset + this.theEntity.ySize), (d2 = k1 + 0.5) - halfWidth, d + halfWidth, d1 + yExtra + (this.theEntity.height), d2 + halfWidth);
-                    if (!world.func_147461_a(npcBB).isEmpty() || !world.getBlock(i1, j1 - 1, k1).isSideSolid(world, i1, j1 - 1, k1, ForgeDirection.UP)) continue;
+                    AxisAlignedBB npcBB = AxisAlignedBB.getBoundingBox((double)(d - (double)halfWidth), (double)(d1 + (double)(yExtra = -this.theEntity.yOffset + this.theEntity.ySize)), (double)((d2 = (double)k1 + 0.5) - (double)halfWidth), (double)(d + (double)halfWidth), (double)(d1 + (double)yExtra + (double)(height = this.theEntity.height)), (double)(d2 + (double)halfWidth));
+                    if (!world.func_147461_a(npcBB).isEmpty() || !world.getBlock(i1, j1 - 1, k1).isSideSolid((IBlockAccess)world, i1, j1 - 1, k1, ForgeDirection.UP)) continue;
                     if (this.theEntity.ridingEntity instanceof EntityLiving) {
                         EntityLiving mount = (EntityLiving)this.theEntity.ridingEntity;
                         float mHalfWidth = mount.width / 2.0f;
                         float mYExtra = -mount.yOffset + mount.ySize;
                         float mHeight = mount.height;
-                        AxisAlignedBB mountBB = AxisAlignedBB.getBoundingBox(d - mHalfWidth, d1 + mYExtra, d2 - mHalfWidth, d + mHalfWidth, d1 + mYExtra + mHeight, d2 + mHalfWidth);
+                        AxisAlignedBB mountBB = AxisAlignedBB.getBoundingBox((double)(d - (double)mHalfWidth), (double)(d1 + (double)mYExtra), (double)(d2 - (double)mHalfWidth), (double)(d + (double)mHalfWidth), (double)(d1 + (double)mYExtra + (double)mHeight), (double)(d2 + (double)mHalfWidth));
                         if (!world.func_147461_a(mountBB).isEmpty()) continue;
                         mount.setLocationAndAngles(d, d1, d2, this.theEntity.rotationYaw, this.theEntity.rotationPitch);
                         mount.fallDistance = 0.0f;
@@ -459,10 +560,10 @@ public class LOTRHiredNPCInfo {
                     return true;
                 }
                 if (failsafe) {
-                    double d = i + 0.5;
+                    double d = (double)i + 0.5;
                     double d1 = j;
-                    double d2 = k + 0.5;
-                    if (world.getBlock(i, j - 1, k).isSideSolid(world, i, j - 1, k, ForgeDirection.UP)) {
+                    double d2 = (double)k + 0.5;
+                    if (world.getBlock(i, j - 1, k).isSideSolid((IBlockAccess)world, i, j - 1, k, ForgeDirection.UP)) {
                         if (this.theEntity.ridingEntity instanceof EntityLiving) {
                             EntityLiving mount = (EntityLiving)this.theEntity.ridingEntity;
                             mount.setLocationAndAngles(d, d1, d2, this.theEntity.rotationYaw, this.theEntity.rotationPitch);
@@ -501,14 +602,14 @@ public class LOTRHiredNPCInfo {
         data.setInteger("GuardRange", this.guardRange);
         data.setInteger("Task", this.hiredTask.ordinal());
         data.setInteger("Xp", this.xp);
-        data.setInteger("XpLvl", this.xpLevel);
-        if (!StringUtils.isNullOrEmpty(this.hiredSquadron)) {
+        data.setInteger("XpLevel", this.xpLevel);
+        if (!StringUtils.isNullOrEmpty((String)this.hiredSquadron)) {
             data.setString("Squadron", this.hiredSquadron);
         }
         if (this.hiredInventory != null) {
             this.hiredInventory.writeToNBT(data);
         }
-        nbt.setTag("HiredNPCInfo", data);
+        nbt.setTag("HiredNPCInfo", (NBTBase)data);
     }
 
     public void readFromNBT(NBTTagCompound nbt) {
@@ -517,8 +618,8 @@ public class LOTRHiredNPCInfo {
             String savedUUID;
             if (data.hasKey("HiringPlayerName")) {
                 String name = data.getString("HiringPlayerName");
-                this.hiringPlayerUUID = UUID.fromString(PreYggdrasilConverter.func_152719_a(name));
-            } else if (data.hasKey("HiringPlayerUUID") && !StringUtils.isNullOrEmpty(savedUUID = data.getString("HiringPlayerUUID"))) {
+                this.hiringPlayerUUID = UUID.fromString(PreYggdrasilConverter.func_152719_a((String)name));
+            } else if (data.hasKey("HiringPlayerUUID") && !StringUtils.isNullOrEmpty((String)(savedUUID = data.getString("HiringPlayerUUID")))) {
                 this.hiringPlayerUUID = UUID.fromString(savedUUID);
             }
             this.isActive = data.getBoolean("IsActive");
@@ -538,8 +639,11 @@ public class LOTRHiredNPCInfo {
             if (data.hasKey("Xp")) {
                 this.xp = data.getInteger("Xp");
             }
-            if (data.hasKey("XpLvl")) {
+            if (data.hasKey("XpLevel")) {
+                this.xpLevel = data.getInteger("XpLevel");
+            } else if (data.hasKey("XpLvl")) {
                 this.xpLevel = data.getInteger("XpLvl");
+                this.correctOutdatedLevelUpHealthGain();
             }
             if (data.hasKey("Squadron")) {
                 this.hiredSquadron = data.getString("Squadron");
@@ -550,14 +654,26 @@ public class LOTRHiredNPCInfo {
         }
     }
 
+    private void correctOutdatedLevelUpHealthGain() {
+        int levelsGained = this.xpLevel - 1;
+        if (levelsGained > 0) {
+            float oldHealthGain = 2.0f;
+            float newHealthGain = 1.0f;
+            float healthCorrectionReduction = (oldHealthGain - newHealthGain) * (float)levelsGained;
+            IAttributeInstance attrHealth = this.theEntity.getEntityAttribute(SharedMonsterAttributes.maxHealth);
+            attrHealth.setBaseValue(attrHealth.getBaseValue() - (double)healthCorrectionReduction);
+            this.theEntity.setHealth(this.theEntity.getHealth());
+        }
+    }
+
     public void sendBasicData(EntityPlayerMP entityplayer) {
         LOTRPacketHiredInfo packet = new LOTRPacketHiredInfo(this.theEntity.getEntityId(), this.hiringPlayerUUID, this.hiredTask, this.getSquadron(), this.xpLevel);
-        LOTRPacketHandler.networkWrapper.sendTo(packet, entityplayer);
+        LOTRPacketHandler.networkWrapper.sendTo((IMessage)packet, entityplayer);
     }
 
     private void sendBasicDataToAllWatchers() {
-        int x = MathHelper.floor_double(this.theEntity.posX) >> 4;
-        int z = MathHelper.floor_double(this.theEntity.posZ) >> 4;
+        int x = MathHelper.floor_double((double)this.theEntity.posX) >> 4;
+        int z = MathHelper.floor_double((double)this.theEntity.posZ) >> 4;
         PlayerManager playermanager = ((WorldServer)this.theEntity.worldObj).getPlayerManager();
         List players = this.theEntity.worldObj.playerEntities;
         for (Object obj : players) {
@@ -608,13 +724,13 @@ public class LOTRHiredNPCInfo {
         this.guardRange = packet.guardRange;
     }
 
-    public enum Task {
+    public static enum Task {
         WARRIOR(true),
         FARMER(false);
 
         public final boolean displayXpLevel;
 
-        Task(boolean displayLvl) {
+        private Task(boolean displayLvl) {
             this.displayXpLevel = displayLvl;
         }
 

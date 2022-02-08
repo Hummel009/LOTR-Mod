@@ -1,13 +1,33 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  cpw.mods.fml.client.config.IConfigElement
+ *  cpw.mods.fml.common.FMLLog
+ *  cpw.mods.fml.common.event.FMLPreInitializationEvent
+ *  net.minecraft.world.World
+ *  net.minecraftforge.common.config.ConfigCategory
+ *  net.minecraftforge.common.config.ConfigElement
+ *  net.minecraftforge.common.config.Configuration
+ *  net.minecraftforge.common.config.Property
+ */
 package lotr.common;
-
-import java.util.*;
 
 import cpw.mods.fml.client.config.IConfigElement;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import lotr.common.LOTRDimension;
+import lotr.common.LOTRLevelData;
+import lotr.common.LOTRMod;
 import lotr.compatibility.LOTRModChecker;
 import net.minecraft.world.World;
-import net.minecraftforge.common.config.*;
+import net.minecraftforge.common.config.ConfigCategory;
+import net.minecraftforge.common.config.ConfigElement;
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 
 public class LOTRConfig {
     public static Configuration config;
@@ -56,6 +76,9 @@ public class LOTRConfig {
     public static boolean disableFireSpread;
     public static boolean enableVillagerTrading;
     public static boolean strictFactionTitleRequirements;
+    public static boolean invasionProgressReverts;
+    public static boolean hiredUnitKillsCountForBane;
+    public static int customWaypointMinY;
     public static boolean alwaysShowAlignment;
     public static int alignmentXOffset;
     public static int alignmentYOffset;
@@ -166,6 +189,9 @@ public class LOTRConfig {
         disableFireSpread = config.get(CATEGORY_GAMEPLAY, "Disable fire spread", false, "Activate instead of gamerule doFireTick for finer control over fire behaviour. Fire will still die out and burn blocks, but will not spread").getBoolean();
         enableVillagerTrading = config.get(CATEGORY_GAMEPLAY, "Enable Villager trading", true, "Intended for servers. Enable or disable vanilla villager trading").getBoolean();
         strictFactionTitleRequirements = config.get(CATEGORY_GAMEPLAY, "Strict faction title requirements", false, "Require a pledge to bear faction titles of alignment level equal to the faction's pledge level - not just those titles higher than pledge level").getBoolean();
+        invasionProgressReverts = config.get(CATEGORY_GAMEPLAY, "Invasion progress reverts", false, "Invasion progress slowly reverts if left alone for too long").getBoolean();
+        hiredUnitKillsCountForBane = config.get(CATEGORY_GAMEPLAY, "Hired units killed count towards x-bane modifiers", true, "").getBoolean();
+        customWaypointMinY = config.get(CATEGORY_GAMEPLAY, "Custom waypoint minimum y-level", -1, "Minimum y-coordinate at which a player can create a custom waypoint. Negative value = no limit").getInt();
         alwaysShowAlignment = config.get(CATEGORY_GUI, "Always show alignment", false, "If set to false, the alignment bar will only be shown in Middle-earth. If set to true, it will be shown in all dimensions").getBoolean();
         alignmentXOffset = config.get(CATEGORY_GUI, "Alignment x-offset", 0, "Configure the x-position of the alignment bar on-screen. Negative values move it left, positive values right").getInt();
         alignmentYOffset = config.get(CATEGORY_GUI, "Alignment y-offset", 0, "Configure the y-position of the alignment bar on-screen. Negative values move it up, positive values down").getInt();
@@ -217,7 +243,7 @@ public class LOTRConfig {
         preventMessageExploit = config.get(CATEGORY_MISC, "Fix /msg exploit", true, "Disable usage of @a, @r, etc. in the /msg command, to prevent exploiting it as a player locator").getBoolean();
         cwpLog = config.get(CATEGORY_MISC, "Custom Waypoint logging", false).getBoolean();
         if (LOTRModChecker.isCauldronServer()) {
-            FMLLog.info("LOTR: Successfully detected Cauldron server and disabled: nothing! (Thanks, ASM!)");
+            FMLLog.info((String)"LOTR: Successfully detected Cauldron server and disabled: nothing! (Thanks, ASM!)", (Object[])new Object[0]);
         }
         if (config.hasChanged()) {
             config.save();
@@ -255,10 +281,10 @@ public class LOTRConfig {
     }
 
     public static List<IConfigElement> getConfigElements() {
-        ArrayList<IConfigElement> list = new ArrayList<>();
+        ArrayList<IConfigElement> list = new ArrayList<IConfigElement>();
         for (ConfigCategory category : allCategories) {
             ConfigElement categoryElement = new ConfigElement(category);
-            list.add(categoryElement);
+            list.add((IConfigElement)categoryElement);
         }
         return list;
     }
@@ -291,8 +317,15 @@ public class LOTRConfig {
         return LOTRLevelData.clientside_thisServer_strictFactionTitleRequirements;
     }
 
+    public static int getCustomWaypointMinY(World world) {
+        if (!world.isRemote) {
+            return customWaypointMinY;
+        }
+        return LOTRLevelData.clientside_thisServer_customWaypointMinY;
+    }
+
     static {
-        allCategories = new ArrayList<>();
+        allCategories = new ArrayList<ConfigCategory>();
     }
 }
 

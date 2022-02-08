@@ -1,20 +1,61 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  cpw.mods.fml.relauncher.Side
+ *  cpw.mods.fml.relauncher.SideOnly
+ *  net.minecraft.block.Block
+ *  net.minecraft.block.BlockChest
+ *  net.minecraft.block.BlockEnderChest
+ *  net.minecraft.client.renderer.texture.IIconRegister
+ *  net.minecraft.creativetab.CreativeTabs
+ *  net.minecraft.entity.player.EntityPlayer
+ *  net.minecraft.entity.player.InventoryPlayer
+ *  net.minecraft.inventory.Container
+ *  net.minecraft.inventory.IInventory
+ *  net.minecraft.inventory.InventoryEnderChest
+ *  net.minecraft.item.Item
+ *  net.minecraft.item.ItemStack
+ *  net.minecraft.nbt.NBTTagCompound
+ *  net.minecraft.tileentity.TileEntity
+ *  net.minecraft.tileentity.TileEntityEnderChest
+ *  net.minecraft.util.IIcon
+ *  net.minecraft.util.StatCollector
+ *  net.minecraft.world.World
+ */
 package lotr.common.item;
 
-import java.util.*;
-
-import cpw.mods.fml.relauncher.*;
-import lotr.common.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import lotr.common.LOTRCommonProxy;
+import lotr.common.LOTRCreativeTabs;
+import lotr.common.LOTRMod;
 import lotr.common.block.LOTRBlockChest;
-import lotr.common.inventory.*;
-import net.minecraft.block.*;
+import lotr.common.block.LOTRBlockSpawnerChest;
+import lotr.common.inventory.LOTRContainerChestWithPouch;
+import lotr.common.inventory.LOTRContainerPouch;
+import lotr.common.inventory.LOTRInventoryPouch;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockChest;
+import net.minecraft.block.BlockEnderChest;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.*;
-import net.minecraft.inventory.*;
-import net.minecraft.item.*;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryEnderChest;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.*;
-import net.minecraft.util.*;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityEnderChest;
+import net.minecraft.util.IIcon;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
 public class LOTRItemPouch
@@ -34,12 +75,12 @@ extends Item {
         this.setHasSubtypes(true);
         this.setMaxDamage(0);
         this.setMaxStackSize(1);
-        this.setCreativeTab(LOTRCreativeTabs.tabMisc);
+        this.setCreativeTab((CreativeTabs)LOTRCreativeTabs.tabMisc);
     }
 
     public ItemStack onItemRightClick(ItemStack itemstack, World world, EntityPlayer entityplayer) {
         if (!world.isRemote) {
-            entityplayer.openGui(LOTRMod.instance, 15, world, entityplayer.inventory.currentItem, 0, 0);
+            entityplayer.openGui((Object)LOTRMod.instance, 15, world, entityplayer.inventory.currentItem, 0, 0);
         }
         return itemstack;
     }
@@ -60,6 +101,9 @@ extends Item {
     public static IInventory getChestInvAt(EntityPlayer entityplayer, World world, int i, int j, int k) {
         InventoryEnderChest enderInv;
         Block block = world.getBlock(i, j, k);
+        if (block instanceof LOTRBlockSpawnerChest) {
+            return null;
+        }
         TileEntity te = world.getTileEntity(i, j, k);
         if (block instanceof BlockChest) {
             return ((BlockChest)block).func_149951_m(world, i, j, k);
@@ -194,9 +238,9 @@ extends Item {
             if (slotItem == null) continue;
             ++slotsFull;
         }
-        list.add(StatCollector.translateToLocalFormatted("item.lotr.pouch.slots", slotsFull, slots));
+        list.add(StatCollector.translateToLocalFormatted((String)"item.lotr.pouch.slots", (Object[])new Object[]{slotsFull, slots}));
         if (LOTRItemPouch.isPouchDyed(itemstack)) {
-            list.add(StatCollector.translateToLocal("item.lotr.pouch.dyed"));
+            list.add(StatCollector.translateToLocal((String)"item.lotr.pouch.dyed"));
         }
     }
 
@@ -213,7 +257,7 @@ extends Item {
             for (int i = 0; i < pouchInv.getSizeInventory() && itemstack.stackSize > 0; ++i) {
                 int difference;
                 ItemStack itemInSlot = pouchInv.getStackInSlot(i);
-                if (itemInSlot != null ? itemInSlot.stackSize >= itemInSlot.getMaxStackSize() || itemInSlot.getItem() != itemstack.getItem() || !itemInSlot.isStackable() || itemInSlot.getHasSubtypes() && itemInSlot.getItemDamage() != itemstack.getItemDamage() || !ItemStack.areItemStackTagsEqual(itemInSlot, itemstack) : requireMatchInPouch) continue;
+                if (itemInSlot != null ? itemInSlot.stackSize >= itemInSlot.getMaxStackSize() || itemInSlot.getItem() != itemstack.getItem() || !itemInSlot.isStackable() || itemInSlot.getHasSubtypes() && itemInSlot.getItemDamage() != itemstack.getItemDamage() || !ItemStack.areItemStackTagsEqual((ItemStack)itemInSlot, (ItemStack)itemstack) : requireMatchInPouch) continue;
                 if (itemInSlot == null) {
                     pouchInv.setInventorySlotContents(i, itemstack);
                     return true;

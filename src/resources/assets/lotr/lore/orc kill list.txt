@@ -1,0 +1,11 @@
+#title:Список смерти
+#author:{name:orc_prefix}{name:orc_suffix}
+#types:mordor,gundabad,dol_guldur,angmar
+#reward
+#
+Выпотрошить кишки у:
+1. {name:orc_prefix}{name:orc_suffix}
+2. {name:orc_prefix}{name:orc_suffix}
+3. {name:orc_prefix}{name:orc_suffix}
+4. {name:orc_prefix}{name:orc_suffix}
+5. {name:orc_prefix}{name:orc_suffix}

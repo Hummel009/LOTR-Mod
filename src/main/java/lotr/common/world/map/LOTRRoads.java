@@ -1,20 +1,34 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  com.google.common.collect.Iterators
+ *  cpw.mods.fml.common.FMLLog
+ *  net.minecraft.util.StatCollector
+ *  org.apache.commons.lang3.tuple.Pair
+ */
 package lotr.common.world.map;
 
-import java.util.*;
-
+import com.google.common.collect.Iterators;
+import cpw.mods.fml.common.FMLLog;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import lotr.common.world.map.LOTRWaypoint;
+import net.minecraft.util.StatCollector;
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.google.common.collect.Iterators;
-
-import cpw.mods.fml.common.FMLLog;
-import net.minecraft.util.StatCollector;
-
 public class LOTRRoads {
-    private static List<LOTRRoads> allRoads = new ArrayList<>();
-    private static List<LOTRRoads> displayOnlyRoads = new ArrayList<>();
+    private static List<LOTRRoads> allRoads = new ArrayList<LOTRRoads>();
+    private static List<LOTRRoads> displayOnlyRoads = new ArrayList<LOTRRoads>();
     private static RoadPointDatabase roadPointDatabase = new RoadPointDatabase();
     public RoadPoint[] roadPoints;
-    public List<RoadPoint> endpoints = new ArrayList<>();
+    public List<RoadPoint> endpoints = new ArrayList<RoadPoint>();
     public final String roadName;
 
     private LOTRRoads(String name, RoadPoint ... ends) {
@@ -25,7 +39,7 @@ public class LOTRRoads {
     }
 
     public String getDisplayName() {
-        return StatCollector.translateToLocal("lotr.road." + this.roadName);
+        return StatCollector.translateToLocal((String)("lotr.road." + this.roadName));
     }
 
     private static void registerRoad(String name, Object ... waypoints) {
@@ -66,7 +80,7 @@ public class LOTRRoads {
       }
 
     public static void createRoads() {
-        FMLLog.info("LOTRRoads: Creating roads (reticulating splines)");
+        FMLLog.info((String)"LOTRRoads: Creating roads (reticulating splines)", (Object[])new Object[0]);
         long time = System.nanoTime();
         allRoads.clear();
         displayOnlyRoads.clear();
@@ -77,14 +91,14 @@ public class LOTRRoads {
         LOTRRoads.registerRoad("Mithlond", LOTRWaypoint.HARLOND, new int[]{658, 755}, LOTRWaypoint.MITHLOND_SOUTH, new int[]{690, 711}, new int[]{681, 705}, LOTRWaypoint.MITHLOND_NORTH, new int[]{644, 733}, new int[]{603, 733}, new int[]{554, 715}, LOTRWaypoint.FORLOND);
         LOTRRoads.registerRoad("WestEast", LOTRWaypoint.MITHLOND_SOUTH, LOTRWaypoint.TOWER_HILLS, LOTRWaypoint.GREENHOLM, LOTRWaypoint.MICHEL_DELVING, LOTRWaypoint.WAYMEET, LOTRWaypoint.BYWATER, LOTRWaypoint.FROGMORTON, LOTRWaypoint.WHITFURROWS, LOTRWaypoint.BRANDYWINE_BRIDGE, new int[]{870, 718}, new int[]{902, 729}, LOTRWaypoint.BREE);
         LOTRRoads.registerRoad("WestEast", LOTRWaypoint.BREE, new double[]{LOTRWaypoint.BREE.getX() + 0.5, LOTRWaypoint.BREE.getY()});
-        LOTRRoads.registerRoad("WestEast", new double[]{LOTRWaypoint.BREE.getX() + 2.0, LOTRWaypoint.BREE.getY() + 1.5}, new int[]{LOTRWaypoint.STADDLE.getX(), LOTRWaypoint.STADDLE.getY() + 5}, LOTRWaypoint.FORSAKEN_INN, new int[]{LOTRWaypoint.WEATHERTOP.getX(), LOTRWaypoint.WEATHERTOP.getY() + 2}, LOTRWaypoint.LAST_BRIDGE, new int[]{1132, 723}, new int[]{1178, 704}, LOTRWaypoint.HIGH_PASS, LOTRWaypoint.OLD_FORD, LOTRWaypoint.RIVER_GATE, LOTRWaypoint.DALE_CROSSROADS, LOTRWaypoint.REDWATER_FORD, new int[]{1785, 775}, LOTRWaypoint.RHUN_NORTH_FORD, LOTRWaypoint.RHUN_NORTHEAST, LOTRWaypoint.RHUN_ROAD_WAY, LOTRWaypoint.BARAZ_DUM);
-        LOTRRoads.registerRoad("WestEast", new double[]{LOTRWaypoint.BREE.getX() - 0.375, LOTRWaypoint.BREE.getY() - 2.476}, new double[]{LOTRWaypoint.BREE.getX() + 2, LOTRWaypoint.BREE.getY() - 1.5});
+        LOTRRoads.registerRoad("WestEast", new double[]{LOTRWaypoint.BREE.getX() + 2.0, LOTRWaypoint.BREE.getY() + 1.5}, new double[]{LOTRWaypoint.STADDLE.getX(), LOTRWaypoint.STADDLE.getY() + 5.0}, LOTRWaypoint.FORSAKEN_INN, new double[]{LOTRWaypoint.WEATHERTOP.getX(), LOTRWaypoint.WEATHERTOP.getY() + 2.0}, LOTRWaypoint.LAST_BRIDGE, new int[]{1132, 723}, new int[]{1178, 704}, LOTRWaypoint.HIGH_PASS, LOTRWaypoint.OLD_FORD, LOTRWaypoint.RIVER_GATE, LOTRWaypoint.DALE_CROSSROADS, LOTRWaypoint.REDWATER_FORD, new int[]{1785, 775}, LOTRWaypoint.RHUN_NORTH_FORD, LOTRWaypoint.RHUN_NORTHEAST, LOTRWaypoint.RHUN_ROAD_WAY, LOTRWaypoint.BARAZ_DUM);
+        LOTRRoads.registerRoad("WestEast", new double[]{LOTRWaypoint.BREE.getX() - 0.375, LOTRWaypoint.BREE.getY() - 2.476}, new double[]{LOTRWaypoint.BREE.getX() + 2.0, LOTRWaypoint.BREE.getY() - 1.5});
         LOTRRoads.registerDisplayOnlyRoad("WestEast", new double[]{LOTRWaypoint.BREE.getX() + 0.5, LOTRWaypoint.BREE.getY()}, new double[]{LOTRWaypoint.BREE.getX() + 2.0, LOTRWaypoint.BREE.getY()});
         LOTRRoads.registerDisplayOnlyRoad("WestEast", new double[]{LOTRWaypoint.BREE.getX() + 2.0, LOTRWaypoint.BREE.getY() - 1.5}, new double[]{LOTRWaypoint.BREE.getX() + 2.0, LOTRWaypoint.BREE.getY() + 1.5});
         LOTRRoads.registerRoad("BywaterRoad", LOTRWaypoint.BYWATER, LOTRWaypoint.HOBBITON);
         LOTRRoads.registerRoad("Overhill", LOTRWaypoint.HOBBITON, LOTRWaypoint.OVERHILL);
         LOTRRoads.registerRoad("BucklandRoad", LOTRWaypoint.HAY_GATE, LOTRWaypoint.BUCKLEBURY, LOTRWaypoint.HAYSEND);
-        LOTRRoads.registerRoad("Chetroad", new int[]{LOTRWaypoint.STADDLE.getX(), LOTRWaypoint.STADDLE.getY() + 5}, LOTRWaypoint.STADDLE, LOTRWaypoint.COMBE, LOTRWaypoint.ARCHET);
+        LOTRRoads.registerRoad("Chetroad", new double[]{LOTRWaypoint.STADDLE.getX(), LOTRWaypoint.STADDLE.getY() + 5.0}, LOTRWaypoint.STADDLE, LOTRWaypoint.COMBE, LOTRWaypoint.ARCHET);
         LOTRRoads.registerRoad("Chetroad", LOTRWaypoint.STADDLE, new double[]{LOTRWaypoint.STADDLE.getX() - 0.5, LOTRWaypoint.STADDLE.getY()});
         LOTRRoads.registerRoad("Chetroad", LOTRWaypoint.COMBE, new double[]{LOTRWaypoint.COMBE.getX() + 0.5, LOTRWaypoint.COMBE.getY()});
         LOTRRoads.registerRoad("Chetroad", LOTRWaypoint.ARCHET, new double[]{LOTRWaypoint.ARCHET.getX(), LOTRWaypoint.ARCHET.getY() - 0.5});
@@ -117,6 +131,7 @@ public class LOTRRoads {
         LOTRRoads.registerRoad("OsgiliathMorgulRoad", LOTRWaypoint.OSGILIATH_EAST, LOTRWaypoint.CROSSROADS_ITHILIEN, LOTRWaypoint.MINAS_MORGUL);
         LOTRRoads.registerRoad("GondorSouthRoad", LOTRWaypoint.MINAS_TIRITH, LOTRWaypoint.CROSSINGS_ERUI, new int[]{1408, 1291}, LOTRWaypoint.PELARGIR, LOTRWaypoint.LINHIR, new int[]{1266, 1301}, LOTRWaypoint.ETHRING, LOTRWaypoint.CALEMBEL, LOTRWaypoint.TARLANG, LOTRWaypoint.ERECH);
         LOTRRoads.registerRoad("IsengardRoad", LOTRWaypoint.FORDS_OF_ISEN, LOTRWaypoint.ISENGARD);
+        LOTRRoads.registerRoad("IsengardRoad", LOTRWaypoint.ISENGARD, new double[]{LOTRWaypoint.ISENGARD.getX(), LOTRWaypoint.ISENGARD.getY() - 3.5});
         LOTRRoads.registerRoad("HelmRoad", LOTRWaypoint.HELMS_CROSSROADS, LOTRWaypoint.HELMS_DEEP);
         LOTRRoads.registerRoad("WoldRoad", LOTRWaypoint.EDORAS, LOTRWaypoint.ENTWADE, new int[]{1260, 1060}, LOTRWaypoint.WOLD);
         LOTRRoads.registerRoad("DolAmroth", new int[]{1266, 1301}, LOTRWaypoint.TARNOST, LOTRWaypoint.EDHELLOND, new int[]{1185, 1325}, LOTRWaypoint.DOL_AMROTH);
@@ -147,8 +162,8 @@ public class LOTRRoads {
             ++dbEntries;
             dbPoints += ((List)e.getValue()).size();
         }
-        FMLLog.info("LOTRRoads: Created roads in " + (newTime - time) / 1.0E9 + "s");
-        FMLLog.info("LOTRRoads: roads=" + roads + ", points=" + points + ", dbEntries=" + dbEntries + ", dbPoints=" + dbPoints);
+        FMLLog.info((String)("LOTRRoads: Created roads in " + (double)(newTime - time) / 1.0E9 + "s"), (Object[])new Object[0]);
+        FMLLog.info((String)("LOTRRoads: roads=" + roads + ", points=" + points + ", dbEntries=" + dbEntries + ", dbPoints=" + dbPoints), (Object[])new Object[0]);
     }
 
     public static List<LOTRRoads> getAllRoadsInWorld() {
@@ -168,16 +183,16 @@ public class LOTRRoads {
         float leastSqRatio = -1.0f;
         List<RoadPoint> points = roadPointDatabase.getPointsForCoords(x, z);
         for (RoadPoint point : points) {
-            double dx = point.x - x;
-            double dz = point.z - z;
+            double dx = point.x - (double)x;
+            double dz = point.z - (double)z;
             double distSq = dx * dx + dz * dz;
-            if ((distSq >= widthSq)) continue;
+            if (!(distSq < widthSq)) continue;
             float f = (float)(distSq / widthSq);
             if (leastSqRatio == -1.0f) {
                 leastSqRatio = f;
                 continue;
             }
-            if ((f >= leastSqRatio)) continue;
+            if (!(f < leastSqRatio)) continue;
             leastSqRatio = f;
         }
         return leastSqRatio;
@@ -193,7 +208,7 @@ public class LOTRRoads {
             if (waypoints.length == 2) {
                 RoadPoint p1 = waypoints[0];
                 RoadPoint p2 = waypoints[1];
-                LOTRRoads road = new LOTRRoads(name, p1, p2);
+                LOTRRoads road = new LOTRRoads(name, new RoadPoint[]{p1, p2});
                 double dx = p2.x - p1.x;
                 double dz = p2.z - p1.z;
                 int roadLength = (int)Math.round(Math.sqrt(dx * dx + dz * dz));
@@ -232,7 +247,7 @@ public class LOTRRoads {
                 RoadPoint p2 = waypoints[i + 1];
                 RoadPoint cp1 = controlPoints1[i];
                 RoadPoint cp2 = controlPoints2[i];
-                roads[i] = road = new LOTRRoads(name, p1, p2);
+                roads[i] = road = new LOTRRoads(name, new RoadPoint[]{p1, p2});
                 double dx = p2.x - p1.x;
                 double dz = p2.z - p1.z;
                 int roadLength = (int)Math.round(Math.sqrt(dx * dx + dz * dz));
@@ -293,7 +308,8 @@ public class LOTRRoads {
             }
             p1[length - 1] = r[length - 1] / b[length - 1];
             for (i = length - 2; i >= 0; --i) {
-                p1[i] = (r[i] - c[i] * p1[i + 1]) / b[i];
+                double p;
+                p1[i] = p = (r[i] - c[i] * p1[i + 1]) / b[i];
             }
             for (i = 0; i < length - 1; ++i) {
                 p2[i] = 2.0 * src[i + 1] - p1[i + 1];
@@ -316,7 +332,9 @@ public class LOTRRoads {
     }
 
     private static class RoadPointDatabase {
-        private Map<Pair<Integer, Integer>, List<RoadPoint>> pointMap = new HashMap<>();
+        private Map<Pair<Integer, Integer>, List<RoadPoint>> pointMap = new HashMap<Pair<Integer, Integer>, List<RoadPoint>>();
+        private static final int COORD_LOOKUP_SIZE = 1000;
+
         private RoadPointDatabase() {
         }
 
@@ -341,11 +359,11 @@ public class LOTRRoads {
 
         private List<RoadPoint> getRoadList(int xKey, int zKey, boolean addToMap) {
             Pair key = Pair.of((Object)xKey, (Object)zKey);
-            List<RoadPoint> list = this.pointMap.get(key);
+            List<RoadPoint> list = this.pointMap.get((Object)key);
             if (list == null) {
-                list = new ArrayList<>();
+                list = new ArrayList<RoadPoint>();
                 if (addToMap) {
-                    this.pointMap.put(key, list);
+                    this.pointMap.put((Pair<Integer, Integer>)key, list);
                 }
             }
             return list;

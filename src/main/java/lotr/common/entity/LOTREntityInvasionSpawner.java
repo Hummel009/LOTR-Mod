@@ -1,23 +1,104 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  cpw.mods.fml.common.FMLLog
+ *  cpw.mods.fml.common.eventhandler.Event
+ *  cpw.mods.fml.common.eventhandler.Event$Result
+ *  cpw.mods.fml.common.network.simpleimpl.IMessage
+ *  cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper
+ *  net.minecraft.block.Block
+ *  net.minecraft.command.IEntitySelector
+ *  net.minecraft.entity.DataWatcher
+ *  net.minecraft.entity.Entity
+ *  net.minecraft.entity.EntityList
+ *  net.minecraft.entity.EntityLiving
+ *  net.minecraft.entity.IEntityLivingData
+ *  net.minecraft.entity.SharedMonsterAttributes
+ *  net.minecraft.entity.ai.attributes.IAttribute
+ *  net.minecraft.entity.ai.attributes.IAttributeInstance
+ *  net.minecraft.entity.player.EntityPlayer
+ *  net.minecraft.entity.player.EntityPlayerMP
+ *  net.minecraft.entity.player.PlayerCapabilities
+ *  net.minecraft.item.ItemStack
+ *  net.minecraft.nbt.NBTBase
+ *  net.minecraft.nbt.NBTTagCompound
+ *  net.minecraft.nbt.NBTTagList
+ *  net.minecraft.nbt.NBTTagString
+ *  net.minecraft.util.AxisAlignedBB
+ *  net.minecraft.util.ChatComponentText
+ *  net.minecraft.util.ChatComponentTranslation
+ *  net.minecraft.util.DamageSource
+ *  net.minecraft.util.IChatComponent
+ *  net.minecraft.util.MathHelper
+ *  net.minecraft.util.MovingObjectPosition
+ *  net.minecraft.util.WeightedRandom
+ *  net.minecraft.world.EnumDifficulty
+ *  net.minecraft.world.Explosion
+ *  net.minecraft.world.IBlockAccess
+ *  net.minecraft.world.World
+ *  net.minecraftforge.common.util.ForgeDirection
+ *  net.minecraftforge.event.ForgeEventFactory
+ */
 package lotr.common.entity;
-
-import java.util.*;
 
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.eventhandler.Event;
-import lotr.common.*;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
+import lotr.common.LOTRAchievement;
+import lotr.common.LOTRBannerProtection;
+import lotr.common.LOTRConfig;
+import lotr.common.LOTRLevelData;
+import lotr.common.LOTRMod;
+import lotr.common.LOTRPlayerData;
+import lotr.common.entity.LOTREntities;
+import lotr.common.entity.LOTREntityNPCRespawner;
 import lotr.common.entity.npc.LOTREntityNPC;
 import lotr.common.fac.LOTRFaction;
 import lotr.common.item.LOTRItemConquestHorn;
-import lotr.common.network.*;
+import lotr.common.network.LOTRPacketHandler;
+import lotr.common.network.LOTRPacketInvasionWatch;
 import lotr.common.world.spawning.LOTRInvasions;
+import net.minecraft.block.Block;
 import net.minecraft.command.IEntitySelector;
-import net.minecraft.entity.*;
+import net.minecraft.entity.DataWatcher;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.IEntityLivingData;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.IAttribute;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
-import net.minecraft.entity.player.*;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerCapabilities;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.*;
-import net.minecraft.util.*;
-import net.minecraft.world.*;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.WeightedRandom;
+import net.minecraft.world.EnumDifficulty;
+import net.minecraft.world.Explosion;
+import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.event.ForgeEventFactory;
 
@@ -30,11 +111,11 @@ extends Entity {
     private int invasionRemaining;
     private int successiveFailedSpawns = 0;
     private int timeSincePlayerProgress = 0;
-    private Map<UUID, Integer> recentPlayerContributors = new HashMap<>();
+    private Map<UUID, Integer> recentPlayerContributors = new HashMap<UUID, Integer>();
     private static double INVASION_FOLLOW_RANGE = 40.0;
     public boolean isWarhorn = false;
     public boolean spawnsPersistent = true;
-    private List<LOTRFaction> bonusFactions = new ArrayList<>();
+    private List<LOTRFaction> bonusFactions = new ArrayList<LOTRFaction>();
 
     public LOTREntityInvasionSpawner(World world) {
         super(world);
@@ -48,9 +129,9 @@ extends Entity {
     }
 
     public void entityInit() {
-        this.dataWatcher.addObject(20, (byte)0);
-        this.dataWatcher.addObject(21, (short)0);
-        this.dataWatcher.addObject(22, (short)0);
+        this.dataWatcher.addObject(20, (Object)0);
+        this.dataWatcher.addObject(21, (Object)0);
+        this.dataWatcher.addObject(22, (Object)0);
     }
 
     public LOTRInvasions getInvasionType() {
@@ -63,13 +144,13 @@ extends Entity {
     }
 
     public void setInvasionType(LOTRInvasions type) {
-        this.dataWatcher.updateObject(20, ((byte)type.ordinal()));
+        this.dataWatcher.updateObject(20, (Object)((byte)type.ordinal()));
     }
 
     private void updateWatchedInvasionValues() {
         if (!this.worldObj.isRemote) {
-            this.dataWatcher.updateObject(21, ((short)this.invasionSize));
-            this.dataWatcher.updateObject(22, ((short)this.invasionRemaining));
+            this.dataWatcher.updateObject(21, (Object)((short)this.invasionSize));
+            this.dataWatcher.updateObject(22, (Object)((short)this.invasionRemaining));
         } else {
             this.invasionSize = this.dataWatcher.getWatchableObjectShort(21);
             this.invasionRemaining = this.dataWatcher.getWatchableObjectShort(22);
@@ -95,11 +176,11 @@ extends Entity {
         if (LOTREntityNPCRespawner.isSpawnBlocked(this, this.getInvasionType().invasionFaction)) {
             return false;
         }
-        return this.worldObj.checkNoEntityCollision(this.boundingBox) && this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox).isEmpty() && !this.worldObj.isAnyLiquid(this.boundingBox);
+        return this.worldObj.checkNoEntityCollision(this.boundingBox) && this.worldObj.getCollidingBoundingBoxes((Entity)this, this.boundingBox).isEmpty() && !this.worldObj.isAnyLiquid(this.boundingBox);
     }
 
     private void playHorn() {
-        this.worldObj.playSoundAtEntity(this, "lotr:item.horn", 4.0f, 0.65f + this.rand.nextFloat() * 0.1f);
+        this.worldObj.playSoundAtEntity((Entity)this, "lotr:item.horn", 4.0f, 0.65f + this.rand.nextFloat() * 0.1f);
     }
 
     public void startInvasion() {
@@ -112,18 +193,18 @@ extends Entity {
 
     public void startInvasion(EntityPlayer announcePlayer, int size) {
         if (size < 0) {
-            size = MathHelper.getRandomIntegerInRange(this.rand, 30, 70);
+            size = MathHelper.getRandomIntegerInRange((Random)this.rand, (int)30, (int)70);
         }
         this.invasionRemaining = this.invasionSize = size;
         this.playHorn();
         double announceRange = INVASION_FOLLOW_RANGE * 2.0;
         List<EntityPlayer> nearbyPlayers = this.worldObj.getEntitiesWithinAABB(EntityPlayer.class, this.boundingBox.expand(announceRange, announceRange, announceRange));
-        if (announcePlayer != null && !nearbyPlayers.contains(announcePlayer)) {
+        if (announcePlayer != null && !nearbyPlayers.contains((Object)announcePlayer)) {
             nearbyPlayers.add(announcePlayer);
         }
         for (EntityPlayer entityplayer : nearbyPlayers) {
             boolean announce;
-            announce = LOTRLevelData.getData(entityplayer).getAlignment(this.getInvasionType().invasionFaction) < 0.0f;
+            boolean bl = announce = LOTRLevelData.getData(entityplayer).getAlignment(this.getInvasionType().invasionFaction) < 0.0f;
             if (entityplayer == announcePlayer) {
                 announce = true;
             }
@@ -134,12 +215,12 @@ extends Entity {
     }
 
     private void announceInvasionTo(EntityPlayer entityplayer) {
-        entityplayer.addChatMessage(new ChatComponentTranslation("chat.lotr.invasion.start", this.getInvasionType().invasionName()));
+        entityplayer.addChatMessage((IChatComponent)new ChatComponentTranslation("chat.lotr.invasion.start", new Object[]{this.getInvasionType().invasionName()}));
     }
 
     public void setWatchingInvasion(EntityPlayerMP entityplayer, boolean overrideAlreadyWatched) {
         LOTRPacketInvasionWatch pkt = new LOTRPacketInvasionWatch(this, overrideAlreadyWatched);
-        LOTRPacketHandler.networkWrapper.sendTo(pkt, entityplayer);
+        LOTRPacketHandler.networkWrapper.sendTo((IMessage)pkt, entityplayer);
     }
 
     public void selectAppropriateBonusFactions() {
@@ -155,7 +236,7 @@ extends Entity {
                 double nearestDist = Double.MAX_VALUE;
                 for (LOTRFaction faction : invasionFaction.getBonusesForKilling()) {
                     double dist;
-                    if (faction.isolationist || ((dist = faction.distanceToNearestControlZoneInRange(this.posX, this.posY, this.posZ, nearestRange)) < 0.0) || nearest != null && (dist >= nearestDist)) continue;
+                    if (faction.isolationist || !((dist = faction.distanceToNearestControlZoneInRange(this.worldObj, this.posX, this.posY, this.posZ, nearestRange)) >= 0.0) || nearest != null && !(dist < nearestDist)) continue;
                     nearest = faction;
                     nearestDist = dist;
                 }
@@ -180,9 +261,9 @@ extends Entity {
                 NBTTagCompound playerData = new NBTTagCompound();
                 playerData.setString("Player", player.toString());
                 playerData.setShort("Time", (short)time);
-                recentTags.appendTag(playerData);
+                recentTags.appendTag((NBTBase)playerData);
             }
-            nbt.setTag("RecentPlayers", recentTags);
+            nbt.setTag("RecentPlayers", (NBTBase)recentTags);
         }
         nbt.setBoolean("Warhorn", this.isWarhorn);
         nbt.setBoolean("NPCPersistent", this.spawnsPersistent);
@@ -190,9 +271,9 @@ extends Entity {
             NBTTagList bonusTags = new NBTTagList();
             for (LOTRFaction f : this.bonusFactions) {
                 String fName = f.codeName();
-                bonusTags.appendTag(new NBTTagString(fName));
+                bonusTags.appendTag((NBTBase)new NBTTagString(fName));
             }
-            nbt.setTag("BonusFactions", bonusTags);
+            nbt.setTag("BonusFactions", (NBTBase)bonusTags);
         }
     }
 
@@ -225,11 +306,11 @@ extends Entity {
                         UUID player = UUID.fromString(playerS);
                         if (player == null) continue;
                         short time = playerData.getShort("Time");
-                        this.recentPlayerContributors.put(player, (int) time);
+                        this.recentPlayerContributors.put(player, Integer.valueOf(time));
                         continue;
                     }
                     catch (IllegalArgumentException e) {
-                        FMLLog.warning("LOTR: Error loading invasion recent players - %s is not a valid UUID", playerS);
+                        FMLLog.warning((String)"LOTR: Error loading invasion recent players - %s is not a valid UUID", (Object[])new Object[]{playerS});
                         e.printStackTrace();
                     }
                 }
@@ -255,14 +336,15 @@ extends Entity {
     private void endInvasion(boolean completed) {
         if (completed) {
             LOTRFaction invasionFac = this.getInvasionType().invasionFaction;
-            HashSet<EntityPlayer> achievementPlayers = new HashSet<>();
-            HashSet<EntityPlayer> conqRewardPlayers = new HashSet<>();
+            float conqBoost = 50.0f;
+            HashSet<EntityPlayer> achievementPlayers = new HashSet<EntityPlayer>();
+            HashSet<EntityPlayer> conqRewardPlayers = new HashSet<EntityPlayer>();
             for (UUID player : this.recentPlayerContributors.keySet()) {
                 LOTRFaction pledged;
                 EntityPlayer entityplayer = this.worldObj.func_152378_a(player);
                 if (entityplayer == null) continue;
                 double range = 100.0;
-                if (entityplayer.dimension != this.dimension || (entityplayer.getDistanceSqToEntity(this) >= range * range)) continue;
+                if (entityplayer.dimension != this.dimension || !(entityplayer.getDistanceSqToEntity((Entity)this) < range * range)) continue;
                 LOTRPlayerData pd = LOTRLevelData.getData(player);
                 if (pd.getAlignment(invasionFac) <= 0.0f) {
                     achievementPlayers.add(entityplayer);
@@ -275,14 +357,14 @@ extends Entity {
                 pd.addAchievement(LOTRAchievement.defeatInvasion);
             }
             if (!conqRewardPlayers.isEmpty()) {
-                float boostPerPlayer = 50.0f / conqRewardPlayers.size();
+                float boostPerPlayer = 50.0f / (float)conqRewardPlayers.size();
                 for (EntityPlayer entityplayer : conqRewardPlayers) {
                     LOTRPlayerData pd = LOTRLevelData.getData(entityplayer);
                     pd.givePureConquestBonus(entityplayer, pd.getPledgeFaction(), this.getInvasionType().invasionFaction, boostPerPlayer, "lotr.alignment.invasionDefeat", this.posX, this.posY, this.posZ);
                 }
             }
         }
-        this.worldObj.createExplosion(this, this.posX, this.posY + this.height / 2.0, this.posZ, 0.0f, false);
+        this.worldObj.createExplosion((Entity)this, this.posX, this.posY + (double)this.height / 2.0, this.posZ, 0.0f, false);
         this.setDead();
     }
 
@@ -296,8 +378,8 @@ extends Entity {
         this.prevPosZ = this.posZ;
         this.prevSpawnerSpin = this.spawnerSpin;
         this.spawnerSpin += 6.0f;
-        this.prevSpawnerSpin = MathHelper.wrapAngleTo180_float(this.prevSpawnerSpin);
-        this.spawnerSpin = MathHelper.wrapAngleTo180_float(this.spawnerSpin);
+        this.prevSpawnerSpin = MathHelper.wrapAngleTo180_float((float)this.prevSpawnerSpin);
+        this.spawnerSpin = MathHelper.wrapAngleTo180_float((float)this.spawnerSpin);
         this.motionX = 0.0;
         this.motionY = 0.0;
         this.motionZ = 0.0;
@@ -305,12 +387,12 @@ extends Entity {
         if (!this.worldObj.isRemote) {
             if (this.invasionRemaining > 0) {
                 ++this.timeSincePlayerProgress;
-                if (this.timeSincePlayerProgress >= 6000 && !this.isWarhorn && this.timeSincePlayerProgress % 1200 == 0) {
+                if (LOTRConfig.invasionProgressReverts && this.timeSincePlayerProgress >= 6000 && !this.isWarhorn && this.timeSincePlayerProgress % 1200 == 0) {
                     ++this.invasionRemaining;
                     this.invasionRemaining = Math.min(this.invasionRemaining, this.invasionSize);
                 }
                 if (!this.recentPlayerContributors.isEmpty()) {
-                    HashSet<UUID> removes = new HashSet<>();
+                    HashSet<UUID> removes = new HashSet<UUID>();
                     for (Map.Entry<UUID, Integer> e : this.recentPlayerContributors.entrySet()) {
                         UUID player = e.getKey();
                         int time = e.getValue();
@@ -328,17 +410,18 @@ extends Entity {
         }
         if (!this.worldObj.isRemote && LOTRMod.canSpawnMobs(this.worldObj)) {
             double nearbySearch;
+            List nearbyNPCs;
             LOTRInvasions invasionType = this.getInvasionType();
             EntityPlayer closePlayer = this.worldObj.getClosestPlayer(this.posX, this.posY, this.posZ, 80.0);
-            if (closePlayer != null && this.invasionRemaining > 0 && (this.worldObj.selectEntitiesWithinAABB(LOTREntityNPC.class, this.boundingBox.expand(nearbySearch = INVASION_FOLLOW_RANGE * 2.0, nearbySearch, nearbySearch), this.selectThisInvasionMobs())).size() < 16 && this.rand.nextInt(160) == 0) {
-                int spawnAttempts = MathHelper.getRandomIntegerInRange(this.rand, 1, 6);
+            if (closePlayer != null && this.invasionRemaining > 0 && (nearbyNPCs = this.worldObj.selectEntitiesWithinAABB(LOTREntityNPC.class, this.boundingBox.expand(nearbySearch = INVASION_FOLLOW_RANGE * 2.0, nearbySearch, nearbySearch), this.selectThisInvasionMobs())).size() < 16 && this.rand.nextInt(160) == 0) {
+                int spawnAttempts = MathHelper.getRandomIntegerInRange((Random)this.rand, (int)1, (int)6);
                 spawnAttempts = Math.min(spawnAttempts, this.invasionRemaining);
                 boolean spawnedAnyMobs = false;
                 for (int l = 0; l < spawnAttempts; ++l) {
-                    LOTRInvasions.InvasionSpawnEntry entry = (LOTRInvasions.InvasionSpawnEntry)WeightedRandom.getRandomItem(this.rand, invasionType.invasionMobs);
+                    LOTRInvasions.InvasionSpawnEntry entry = (LOTRInvasions.InvasionSpawnEntry)WeightedRandom.getRandomItem((Random)this.rand, invasionType.invasionMobs);
                     Class entityClass = entry.getEntityClass();
                     String entityName = LOTREntities.getStringFromClass(entityClass);
-                    LOTREntityNPC npc = (LOTREntityNPC)EntityList.createEntityByName(entityName, this.worldObj);
+                    LOTREntityNPC npc = (LOTREntityNPC)EntityList.createEntityByName((String)entityName, (World)this.worldObj);
                     if (!this.attemptSpawnMob(npc)) continue;
                     spawnedAnyMobs = true;
                 }
@@ -354,20 +437,20 @@ extends Entity {
             }
         } else {
             String particle = this.rand.nextBoolean() ? "smoke" : "flame";
-            this.worldObj.spawnParticle(particle, this.posX + (this.rand.nextDouble() - 0.5) * this.width, this.posY + this.rand.nextDouble() * this.height, this.posZ + (this.rand.nextDouble() - 0.5) * this.width, 0.0, 0.0, 0.0);
+            this.worldObj.spawnParticle(particle, this.posX + (this.rand.nextDouble() - 0.5) * (double)this.width, this.posY + this.rand.nextDouble() * (double)this.height, this.posZ + (this.rand.nextDouble() - 0.5) * (double)this.width, 0.0, 0.0, 0.0);
         }
         this.updateWatchedInvasionValues();
     }
 
     private boolean attemptSpawnMob(LOTREntityNPC npc) {
         for (int at = 0; at < 40; ++at) {
-            int i = MathHelper.floor_double(this.posX) + MathHelper.getRandomIntegerInRange(this.rand, -6, 6);
-            int k = MathHelper.floor_double(this.posZ) + MathHelper.getRandomIntegerInRange(this.rand, -6, 6);
-            int j = MathHelper.floor_double(this.posY) + MathHelper.getRandomIntegerInRange(this.rand, -8, 4);
-            if (!this.worldObj.getBlock(i, j - 1, k).isSideSolid(this.worldObj, i, j - 1, k, ForgeDirection.UP)) continue;
-            npc.setLocationAndAngles(i + 0.5, j, k + 0.5, this.rand.nextFloat() * 360.0f, 0.0f);
+            int i = MathHelper.floor_double((double)this.posX) + MathHelper.getRandomIntegerInRange((Random)this.rand, (int)-6, (int)6);
+            int k = MathHelper.floor_double((double)this.posZ) + MathHelper.getRandomIntegerInRange((Random)this.rand, (int)-6, (int)6);
+            int j = MathHelper.floor_double((double)this.posY) + MathHelper.getRandomIntegerInRange((Random)this.rand, (int)-8, (int)4);
+            if (!this.worldObj.getBlock(i, j - 1, k).isSideSolid((IBlockAccess)this.worldObj, i, j - 1, k, ForgeDirection.UP)) continue;
+            npc.setLocationAndAngles((double)i + 0.5, (double)j, (double)k + 0.5, this.rand.nextFloat() * 360.0f, 0.0f);
             npc.liftSpawnRestrictions = true;
-            Event.Result canSpawn = ForgeEventFactory.canEntitySpawn(npc, this.worldObj, ((float)npc.posX), ((float)npc.posY), ((float)npc.posZ));
+            Event.Result canSpawn = ForgeEventFactory.canEntitySpawn((EntityLiving)npc, (World)this.worldObj, (float)((float)npc.posX), (float)((float)npc.posY), (float)((float)npc.posZ));
             if (canSpawn != Event.Result.ALLOW && (canSpawn != Event.Result.DEFAULT || !npc.getCanSpawnHere())) continue;
             npc.liftSpawnRestrictions = false;
             npc.onSpawnWithEgg(null);
@@ -377,7 +460,7 @@ extends Entity {
             }
             npc.setInvasionID(this.getInvasionID());
             npc.killBonusFactions.addAll(this.bonusFactions);
-            this.worldObj.spawnEntityInWorld(npc);
+            this.worldObj.spawnEntityInWorld((Entity)npc);
             IAttributeInstance followRangeAttrib = npc.getEntityAttribute(SharedMonsterAttributes.followRange);
             double followRange = followRangeAttrib.getBaseValue();
             followRange = Math.max(followRange, INVASION_FOLLOW_RANGE);
@@ -415,7 +498,7 @@ extends Entity {
 
     public boolean hitByEntity(Entity entity) {
         if (entity instanceof EntityPlayer) {
-            return this.attackEntityFrom(DamageSource.causePlayerDamage(((EntityPlayer)entity)), 0.0f);
+            return this.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer)((EntityPlayer)entity)), 0.0f);
         }
         return false;
     }
@@ -436,11 +519,11 @@ extends Entity {
             ChatComponentText message = new ChatComponentText("");
             for (LOTRFaction f : this.bonusFactions) {
                 if (!message.getSiblings().isEmpty()) {
-                    message.appendSibling(new ChatComponentText(", "));
+                    message.appendSibling((IChatComponent)new ChatComponentText(", "));
                 }
-                message.appendSibling(new ChatComponentTranslation(f.factionName()));
+                message.appendSibling((IChatComponent)new ChatComponentTranslation(f.factionName(), new Object[0]));
             }
-            entityplayer.addChatMessage(message);
+            entityplayer.addChatMessage((IChatComponent)message);
             return true;
         }
         return false;
@@ -464,7 +547,7 @@ extends Entity {
             }
         });
         if (!invasions.isEmpty()) {
-            return (LOTREntityInvasionSpawner)(invasions.get(0));
+            return (LOTREntityInvasionSpawner)((Object)invasions.get(0));
         }
         return null;
     }

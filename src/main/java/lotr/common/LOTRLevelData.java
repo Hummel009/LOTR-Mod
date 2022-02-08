@@ -1,26 +1,94 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  com.mojang.authlib.GameProfile
+ *  com.mojang.authlib.minecraft.MinecraftSessionService
+ *  cpw.mods.fml.common.FMLLog
+ *  cpw.mods.fml.common.network.simpleimpl.IMessage
+ *  cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper
+ *  net.minecraft.entity.player.EntityPlayer
+ *  net.minecraft.entity.player.EntityPlayerMP
+ *  net.minecraft.entity.player.PlayerCapabilities
+ *  net.minecraft.nbt.CompressedStreamTools
+ *  net.minecraft.nbt.NBTBase
+ *  net.minecraft.nbt.NBTTagCompound
+ *  net.minecraft.nbt.NBTTagList
+ *  net.minecraft.server.MinecraftServer
+ *  net.minecraft.server.management.PlayerProfileCache
+ *  net.minecraft.server.management.PreYggdrasilConverter
+ *  net.minecraft.server.management.ServerConfigurationManager
+ *  net.minecraft.util.StatCollector
+ *  net.minecraft.world.EnumDifficulty
+ *  net.minecraft.world.World
+ *  net.minecraft.world.WorldServer
+ *  net.minecraftforge.common.DimensionManager
+ *  org.apache.commons.lang3.StringUtils
+ */
 package lotr.common;
 
-import java.io.*;
-import java.util.*;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.mojang.authlib.GameProfile;
-
+import com.mojang.authlib.minecraft.MinecraftSessionService;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
-import lotr.common.fellowship.*;
-import lotr.common.network.*;
-import lotr.common.world.spawning.*;
-import net.minecraft.entity.player.*;
-import net.minecraft.nbt.*;
+import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
+import lotr.common.LOTRCommonProxy;
+import lotr.common.LOTRConfig;
+import lotr.common.LOTRDate;
+import lotr.common.LOTRGreyWandererTracker;
+import lotr.common.LOTRMod;
+import lotr.common.LOTRPlayerData;
+import lotr.common.LOTRShields;
+import lotr.common.LOTRSpawnDamping;
+import lotr.common.fellowship.LOTRFellowship;
+import lotr.common.fellowship.LOTRFellowshipData;
+import lotr.common.network.LOTRPacketAlignment;
+import lotr.common.network.LOTRPacketEnableAlignmentZones;
+import lotr.common.network.LOTRPacketFTCooldown;
+import lotr.common.network.LOTRPacketHandler;
+import lotr.common.network.LOTRPacketLogin;
+import lotr.common.network.LOTRPacketPortalPos;
+import lotr.common.network.LOTRPacketShield;
+import lotr.common.network.LOTRPacketUpdatePlayerLocations;
+import lotr.common.world.spawning.LOTREventSpawner;
+import lotr.common.world.spawning.LOTRTravellingTraderSpawner;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerCapabilities;
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.management.PlayerProfileCache;
 import net.minecraft.server.management.PreYggdrasilConverter;
+import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.util.StatCollector;
-import net.minecraft.world.*;
+import net.minecraft.world.EnumDifficulty;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
+import org.apache.commons.lang3.StringUtils;
 
 public class LOTRLevelData {
+    private static final int WAYPOINT_COOLDOWN_DEFAULT = 1800;
+    private static final int WAYPOINT_COOLDOWN_MIN_DEFAULT = 180;
     public static int madePortal;
     public static int madeMiddleEarthPortal;
     public static int overworldPortalX;
@@ -40,6 +108,7 @@ public class LOTRLevelData {
     public static boolean clientside_thisServer_enchanting;
     public static boolean clientside_thisServer_enchantingLOTR;
     public static boolean clientside_thisServer_strictFactionTitleRequirements;
+    public static int clientside_thisServer_customWaypointMinY;
     private static EnumDifficulty difficulty;
     private static boolean difficultyLock;
     private static Map<UUID, LOTRPlayerData> playerDataMap;
@@ -88,7 +157,7 @@ public class LOTRLevelData {
     public static NBTTagCompound loadNBTFromFile(File file) throws FileNotFoundException, IOException {
         if (file.exists()) {
             FileInputStream fis = new FileInputStream(file);
-            NBTTagCompound nbt = CompressedStreamTools.readCompressed(fis);
+            NBTTagCompound nbt = CompressedStreamTools.readCompressed((InputStream)fis);
             fis.close();
             return nbt;
         }
@@ -96,7 +165,7 @@ public class LOTRLevelData {
     }
 
     public static void saveNBTToFile(File file, NBTTagCompound nbt) throws FileNotFoundException, IOException {
-        CompressedStreamTools.writeCompressed(nbt, new FileOutputStream(file));
+        CompressedStreamTools.writeCompressed((NBTTagCompound)nbt, (OutputStream)new FileOutputStream(file));
     }
 
     public static void save() {
@@ -129,27 +198,31 @@ public class LOTRLevelData {
                 for (LOTRTravellingTraderSpawner trader : LOTREventSpawner.travellingTraders) {
                     NBTTagCompound nbt = new NBTTagCompound();
                     trader.writeToNBT(nbt);
-                    travellingTraderData.setTag(trader.entityClassName, nbt);
+                    travellingTraderData.setTag(trader.entityClassName, (NBTBase)nbt);
                 }
-                levelData.setTag("TravellingTraders", travellingTraderData);
+                levelData.setTag("TravellingTraders", (NBTBase)travellingTraderData);
                 LOTRGreyWandererTracker.save(levelData);
                 LOTRDate.saveDates(levelData);
                 LOTRLevelData.saveNBTToFile(LOTR_dat, levelData);
                 needsSave = false;
             }
+            int i = 0;
+            int j = 0;
             for (Map.Entry<UUID, LOTRPlayerData> e : playerDataMap.entrySet()) {
                 UUID player = e.getKey();
                 LOTRPlayerData pd = e.getValue();
                 if (pd.needsSave()) {
                     LOTRLevelData.saveData(player);
+                    ++i;
                 }
+                ++j;
             }
             if (LOTRSpawnDamping.needsSave) {
                 LOTRSpawnDamping.saveAll();
             }
         }
         catch (Exception e) {
-            FMLLog.severe("Error saving LOTR data");
+            FMLLog.severe((String)"Error saving LOTR data", (Object[])new Object[0]);
             e.printStackTrace();
         }
     }
@@ -185,8 +258,9 @@ public class LOTRLevelData {
             enableAlignmentZones = levelData.hasKey("AlignmentZones") ? levelData.getBoolean("AlignmentZones") : true;
             conquestRate = levelData.hasKey("ConqRate") ? levelData.getFloat("ConqRate") : 1.0f;
             if (levelData.hasKey("SavedDifficulty")) {
+                EnumDifficulty d;
                 int id = levelData.getInteger("SavedDifficulty");
-                difficulty = EnumDifficulty.getDifficultyEnum(id);
+                difficulty = d = EnumDifficulty.getDifficultyEnum((int)id);
                 LOTRMod.proxy.setClientDifficulty(difficulty);
             } else {
                 difficulty = null;
@@ -206,7 +280,7 @@ public class LOTRLevelData {
             LOTRLevelData.save();
         }
         catch (Exception e) {
-            FMLLog.severe("Error loading LOTR data");
+            FMLLog.severe((String)"Error loading LOTR data", (Object[])new Object[0]);
             e.printStackTrace();
         }
     }
@@ -230,7 +304,7 @@ public class LOTRLevelData {
 
     public static void markMiddleEarthPortalLocation(int i, int j, int k) {
         LOTRPacketPortalPos packet = new LOTRPacketPortalPos(i, j, k);
-        LOTRPacketHandler.networkWrapper.sendToAll(packet);
+        LOTRPacketHandler.networkWrapper.sendToAll((IMessage)packet);
         LOTRLevelData.markDirty();
     }
 
@@ -249,7 +323,8 @@ public class LOTRLevelData {
         packet.enchanting = LOTRConfig.enchantingVanilla;
         packet.enchantingLOTR = LOTRConfig.enchantingLOTR;
         packet.strictFactionTitleRequirements = LOTRConfig.strictFactionTitleRequirements;
-        LOTRPacketHandler.networkWrapper.sendTo(packet, entityplayer);
+        packet.customWaypointMinY = LOTRConfig.customWaypointMinY;
+        LOTRPacketHandler.networkWrapper.sendTo((IMessage)packet, entityplayer);
     }
 
     public static int getWaypointCooldownMax() {
@@ -273,7 +348,7 @@ public class LOTRLevelData {
             for (int i = 0; i < players.size(); ++i) {
                 EntityPlayerMP entityplayer = (EntityPlayerMP)players.get(i);
                 LOTRPacketFTCooldown packet = new LOTRPacketFTCooldown(waypointCooldownMax, waypointCooldownMin);
-                LOTRPacketHandler.networkWrapper.sendTo(packet, entityplayer);
+                LOTRPacketHandler.networkWrapper.sendTo((IMessage)packet, entityplayer);
             }
         }
     }
@@ -290,7 +365,7 @@ public class LOTRLevelData {
             for (int i = 0; i < players.size(); ++i) {
                 EntityPlayerMP entityplayer = (EntityPlayerMP)players.get(i);
                 LOTRPacketEnableAlignmentZones packet = new LOTRPacketEnableAlignmentZones(enableAlignmentZones);
-                LOTRPacketHandler.networkWrapper.sendTo(packet, entityplayer);
+                LOTRPacketHandler.networkWrapper.sendTo((IMessage)packet, entityplayer);
             }
         }
     }
@@ -306,11 +381,11 @@ public class LOTRLevelData {
 
     public static void sendPlayerData(EntityPlayerMP entityplayer) {
         try {
-            LOTRPlayerData pd = LOTRLevelData.getData(entityplayer);
+            LOTRPlayerData pd = LOTRLevelData.getData((EntityPlayer)entityplayer);
             pd.sendPlayerData(entityplayer);
         }
         catch (Exception e) {
-            FMLLog.severe("Failed to send player data to player " + entityplayer.getCommandSenderName());
+            FMLLog.severe((String)("Failed to send player data to player " + entityplayer.getCommandSenderName()), (Object[])new Object[0]);
             e.printStackTrace();
         }
     }
@@ -339,7 +414,7 @@ public class LOTRLevelData {
             return pd;
         }
         catch (Exception e) {
-            FMLLog.severe("Error loading LOTR player data for %s", player);
+            FMLLog.severe((String)"Error loading LOTR player data for %s", (Object[])new Object[]{player});
             e.printStackTrace();
             return null;
         }
@@ -353,7 +428,7 @@ public class LOTRLevelData {
             LOTRLevelData.saveNBTToFile(LOTRLevelData.getLOTRPlayerDat(player), nbt);
         }
         catch (Exception e) {
-            FMLLog.severe("Error saving LOTR player data for %s", player);
+            FMLLog.severe((String)"Error saving LOTR player data for %s", (Object[])new Object[]{player});
             e.printStackTrace();
         }
     }
@@ -369,12 +444,12 @@ public class LOTRLevelData {
             playerDataMap.remove(player);
             return saved;
         }
-        FMLLog.severe("Attempted to clear LOTR player data for %s; no data found", player);
+        FMLLog.severe((String)"Attempted to clear LOTR player data for %s; no data found", (Object[])new Object[]{player});
         return false;
     }
 
     public static void saveAndClearUnusedPlayerData() {
-        ArrayList<UUID> clearing = new ArrayList<>();
+        ArrayList<UUID> clearing = new ArrayList<UUID>();
         for (UUID player : playerDataMap.keySet()) {
             boolean foundPlayer = false;
             for (WorldServer world : MinecraftServer.getServer().worldServers) {
@@ -385,13 +460,15 @@ public class LOTRLevelData {
             if (foundPlayer) continue;
             clearing.add(player);
         }
-        clearing.size();
-        playerDataMap.size();
+        int numCleared = clearing.size();
+        int sizeBefore = playerDataMap.size();
+        int numSaved = 0;
         for (UUID player : clearing) {
             boolean saved = LOTRLevelData.saveAndClearData(player);
             if (!saved) continue;
+            ++numSaved;
         }
-        playerDataMap.size();
+        int sizeNow = playerDataMap.size();
     }
 
     public static void destroyAllPlayerData() {
@@ -408,7 +485,7 @@ public class LOTRLevelData {
     }
 
     public static void setPlayerBannedForStructures(String username, boolean flag) {
-        UUID uuid = UUID.fromString(PreYggdrasilConverter.func_152719_a(username));
+        UUID uuid = UUID.fromString(PreYggdrasilConverter.func_152719_a((String)username));
         if (uuid != null) {
             LOTRLevelData.getData(uuid).setStructuresBanned(flag);
         }
@@ -419,15 +496,15 @@ public class LOTRLevelData {
     }
 
     public static Set<String> getBannedStructurePlayersUsernames() {
-        HashSet<String> players = new HashSet<>();
+        HashSet<String> players = new HashSet<String>();
         for (UUID uuid : playerDataMap.keySet()) {
             String username;
             if (!LOTRLevelData.getData(uuid).getStructuresBanned()) continue;
             GameProfile profile = MinecraftServer.getServer().func_152358_ax().func_152652_a(uuid);
-            if (StringUtils.isBlank(profile.getName())) {
+            if (StringUtils.isBlank((CharSequence)profile.getName())) {
                 MinecraftServer.getServer().func_147130_as().fillProfileProperties(profile, true);
             }
-            if (StringUtils.isBlank(username = profile.getName())) continue;
+            if (StringUtils.isBlank((CharSequence)(username = profile.getName()))) continue;
             players.add(username);
         }
         return players;
@@ -480,7 +557,7 @@ public class LOTRLevelData {
         boolean isOp = MinecraftServer.getServer().getConfigurationManager().func_152596_g(sendPlayer.getGameProfile());
         boolean creative = sendPlayer.capabilities.isCreativeMode;
         LOTRPlayerData playerData = LOTRLevelData.getData(sendPlayer);
-        ArrayList<LOTRFellowship> fellowshipsMapShow = new ArrayList<>();
+        ArrayList<LOTRFellowship> fellowshipsMapShow = new ArrayList<LOTRFellowship>();
         for (UUID fsID : playerData.getFellowshipIDs()) {
             LOTRFellowship fs = LOTRFellowshipData.getFellowship(fsID);
             if (fs == null || fs.isDisbanded() || !fs.getShowMapLocations()) continue;
@@ -490,7 +567,7 @@ public class LOTRLevelData {
             boolean show;
             EntityPlayer otherPlayer = (EntityPlayer)world.playerEntities.get(i);
             if (otherPlayer == sendPlayer) continue;
-            show = !LOTRLevelData.getData(otherPlayer).getHideMapLocation();
+            boolean bl = show = !LOTRLevelData.getData(otherPlayer).getHideMapLocation();
             if (!isOp && LOTRLevelData.getData(otherPlayer).getAdminHideMap()) {
                 show = false;
             } else if (LOTRConfig.forceMapLocations == 1) {
@@ -549,22 +626,22 @@ public class LOTRLevelData {
         int hours = ticks / 72000;
         int minutes = ticks % 72000 / 1200;
         int seconds = ticks % 72000 % 1200 / 20;
-        String sHours = StatCollector.translateToLocalFormatted("lotr.gui.time.hours", hours);
-        String sMinutes = StatCollector.translateToLocalFormatted("lotr.gui.time.minutes", minutes);
-        String sSeconds = StatCollector.translateToLocalFormatted("lotr.gui.time.seconds", seconds);
+        String sHours = StatCollector.translateToLocalFormatted((String)"lotr.gui.time.hours", (Object[])new Object[]{hours});
+        String sMinutes = StatCollector.translateToLocalFormatted((String)"lotr.gui.time.minutes", (Object[])new Object[]{minutes});
+        String sSeconds = StatCollector.translateToLocalFormatted((String)"lotr.gui.time.seconds", (Object[])new Object[]{seconds});
         if (hours > 0) {
-            return StatCollector.translateToLocalFormatted("lotr.gui.time.format.hms", sHours, sMinutes, sSeconds);
+            return StatCollector.translateToLocalFormatted((String)"lotr.gui.time.format.hms", (Object[])new Object[]{sHours, sMinutes, sSeconds});
         }
         if (minutes > 0) {
-            return StatCollector.translateToLocalFormatted("lotr.gui.time.format.ms", sMinutes, sSeconds);
+            return StatCollector.translateToLocalFormatted((String)"lotr.gui.time.format.ms", (Object[])new Object[]{sMinutes, sSeconds});
         }
-        return StatCollector.translateToLocalFormatted("lotr.gui.time.format.s", sSeconds);
+        return StatCollector.translateToLocalFormatted((String)"lotr.gui.time.format.s", (Object[])new Object[]{sSeconds});
     }
 
     static {
         conquestRate = 1.0f;
         difficultyLock = false;
-        playerDataMap = new HashMap<>();
+        playerDataMap = new HashMap<UUID, LOTRPlayerData>();
         needsLoad = true;
         needsSave = false;
         rand = new Random();

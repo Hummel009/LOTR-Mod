@@ -1,24 +1,27 @@
+/*
+ * Decompiled with CFR 0.148.
+ */
 package lotr.common.fac;
 
 import lotr.common.world.map.LOTRWaypoint;
 
 public class LOTRControlZone {
-    public final int mapX;
-    public final int mapY;
+    public final double mapX;
+    public final double mapY;
     public final int radius;
     public final int xCoord;
     public final int zCoord;
     public final int radiusCoord;
     public final long radiusCoordSq;
 
-    public LOTRControlZone(int x, int y, int r) {
+    public LOTRControlZone(double x, double y, int r) {
         this.mapX = x;
         this.mapY = y;
         this.radius = r;
         this.xCoord = LOTRWaypoint.mapToWorldX(this.mapX);
         this.zCoord = LOTRWaypoint.mapToWorldZ(this.mapY);
         this.radiusCoord = LOTRWaypoint.mapToWorldR(this.radius);
-        this.radiusCoordSq = (long) this.radiusCoord * (long) this.radiusCoord;
+        this.radiusCoordSq = (long)this.radiusCoord * (long)this.radiusCoord;
     }
 
     public LOTRControlZone(LOTRWaypoint wp, int r) {
@@ -26,15 +29,15 @@ public class LOTRControlZone {
     }
 
     public boolean inZone(double x, double y, double z, int extraMapRange) {
-        double dx = x - this.xCoord;
-        double dz = z - this.zCoord;
+        double dx = x - (double)this.xCoord;
+        double dz = z - (double)this.zCoord;
         double distSq = dx * dx + dz * dz;
-        if(extraMapRange == 0) {
-            return distSq <= this.radiusCoordSq;
+        if (extraMapRange == 0) {
+            return distSq <= (double)this.radiusCoordSq;
         }
         int checkRadius = LOTRWaypoint.mapToWorldR(this.radius + extraMapRange);
-        long checkRadiusSq = (long) checkRadius * (long) checkRadius;
-        return distSq <= checkRadiusSq;
+        long checkRadiusSq = (long)checkRadius * (long)checkRadius;
+        return distSq <= (double)checkRadiusSq;
     }
 
     public boolean intersectsWith(LOTRControlZone other, int extraMapRadius) {
@@ -46,3 +49,4 @@ public class LOTRControlZone {
         return distSq <= r12Sq;
     }
 }
+

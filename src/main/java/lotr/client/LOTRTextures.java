@@ -1,31 +1,80 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  cpw.mods.fml.common.FMLLog
+ *  cpw.mods.fml.common.eventhandler.EventBus
+ *  cpw.mods.fml.common.eventhandler.SubscribeEvent
+ *  net.minecraft.client.Minecraft
+ *  net.minecraft.client.renderer.OpenGlHelper
+ *  net.minecraft.client.renderer.Tessellator
+ *  net.minecraft.client.renderer.texture.AbstractTexture
+ *  net.minecraft.client.renderer.texture.DynamicTexture
+ *  net.minecraft.client.renderer.texture.ITextureObject
+ *  net.minecraft.client.renderer.texture.TextureAtlasSprite
+ *  net.minecraft.client.renderer.texture.TextureManager
+ *  net.minecraft.client.renderer.texture.TextureMap
+ *  net.minecraft.client.renderer.texture.TextureUtil
+ *  net.minecraft.client.resources.IReloadableResourceManager
+ *  net.minecraft.client.resources.IResource
+ *  net.minecraft.client.resources.IResourceManager
+ *  net.minecraft.client.resources.IResourceManagerReloadListener
+ *  net.minecraft.entity.player.EntityPlayer
+ *  net.minecraft.util.IIcon
+ *  net.minecraft.util.ResourceLocation
+ *  net.minecraftforge.client.event.TextureStitchEvent
+ *  net.minecraftforge.client.event.TextureStitchEvent$Pre
+ *  net.minecraftforge.common.MinecraftForge
+ *  org.apache.logging.log4j.Logger
+ *  org.lwjgl.opengl.GL11
+ */
 package lotr.client;
 
+import cpw.mods.fml.common.FMLLog;
+import cpw.mods.fml.common.eventhandler.EventBus;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.*;
-
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import javax.imageio.ImageIO;
-
-import org.lwjgl.opengl.GL11;
-
-import cpw.mods.fml.common.FMLLog;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import lotr.client.gui.LOTRGuiMap;
 import lotr.client.render.LOTRBufferedImageIcon;
-import lotr.common.*;
-import lotr.common.util.*;
-import lotr.common.world.biome.*;
+import lotr.common.LOTRAchievement;
+import lotr.common.LOTRConfig;
+import lotr.common.LOTRDimension;
+import lotr.common.LOTRLevelData;
+import lotr.common.util.LOTRColorUtil;
+import lotr.common.util.LOTRCommonIcons;
+import lotr.common.util.LOTRLog;
+import lotr.common.world.biome.LOTRBiome;
+import lotr.common.world.biome.LOTRBiomeDecorator;
+import lotr.common.world.biome.LOTRBiomeGenMordor;
 import lotr.common.world.genlayer.LOTRGenLayerWorld;
 import lotr.common.world.map.LOTRWaypoint;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.texture.*;
-import net.minecraft.client.resources.*;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.ITextureObject;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.client.resources.IReloadableResourceManager;
+import net.minecraft.client.resources.IResource;
+import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.*;
+import net.minecraft.util.IIcon;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.MinecraftForge;
+import org.apache.logging.log4j.Logger;
+import org.lwjgl.opengl.GL11;
 
 public class LOTRTextures
 implements IResourceManagerReloadListener {
@@ -63,10 +112,10 @@ implements IResourceManagerReloadListener {
         TextureManager texMgr = mc.getTextureManager();
         LOTRTextures textures = new LOTRTextures();
         textures.onResourceManagerReload(resMgr);
-        ((IReloadableResourceManager)resMgr).registerReloadListener(textures);
-        MinecraftForge.EVENT_BUS.register(textures);
-        TextureMap texMapBlocks = mc.getTextureMapBlocks();
-        TextureMap texMapItems = (TextureMap)texMgr.getTexture(texMgr.getResourceLocation(1));
+        ((IReloadableResourceManager)resMgr).registerReloadListener((IResourceManagerReloadListener)textures);
+        MinecraftForge.EVENT_BUS.register((Object)textures);
+        TextureMap texMapBlocks = (TextureMap)texMgr.getTexture(TextureMap.locationBlocksTexture);
+        TextureMap texMapItems = (TextureMap)texMgr.getTexture(TextureMap.locationItemsTexture);
         textures.preTextureStitch(new TextureStitchEvent.Pre(texMapBlocks));
         textures.preTextureStitch(new TextureStitchEvent.Pre(texMapItems));
     }
@@ -100,24 +149,24 @@ implements IResourceManagerReloadListener {
         boolean meneltarma;
         Tessellator tessellator = Tessellator.instance;
         mc.getTextureManager().bindTexture(LOTRTextures.getMapTexture(entityplayer, sepia));
-        GL11.glColor4f(1.0f, 1.0f, 1.0f, alpha);
+        GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)alpha);
         tessellator.startDrawingQuads();
         tessellator.addVertexWithUV(x0, y1, z, minU, maxV);
         tessellator.addVertexWithUV(x1, y1, z, maxU, maxV);
         tessellator.addVertexWithUV(x1, y0, z, maxU, minV);
         tessellator.addVertexWithUV(x0, y0, z, minU, minV);
         tessellator.draw();
-        meneltarma = entityplayer != null && LOTRLevelData.getData(entityplayer).hasAchievement(LOTRAchievement.enterMeneltarma);
+        boolean bl = meneltarma = entityplayer != null && LOTRLevelData.getData(entityplayer).hasAchievement(LOTRAchievement.enterMeneltarma);
         if (!meneltarma) {
-            int mtX = LOTRWaypoint.MENELTARMA_SUMMIT.getX();
-            int mtY = LOTRWaypoint.MENELTARMA_SUMMIT.getY();
+            double mtX = LOTRWaypoint.MENELTARMA_SUMMIT.getX();
+            double mtY = LOTRWaypoint.MENELTARMA_SUMMIT.getY();
             int mtW = 20;
-            double mtMinU = (double)(mtX - mtW) / (double)LOTRGenLayerWorld.imageWidth;
-            double mtMaxU = (double)(mtX + mtW) / (double)LOTRGenLayerWorld.imageWidth;
-            double mtMinV = (double)(mtY - mtW) / (double)LOTRGenLayerWorld.imageHeight;
-            double mtMaxV = (double)(mtY + mtW) / (double)LOTRGenLayerWorld.imageHeight;
+            double mtMinU = (mtX - (double)mtW) / (double)LOTRGenLayerWorld.imageWidth;
+            double mtMaxU = (mtX + (double)mtW) / (double)LOTRGenLayerWorld.imageWidth;
+            double mtMinV = (mtY - (double)mtW) / (double)LOTRGenLayerWorld.imageHeight;
+            double mtMaxV = (mtY + (double)mtW) / (double)LOTRGenLayerWorld.imageHeight;
             if (minU <= mtMaxU && maxU >= mtMinU && minV <= mtMaxV && maxV >= mtMinV) {
-                GL11.glDisable(3553);
+                GL11.glDisable((int)3553);
                 int oceanColor = LOTRTextures.getMapOceanColor(sepia);
                 mtMinU = Math.max(mtMinU, minU);
                 mtMaxU = Math.min(mtMaxU, maxU);
@@ -136,7 +185,7 @@ implements IResourceManagerReloadListener {
                 tessellator.addVertexWithUV(mtX1, mtY0, z, mtMaxU, mtMinV);
                 tessellator.addVertexWithUV(mtX0, mtY0, z, mtMinU, mtMinV);
                 tessellator.draw();
-                GL11.glEnable(3553);
+                GL11.glEnable((int)3553);
             }
         }
     }
@@ -144,40 +193,40 @@ implements IResourceManagerReloadListener {
     public static void drawMapOverlay(EntityPlayer entityplayer, double x0, double x1, double y0, double y1, double z, double minU, double maxU, double minV, double maxV) {
         Tessellator tessellator = Tessellator.instance;
         mc.getTextureManager().bindTexture(overlayTexture);
-        GL11.glEnable(3042);
-        OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-        GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
+        GL11.glEnable((int)3042);
+        OpenGlHelper.glBlendFunc((int)770, (int)771, (int)1, (int)0);
+        GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)0.2f);
         tessellator.startDrawingQuads();
         tessellator.addVertexWithUV(x0, y1, z, 0.0, 1.0);
         tessellator.addVertexWithUV(x1, y1, z, 1.0, 1.0);
         tessellator.addVertexWithUV(x1, y0, z, 1.0, 0.0);
         tessellator.addVertexWithUV(x0, y0, z, 0.0, 0.0);
         tessellator.draw();
-        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        GL11.glDisable(3042);
+        GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
+        GL11.glDisable((int)3042);
     }
 
     public static void drawMapCompassBottomLeft(double x, double y, double z, double scale) {
-        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)1.0f);
         mc.getTextureManager().bindTexture(LOTRGuiMap.mapIconsTexture);
         int width = 32;
         int height = 32;
         double x0 = x;
-        double x1 = x + width * scale;
-        double y0 = y - height * scale;
+        double x1 = x + (double)width * scale;
+        double y0 = y - (double)height * scale;
         double y1 = y;
         int texU = 224;
         int texV = 200;
-        float u0 = texU / 256.0f;
-        float u1 = (texU + width) / 256.0f;
-        float v0 = texV / 256.0f;
-        float v1 = (texV + height) / 256.0f;
+        float u0 = (float)texU / 256.0f;
+        float u1 = (float)(texU + width) / 256.0f;
+        float v0 = (float)texV / 256.0f;
+        float v1 = (float)(texV + height) / 256.0f;
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(x0, y1, z, u0, v1);
-        tessellator.addVertexWithUV(x1, y1, z, u1, v1);
-        tessellator.addVertexWithUV(x1, y0, z, u1, v0);
-        tessellator.addVertexWithUV(x0, y0, z, u0, v0);
+        tessellator.addVertexWithUV(x0, y1, z, (double)u0, (double)v1);
+        tessellator.addVertexWithUV(x1, y1, z, (double)u1, (double)v1);
+        tessellator.addVertexWithUV(x1, y0, z, (double)u1, (double)v0);
+        tessellator.addVertexWithUV(x0, y0, z, (double)u0, (double)v0);
         tessellator.draw();
     }
 
@@ -203,7 +252,7 @@ implements IResourceManagerReloadListener {
             sepiaMapTexture = LOTRTextures.convertToSepia(mapImage, new ResourceLocation("lotr:map_sepia"));
         }
         catch (IOException e) {
-            FMLLog.severe("Failed to generate LOTR sepia map");
+            FMLLog.severe((String)"Failed to generate LOTR sepia map", (Object[])new Object[0]);
             e.printStackTrace();
             sepiaMapTexture = mapTexture;
         }
@@ -288,7 +337,7 @@ implements IResourceManagerReloadListener {
                 }
             }
         }
-        LOTRTextures.mc.renderEngine.loadTexture(resourceLocation, new DynamicTexture(newMapImage));
+        LOTRTextures.mc.renderEngine.loadTexture(resourceLocation, (ITextureObject)new DynamicTexture(newMapImage));
         return resourceLocation;
     }
 
@@ -320,16 +369,16 @@ implements IResourceManagerReloadListener {
             TextureManager textureManager = mc.getTextureManager();
             textureManager.bindTexture(particleTextures);
             AbstractTexture texture = (AbstractTexture)textureManager.getTexture(particleTextures);
-            TextureUtil.uploadTextureImageAllocate(texture.getGlTextureId(), particles, false, false);
+            TextureUtil.uploadTextureImageAllocate((int)texture.getGlTextureId(), (BufferedImage)particles, (boolean)false, (boolean)false);
         }
         catch (IOException e) {
-            FMLLog.severe("Failed to replace rain particles");
+            FMLLog.severe((String)"Failed to replace rain particles", (Object[])new Object[0]);
             e.printStackTrace();
         }
     }
 
     public static ResourceLocation getEyesTexture(ResourceLocation skin, int[][] eyesCoords, int eyeWidth, int eyeHeight) {
-        ResourceLocation eyes = eyesTextures.get(skin);
+        ResourceLocation eyes = eyesTextures.get((Object)skin);
         if (eyes == null) {
             try {
                 BufferedImage skinImage = ImageIO.read(mc.getResourceManager().getResource(skin).getInputStream());
@@ -377,7 +426,7 @@ implements IResourceManagerReloadListener {
 	}
 
     public static int computeAverageFactionPageColor(ResourceLocation texture, int u0, int v0, int u1, int v1) {
-        if (!averagedPageColors.containsKey(texture)) {
+        if (!averagedPageColors.containsKey((Object)texture)) {
             int avgColor = 0;
             try {
                 BufferedImage pageImage = ImageIO.read(mc.getResourceManager().getResource(texture).getInputStream());
@@ -390,28 +439,28 @@ implements IResourceManagerReloadListener {
                     for (int v = v0; v < v1; ++v) {
                         int rgb = pageImage.getRGB(u, v);
                         Color color = new Color(rgb);
-                        totalR += color.getRed();
-                        totalG += color.getGreen();
-                        totalB += color.getBlue();
-                        totalA += color.getAlpha();
+                        totalR += (long)color.getRed();
+                        totalG += (long)color.getGreen();
+                        totalB += (long)color.getBlue();
+                        totalA += (long)color.getAlpha();
                         ++count;
                     }
                 }
-                int avgR = (int)(totalR / count);
-                int avgG = (int)(totalG / count);
-                int avgB = (int)(totalB / count);
-                int avgA = (int)(totalA / count);
+                int avgR = (int)(totalR / (long)count);
+                int avgG = (int)(totalG / (long)count);
+                int avgB = (int)(totalB / (long)count);
+                int avgA = (int)(totalA / (long)count);
                 avgColor = new Color(avgR, avgG, avgB, avgA).getRGB();
             }
             catch (IOException e) {
-                FMLLog.severe("LOTR: Failed to generate average page colour");
+                FMLLog.severe((String)"LOTR: Failed to generate average page colour", (Object[])new Object[0]);
                 e.printStackTrace();
                 avgColor = 0;
             }
             averagedPageColors.put(texture, avgColor);
             return avgColor;
         }
-        return averagedPageColors.get(texture);
+        return averagedPageColors.get((Object)texture);
     }
 
     public static int findContrastingColor(int text, int bg) {
@@ -438,8 +487,8 @@ implements IResourceManagerReloadListener {
         newWaterV = 8;
         newWaterWidth = 64;
         newWaterHeight = 8;
-        eyesTextures = new HashMap<>();
-        averagedPageColors = new HashMap<>();
+        eyesTextures = new HashMap<ResourceLocation, ResourceLocation>();
+        averagedPageColors = new HashMap<ResourceLocation, Integer>();
     }
 }
 

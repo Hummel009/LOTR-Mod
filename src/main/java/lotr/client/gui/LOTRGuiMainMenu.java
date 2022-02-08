@@ -1,19 +1,53 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  com.google.common.base.Strings
+ *  com.google.common.collect.Lists
+ *  cpw.mods.fml.common.FMLCommonHandler
+ *  cpw.mods.fml.common.ObfuscationReflectionHelper
+ *  net.minecraft.client.Minecraft
+ *  net.minecraft.client.gui.FontRenderer
+ *  net.minecraft.client.gui.GuiButton
+ *  net.minecraft.client.gui.GuiLabel
+ *  net.minecraft.client.gui.GuiMainMenu
+ *  net.minecraft.client.gui.GuiScreen
+ *  net.minecraft.client.renderer.OpenGlHelper
+ *  net.minecraft.client.renderer.Tessellator
+ *  net.minecraft.client.renderer.texture.TextureManager
+ *  net.minecraft.util.MathHelper
+ *  net.minecraft.util.ResourceLocation
+ *  net.minecraft.util.StatCollector
+ *  net.minecraftforge.client.ForgeHooksClient
+ *  org.lwjgl.opengl.GL11
+ */
 package lotr.client.gui;
-
-import java.util.*;
-
-import org.lwjgl.opengl.GL11;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-
-import cpw.mods.fml.common.*;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.ObfuscationReflectionHelper;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import lotr.client.gui.LOTRGuiButtonRedBook;
+import lotr.client.gui.LOTRGuiMap;
+import lotr.client.gui.LOTRGuiRendererMap;
 import lotr.common.world.map.LOTRWaypoint;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.*;
-import net.minecraft.client.renderer.*;
-import net.minecraft.util.*;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiLabel;
+import net.minecraft.client.gui.GuiMainMenu;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.ForgeHooksClient;
+import org.lwjgl.opengl.GL11;
 
 public class LOTRGuiMainMenu
 extends GuiMainMenu {
@@ -33,6 +67,14 @@ extends GuiMainMenu {
     private static float mapSpeed;
     private static float mapVelX;
     private static float mapVelY;
+    private static final float wpChangeDistance = 12.0f;
+    private static final float mapSpeedMax = 0.8f;
+    private static final float mapSpeedIncr = 0.01f;
+    private static final float mapAccel = 0.02f;
+    private static final float zoomBase = -0.1f;
+    private static final float zoomOscilSpeed = 0.003f;
+    private static final float zoomOscilMax = 0.8f;
+
     public LOTRGuiMainMenu() {
         isFirstMenu = false;
         this.mapGui = new LOTRGuiMap();
@@ -122,81 +164,82 @@ extends GuiMainMenu {
         ++tickCounter;
         mapRenderer.updateTick();
         LOTRWaypoint wp = waypointRoute.get(currentWPIndex);
-        float dx = wp.getX() - LOTRGuiMainMenu.mapRenderer.mapX;
-        float dy = wp.getY() - LOTRGuiMainMenu.mapRenderer.mapY;
-        float distSq = dx * dx + dy * dy;
-        float dist = (float)Math.sqrt(distSq);
-        if (dist <= 12.0f) {
+        double dx = wp.getX() - LOTRGuiMainMenu.mapRenderer.mapX;
+        double dy = wp.getY() - LOTRGuiMainMenu.mapRenderer.mapY;
+        double distSq = dx * dx + dy * dy;
+        double dist = Math.sqrt(distSq);
+        if (dist <= 12.0) {
             if (++currentWPIndex >= waypointRoute.size()) {
                 currentWPIndex = 0;
             }
         } else {
             mapSpeed += 0.01f;
             mapSpeed = Math.min(mapSpeed, 0.8f);
-            float vXNew = dx / dist * mapSpeed;
-            float vYNew = dy / dist * mapSpeed;
+            double vXNew = dx / dist * (double)mapSpeed;
+            double vYNew = dy / dist * (double)mapSpeed;
             float a = 0.02f;
-            mapVelX += (vXNew - mapVelX) * a;
-            mapVelY += (vYNew - mapVelY) * a;
+            mapVelX = (float)((double)mapVelX + (vXNew - (double)mapVelX) * (double)a);
+            mapVelY = (float)((double)mapVelY + (vYNew - (double)mapVelY) * (double)a);
         }
-        LOTRGuiMainMenu.mapRenderer.mapX += mapVelX;
-        LOTRGuiMainMenu.mapRenderer.mapY += mapVelY;
+        LOTRGuiMainMenu.mapRenderer.mapX += (double)mapVelX;
+        LOTRGuiMainMenu.mapRenderer.mapY += (double)mapVelY;
     }
 
     public void drawScreen(int i, int j, float f) {
-        GL11.glEnable(3008);
-        GL11.glEnable(3042);
-        OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+        GL11.glEnable((int)3008);
+        GL11.glEnable((int)3042);
+        OpenGlHelper.glBlendFunc((int)770, (int)771, (int)1, (int)0);
         if (this.firstRenderTime == 0L && this.fadeIn) {
             this.firstRenderTime = System.currentTimeMillis();
         }
-        float fade = this.fadeIn ? (System.currentTimeMillis() - this.firstRenderTime) / 1000.0f : 1.0f;
-        float fadeAlpha = this.fadeIn ? MathHelper.clamp_float(fade - 1.0f, 0.0f, 1.0f) : 1.0f;
-        LOTRGuiMainMenu.mapRenderer.zoomExp = -0.1f + MathHelper.cos((tickCounter + f) * 0.003f) * 0.8f;
+        float fade = this.fadeIn ? (float)(System.currentTimeMillis() - this.firstRenderTime) / 1000.0f : 1.0f;
+        float fadeAlpha = this.fadeIn ? MathHelper.clamp_float((float)(fade - 1.0f), (float)0.0f, (float)1.0f) : 1.0f;
+        LOTRGuiMainMenu.mapRenderer.zoomExp = -0.1f + MathHelper.cos((float)(((float)tickCounter + f) * 0.003f)) * 0.8f;
         if (this.fadeIn) {
             float slowerFade = fade * 0.5f;
-            float fadeInZoom = MathHelper.clamp_float(1.0f - slowerFade, 0.0f, 1.0f) * -1.5f;
+            float fadeInZoom = MathHelper.clamp_float((float)(1.0f - slowerFade), (float)0.0f, (float)1.0f) * -1.5f;
             LOTRGuiMainMenu.mapRenderer.zoomExp += fadeInZoom;
         }
         LOTRGuiMainMenu.mapRenderer.zoomStable = (float)Math.pow(2.0, -0.10000000149011612);
-        mapRenderer.renderMap(this, this.mapGui, f);
-        mapRenderer.renderVignettes(this, this.zLevel, 2);
-        GL11.glEnable(3042);
-        OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-        GL11.glColor4f(1.0f, 1.0f, 1.0f, this.fadeIn ? MathHelper.clamp_float(1.0f - fade, 0.0f, 1.0f) : 0.0f);
+        mapRenderer.renderMap((GuiScreen)this, this.mapGui, f);
+        mapRenderer.renderVignettes((GuiScreen)this, this.zLevel, 2);
+        GL11.glEnable((int)3042);
+        OpenGlHelper.glBlendFunc((int)770, (int)771, (int)1, (int)0);
+        GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)(this.fadeIn ? MathHelper.clamp_float((float)(1.0f - fade), (float)0.0f, (float)1.0f) : 0.0f));
         this.mc.getTextureManager().bindTexture(menuOverlay);
-        LOTRGuiMainMenu.func_152125_a(0, 0, 0.0f, 0.0f, 16, 128, this.width, this.height, 16.0f, 128.0f);
-        int fadeAlphaI = MathHelper.ceiling_float_int(fadeAlpha * 255.0f) << 24;
+        LOTRGuiMainMenu.func_152125_a((int)0, (int)0, (float)0.0f, (float)0.0f, (int)16, (int)128, (int)this.width, (int)this.height, (float)16.0f, (float)128.0f);
+        int fadeAlphaI = MathHelper.ceiling_float_int((float)(fadeAlpha * 255.0f)) << 24;
         if ((fadeAlphaI & 0xFC000000) != 0) {
+            Tessellator tessellator = Tessellator.instance;
             int short1 = 274;
             int k = this.width / 2 - short1 / 2;
             int b0 = 30;
             this.mc.getTextureManager().bindTexture(titleTexture);
-            GL11.glColor4f(1.0f, 1.0f, 1.0f, fadeAlpha);
+            GL11.glColor4f((float)1.0f, (float)1.0f, (float)1.0f, (float)fadeAlpha);
             this.drawTexturedModalRect(k + 0, b0 + 0, 0, 0, 155, 44);
             this.drawTexturedModalRect(k + 155, b0 + 0, 0, 45, 155, 44);
-            String modSubtitle = StatCollector.translateToLocal("lotr.menu.title");
+            String modSubtitle = StatCollector.translateToLocal((String)"lotr.menu.title");
             this.drawString(this.fontRendererObj, modSubtitle, this.width / 2 - this.fontRendererObj.getStringWidth(modSubtitle) / 2, 80, -1);
             List brandings = Lists.reverse((List)FMLCommonHandler.instance().getBrandings(true));
             for (int l = 0; l < brandings.size(); ++l) {
                 String brd = (String)brandings.get(l);
-                if (Strings.isNullOrEmpty(brd)) continue;
+                if (Strings.isNullOrEmpty((String)brd)) continue;
                 this.drawString(this.fontRendererObj, brd, 2, this.height - (10 + l * (this.fontRendererObj.FONT_HEIGHT + 1)), -1);
             }
-            ForgeHooksClient.renderMainMenu(this, this.fontRendererObj, this.width, this.height);
+            ForgeHooksClient.renderMainMenu((GuiMainMenu)this, (FontRenderer)this.fontRendererObj, (int)this.width, (int)this.height);
             String copyright = "Copyright Mojang AB. Do not distribute!";
             this.drawString(this.fontRendererObj, copyright, this.width - this.fontRendererObj.getStringWidth(copyright) - 2, this.height - 10, -1);
-            String field_92025_p = (String)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, "field_92025_p");
-            String field_146972_A = (String)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, "field_146972_A");
-            int field_92024_r = (Integer)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, "field_92024_r");
-            int field_92022_t = (Integer)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, "field_92022_t");
-            int field_92021_u = (Integer)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, "field_92021_u");
-            int field_92020_v = (Integer)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, "field_92020_v");
-            int field_92019_w = (Integer)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, "field_92019_w");
+            String field_92025_p = (String)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, (String[])new String[]{"field_92025_p"});
+            String field_146972_A = (String)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, (String[])new String[]{"field_146972_A"});
+            int field_92024_r = (Integer)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, (String[])new String[]{"field_92024_r"});
+            int field_92022_t = (Integer)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, (String[])new String[]{"field_92022_t"});
+            int field_92021_u = (Integer)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, (String[])new String[]{"field_92021_u"});
+            int field_92020_v = (Integer)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, (String[])new String[]{"field_92020_v"});
+            int field_92019_w = (Integer)ObfuscationReflectionHelper.getPrivateValue(GuiMainMenu.class, this, (String[])new String[]{"field_92019_w"});
             if (field_92025_p != null && field_92025_p.length() > 0) {
-                LOTRGuiMainMenu.drawRect(field_92022_t - 2, field_92021_u - 2, field_92020_v + 2, field_92019_w - 1, 1428160512);
+                LOTRGuiMainMenu.drawRect((int)(field_92022_t - 2), (int)(field_92021_u - 2), (int)(field_92020_v + 2), (int)(field_92019_w - 1), (int)1428160512);
                 this.drawString(this.fontRendererObj, field_92025_p, field_92022_t, field_92021_u, -1);
-                this.drawString(this.fontRendererObj, field_146972_A, (this.width - field_92024_r) / 2, ((GuiButton)this.buttonList.get(0)).yPosition - 12, -1);
+                this.drawString(this.fontRendererObj, field_146972_A, (this.width - field_92024_r) / 2, ((GuiButton)this.buttonList.get((int)0)).yPosition - 12, -1);
             }
             for (Object button : this.buttonList) {
                 ((GuiButton)button).drawButton(this.mc, i, j);
@@ -210,7 +253,7 @@ extends GuiMainMenu {
     static {
         rand = new Random();
         isFirstMenu = true;
-        waypointRoute = new ArrayList<>();
+        waypointRoute = new ArrayList<LOTRWaypoint>();
         randomWPStart = false;
     }
 }

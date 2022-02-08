@@ -1,23 +1,93 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  com.google.common.collect.Lists
+ *  cpw.mods.fml.common.network.simpleimpl.IMessage
+ *  cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper
+ *  net.minecraft.entity.Entity
+ *  net.minecraft.entity.EntityLiving
+ *  net.minecraft.entity.EntityLivingBase
+ *  net.minecraft.entity.player.EntityPlayer
+ *  net.minecraft.entity.player.EntityPlayerMP
+ *  net.minecraft.entity.player.InventoryPlayer
+ *  net.minecraft.item.Item
+ *  net.minecraft.item.Item$ToolMaterial
+ *  net.minecraft.item.ItemStack
+ *  net.minecraft.item.ItemSword
+ *  net.minecraft.item.ItemTool
+ *  net.minecraft.nbt.NBTBase
+ *  net.minecraft.nbt.NBTTagCompound
+ *  net.minecraft.nbt.NBTTagList
+ *  net.minecraft.nbt.NBTTagString
+ *  net.minecraft.server.MinecraftServer
+ *  net.minecraft.server.management.ServerConfigurationManager
+ *  net.minecraft.util.DamageSource
+ *  net.minecraft.util.IChatComponent
+ *  net.minecraft.util.StatCollector
+ *  net.minecraft.util.WeightedRandom
+ *  net.minecraft.util.WeightedRandom$Item
+ *  net.minecraft.world.World
+ */
 package lotr.common.enchant;
 
-import java.util.*;
-
 import com.google.common.collect.Lists;
-
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
-import lotr.common.*;
+import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+import lotr.common.LOTRAchievement;
+import lotr.common.LOTRConfig;
+import lotr.common.LOTRLevelData;
+import lotr.common.LOTRMod;
+import lotr.common.enchant.LOTREnchantment;
+import lotr.common.enchant.LOTREnchantmentBane;
+import lotr.common.enchant.LOTREnchantmentDamage;
+import lotr.common.enchant.LOTREnchantmentDurability;
+import lotr.common.enchant.LOTREnchantmentKnockback;
+import lotr.common.enchant.LOTREnchantmentLooting;
+import lotr.common.enchant.LOTREnchantmentMeleeReach;
+import lotr.common.enchant.LOTREnchantmentMeleeSpeed;
+import lotr.common.enchant.LOTREnchantmentProtection;
+import lotr.common.enchant.LOTREnchantmentProtectionFire;
+import lotr.common.enchant.LOTREnchantmentProtectionSpecial;
+import lotr.common.enchant.LOTREnchantmentRangedDamage;
+import lotr.common.enchant.LOTREnchantmentRangedKnockback;
+import lotr.common.enchant.LOTREnchantmentToolSpeed;
+import lotr.common.enchant.LOTREnchantmentType;
+import lotr.common.enchant.LOTREnchantmentWeaponSpecial;
 import lotr.common.item.LOTRMaterial;
-import lotr.common.network.*;
-import lotr.common.world.LOTRWorldProviderUtumno;
-import net.minecraft.entity.*;
-import net.minecraft.entity.player.*;
-import net.minecraft.item.*;
-import net.minecraft.nbt.*;
+import lotr.common.network.LOTRPacketCancelItemHighlight;
+import lotr.common.network.LOTRPacketHandler;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraft.item.ItemTool;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.*;
+import net.minecraft.server.management.ServerConfigurationManager;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.StatCollector;
+import net.minecraft.util.WeightedRandom;
+import net.minecraft.world.World;
 
 public class LOTREnchantmentHelper {
-    private static Map<UUID, ItemStack[]> lastKnownPlayerInventories = new HashMap<>();
+    private static Map<UUID, ItemStack[]> lastKnownPlayerInventories = new HashMap<UUID, ItemStack[]>();
     private static Random backupRand;
 
     private static NBTTagList getItemEnchantTags(ItemStack itemstack, boolean create) {
@@ -31,7 +101,7 @@ public class LOTREnchantmentHelper {
                 itemstack.setTagCompound(itemData);
             }
             tags = new NBTTagList();
-            itemData.setTag("LOTREnch", tags);
+            itemData.setTag("LOTREnch", (NBTBase)tags);
         }
         return tags;
     }
@@ -48,7 +118,7 @@ public class LOTREnchantmentHelper {
             if (create) {
                 NBTTagCompound enchData = new NBTTagCompound();
                 enchData.setString("Name", ench.enchantName);
-                tags.appendTag(enchData);
+                tags.appendTag((NBTBase)enchData);
                 return enchData;
             }
         } else if (create) {
@@ -57,10 +127,10 @@ public class LOTREnchantmentHelper {
                 itemstack.setTagCompound(itemData);
             }
             NBTTagList tags = new NBTTagList();
-            itemData.setTag("LOTREnchProgress", tags);
+            itemData.setTag("LOTREnchProgress", (NBTBase)tags);
             NBTTagCompound enchData = new NBTTagCompound();
             enchData.setString("Name", ench.enchantName);
-            tags.appendTag(enchData);
+            tags.appendTag((NBTBase)enchData);
             return enchData;
         }
         return null;
@@ -82,7 +152,7 @@ public class LOTREnchantmentHelper {
         NBTTagList tags;
         if (!LOTREnchantmentHelper.hasEnchant(itemstack, ench) && (tags = LOTREnchantmentHelper.getItemEnchantTags(itemstack, true)) != null) {
             String enchName = ench.enchantName;
-            tags.appendTag(new NBTTagString(enchName));
+            tags.appendTag((NBTBase)new NBTTagString(enchName));
         }
     }
 
@@ -100,7 +170,7 @@ public class LOTREnchantmentHelper {
     }
 
     public static List<LOTREnchantment> getEnchantList(ItemStack itemstack) {
-        ArrayList<LOTREnchantment> enchants = new ArrayList<>();
+        ArrayList<LOTREnchantment> enchants = new ArrayList<LOTREnchantment>();
         NBTTagList tags = LOTREnchantmentHelper.getItemEnchantTags(itemstack, false);
         if (tags != null) {
             for (int i = 0; i < tags.tagCount(); ++i) {
@@ -148,7 +218,7 @@ public class LOTREnchantmentHelper {
         List<LOTREnchantment> enchants = LOTREnchantmentHelper.getEnchantList(itemstack);
         enchants = Lists.reverse(enchants);
         for (LOTREnchantment ench : enchants) {
-            name = StatCollector.translateToLocalFormatted("lotr.enchant.nameFormat", ench.getDisplayName(), name);
+            name = StatCollector.translateToLocalFormatted((String)"lotr.enchant.nameFormat", (Object[])new Object[]{ench.getDisplayName(), name});
         }
         return name;
     }
@@ -198,7 +268,8 @@ public class LOTREnchantmentHelper {
     public static void onEntityUpdate(EntityLivingBase entity) {
         Random rand = entity.getRNG();
         if (LOTRConfig.enchantingLOTR) {
-            if (entity instanceof EntityLiving && !(entity.getEntityData().getBoolean("LOTREnchantInit"))) {
+            boolean init;
+            if (entity instanceof EntityLiving && !(init = entity.getEntityData().getBoolean("LOTREnchantInit"))) {
                 for (int i = 0; i < entity.getLastActiveItems().length; ++i) {
                     ItemStack itemstack = entity.getEquipmentInSlot(i);
                     LOTREnchantmentHelper.tryApplyRandomEnchantsForEntity(itemstack, rand);
@@ -214,10 +285,11 @@ public class LOTREnchantmentHelper {
                     lastKnownInv = new ItemStack[inv.getSizeInventory()];
                 }
                 for (int i = 0; i < inv.getSizeInventory(); ++i) {
+                    ItemStack lastKnownItem;
                     ItemStack itemstack = inv.getStackInSlot(i);
-                    if (ItemStack.areItemStacksEqual(itemstack, (lastKnownInv[i]))) continue;
+                    if (ItemStack.areItemStacksEqual((ItemStack)itemstack, (ItemStack)(lastKnownItem = lastKnownInv[i]))) continue;
                     LOTREnchantmentHelper.tryApplyRandomEnchantsForEntity(itemstack, rand);
-                    lastKnownInv[i] = itemstack == null ? null : itemstack.copy();
+                    lastKnownInv[i] = lastKnownItem = itemstack == null ? null : itemstack.copy();
                 }
                 if (LOTREnchantmentHelper.tryApplyRandomEnchantsForEntity(inv.getItemStack(), rand)) {
                     entityplayer.updateHeldItem();
@@ -283,12 +355,12 @@ public class LOTREnchantmentHelper {
         } else if (chance < 0.65f) {
             enchants = 1;
         }
-        ArrayList<WeightedRandomEnchant> applicable = new ArrayList<>();
+        ArrayList<WeightedRandomEnchant> applicable = new ArrayList<WeightedRandomEnchant>();
         for (LOTREnchantment ench3 : LOTREnchantment.allEnchantments) {
             int weight;
             if (!ench3.canApply(itemstack, true) || ench3.isSkilful() && !skilful || (weight = ench3.getEnchantWeight()) <= 0) continue;
             weight = skilful ? LOTREnchantmentHelper.getSkilfulWeight(ench3) : (weight *= 100);
-            if (weight > 0 && itemstack.getItem() instanceof ItemTool && !ench3.itemTypes.contains(LOTREnchantmentType.TOOL) && !ench3.itemTypes.contains(LOTREnchantmentType.BREAKABLE)) {
+            if (weight > 0 && itemstack.getItem() instanceof ItemTool && !ench3.itemTypes.contains((Object)LOTREnchantmentType.TOOL) && !ench3.itemTypes.contains((Object)LOTREnchantmentType.BREAKABLE)) {
                 weight /= 3;
                 weight = Math.max(weight, 1);
             }
@@ -296,13 +368,13 @@ public class LOTREnchantmentHelper {
             applicable.add(wre);
         }
         if (!applicable.isEmpty()) {
-            ArrayList<LOTREnchantment> chosenEnchants = new ArrayList<>();
+            ArrayList<LOTREnchantment> chosenEnchants = new ArrayList<LOTREnchantment>();
             for (int l = 0; l < enchants && !applicable.isEmpty(); ++l) {
-                WeightedRandomEnchant chosenWre = (WeightedRandomEnchant)WeightedRandom.getRandomItem(random, applicable);
+                WeightedRandomEnchant chosenWre = (WeightedRandomEnchant)WeightedRandom.getRandomItem((Random)random, applicable);
                 LOTREnchantment chosenEnch = chosenWre.theEnchant;
                 chosenEnchants.add(chosenEnch);
-                applicable.remove(chosenWre);
-                ArrayList<WeightedRandomEnchant> nowIncompatibles = new ArrayList<>();
+                applicable.remove((Object)chosenWre);
+                ArrayList<WeightedRandomEnchant> nowIncompatibles = new ArrayList<WeightedRandomEnchant>();
                 for (WeightedRandomEnchant wre : applicable) {
                     LOTREnchantment otherEnch = wre.theEnchant;
                     if (otherEnch.isCompatibleWith(chosenEnch)) continue;
@@ -402,9 +474,9 @@ public class LOTREnchantmentHelper {
             List<LOTREnchantment> enchants = LOTREnchantmentHelper.getEnchantList(itemstack);
             for (LOTREnchantment ench : enchants) {
                 float durability;
-                if (!(ench instanceof LOTREnchantmentDurability) || ((durability = ((LOTREnchantmentDurability)ench).durabilityFactor) <= 1.0f)) continue;
+                if (!(ench instanceof LOTREnchantmentDurability) || !((durability = ((LOTREnchantmentDurability)ench).durabilityFactor) > 1.0f)) continue;
                 float inv = 1.0f / durability;
-                if ((random.nextFloat() <= inv)) continue;
+                if (!(random.nextFloat() > inv)) continue;
                 return true;
             }
         }
@@ -533,9 +605,10 @@ public class LOTREnchantmentHelper {
                 boolean progressChanged = false;
                 boolean enchantsChanged = false;
                 for (LOTREnchantment ench : LOTREnchantment.allEnchantments) {
+                    boolean compatible;
                     if (!ench.canApply(weapon, false) || !(ench instanceof LOTREnchantmentBane)) continue;
                     LOTREnchantmentBane enchBane = (LOTREnchantmentBane)ench;
-                    if (!enchBane.isAchievable || !enchBane.isEntityType(target) || entityplayer.worldObj.provider instanceof LOTRWorldProviderUtumno) continue;
+                    if (!enchBane.isAchievable || !enchBane.doesEntityKillCountTowardsBane(target, entityplayer.worldObj)) continue;
                     NBTTagCompound nbt = LOTREnchantmentHelper.getItemEnchantProgress(weapon, ench, true);
                     int killed = 0;
                     if (nbt.hasKey("Kills")) {
@@ -550,7 +623,7 @@ public class LOTREnchantmentHelper {
                         requiredKills = enchBane.getRandomKillsRequired(rand);
                         nbt.setInteger("KillsRequired", requiredKills);
                     }
-                    if (killed < requiredKills || LOTREnchantmentHelper.hasEnchant(weapon, enchBane) || !(LOTREnchantmentHelper.checkEnchantCompatible(weapon, enchBane))) continue;
+                    if (killed < requiredKills || LOTREnchantmentHelper.hasEnchant(weapon, enchBane) || !(compatible = LOTREnchantmentHelper.checkEnchantCompatible(weapon, enchBane))) continue;
                     LOTREnchantmentHelper.setHasEnchant(weapon, enchBane);
                     enchantsChanged = true;
                     entityplayer.addChatMessage(enchBane.getEarnMessage(weapon));
@@ -601,7 +674,7 @@ public class LOTREnchantmentHelper {
             tags = data.getTagList("LOTREnchEntity", 8);
         } else if (create) {
             tags = new NBTTagList();
-            data.setTag("LOTREnchEntity", tags);
+            data.setTag("LOTREnchEntity", (NBTBase)tags);
         }
         return tags;
     }
@@ -610,7 +683,7 @@ public class LOTREnchantmentHelper {
         NBTTagList tags;
         if (!LOTREnchantmentHelper.hasProjectileEnchantment(entity, ench) && (tags = LOTREnchantmentHelper.getEntityEnchantTags(entity, true)) != null) {
             String enchName = ench.enchantName;
-            tags.appendTag(new NBTTagString(enchName));
+            tags.appendTag((NBTBase)new NBTTagString(enchName));
         }
     }
 

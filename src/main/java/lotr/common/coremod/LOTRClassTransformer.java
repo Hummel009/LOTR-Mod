@@ -1,32 +1,103 @@
+/*
+ * Decompiled with CFR 0.148.
+ * 
+ * Could not load the following classes:
+ *  net.minecraft.launchwrapper.IClassTransformer
+ *  net.minecraft.nbt.CompressedStreamTools
+ *  net.minecraft.nbt.NBTTagCompound
+ *  org.objectweb.asm.ClassReader
+ *  org.objectweb.asm.ClassVisitor
+ *  org.objectweb.asm.ClassWriter
+ *  org.objectweb.asm.tree.AbstractInsnNode
+ *  org.objectweb.asm.tree.ClassNode
+ *  org.objectweb.asm.tree.FieldInsnNode
+ *  org.objectweb.asm.tree.InsnList
+ *  org.objectweb.asm.tree.InsnNode
+ *  org.objectweb.asm.tree.JumpInsnNode
+ *  org.objectweb.asm.tree.LabelNode
+ *  org.objectweb.asm.tree.LdcInsnNode
+ *  org.objectweb.asm.tree.MethodInsnNode
+ *  org.objectweb.asm.tree.MethodNode
+ *  org.objectweb.asm.tree.TypeInsnNode
+ *  org.objectweb.asm.tree.VarInsnNode
+ */
 package lotr.common.coremod;
 
 import java.io.DataInputStream;
 import java.util.Iterator;
 
-import org.objectweb.asm.*;
-import org.objectweb.asm.tree.*;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TypeInsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
 
 import lotr.compatibility.LOTRModChecker;
 import net.minecraft.launchwrapper.IClassTransformer;
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTTagCompound;
 
 public class LOTRClassTransformer
 implements IClassTransformer {
+    private static final String cls_AABB = "net/minecraft/util/AxisAlignedBB";
+    private static final String cls_AABB_obf = "azt";
+    private static final String cls_AttributeModifier = "net/minecraft/entity/ai/attributes/AttributeModifier";
+    private static final String cls_AttributeModifier_obf = "tj";
     private static final String cls_Block = "net/minecraft/block/Block";
     private static final String cls_Block_obf = "aji";
+    private static final String cls_BlockDoor = "net/minecraft/block/BlockDoor";
+    private static final String cls_BlockDoor_obf = "akn";
     private static final String cls_BlockPistonBase = "net/minecraft/block/BlockPistonBase";
     private static final String cls_BlockPistonBase_obf = "app";
     private static final String cls_Blocks = "net/minecraft/init/Blocks";
     private static final String cls_Blocks_obf = "ajn";
+    private static final String cls_CreativeTabs = "net/minecraft/creativetab/CreativeTabs";
+    private static final String cls_CreativeTabs_obf = "abt";
+    private static final String cls_DamageSource = "net/minecraft/util/DamageSource";
+    private static final String cls_DamageSource_obf = "ro";
+    private static final String cls_Entity = "net/minecraft/entity/Entity";
+    private static final String cls_Entity_obf = "sa";
+    private static final String cls_EntityLivingBase = "net/minecraft/entity/EntityLivingBase";
     private static final String cls_EntityLivingBase_obf = "sv";
+    private static final String cls_EntityPlayer = "net/minecraft/entity/player/EntityPlayer";
     private static final String cls_EntityPlayer_obf = "yz";
+    private static final String cls_EnumCreatureAttribute = "net/minecraft/entity/EnumCreatureAttribute";
+    private static final String cls_EnumCreatureAttribute_obf = "sz";
+    private static final String cls_IBlockAccess = "net/minecraft/world/IBlockAccess";
+    private static final String cls_IBlockAccess_obf = "ahl";
+    private static final String cls_IIcon = "net/minecraft/util/IIcon";
+    private static final String cls_IIcon_obf = "rf";
+    private static final String cls_Item = "net/minecraft/item/Item";
+    private static final String cls_Item_obf = "adb";
     private static final String cls_ItemArmor = "net/minecraft/item/ItemArmor";
     private static final String cls_ItemArmor_obf = "abb";
+    private static final String cls_ItemStack = "net/minecraft/item/ItemStack";
     private static final String cls_ItemStack_obf = "add";
+    private static final String cls_Packet = "net/minecraft/network/Packet";
+    private static final String cls_Packet_obf = "ft";
+    private static final String cls_PacketS14 = "net/minecraft/network/play/server/S14PacketEntity";
+    private static final String cls_PacketS14_obf = "hf";
+    private static final String cls_PacketS18 = "net/minecraft/network/play/server/S18PacketEntityTeleport";
+    private static final String cls_PacketS18_obf = "ik";
+    private static final String cls_PathPoint = "net/minecraft/pathfinding/PathPoint";
+    private static final String cls_PathPoint_obf = "aye";
     private static final String cls_RenderBlocks = "net/minecraft/client/renderer/RenderBlocks";
     private static final String cls_RenderBlocks_obf = "blm";
     private static final String cls_World = "net/minecraft/world/World";
     private static final String cls_World_obf = "ahb";
+    private static final String cls_WorldServer = "net/minecraft/world/WorldServer";
+    private static final String cls_WorldServer_obf = "mt";
+
     public byte[] transform(String name, String transformedName, byte[] basicClass) {
         if (name.equals("anv") || name.equals("net.minecraft.block.BlockStone")) {
             return this.patchBlockStone(name, basicClass);
@@ -126,38 +197,38 @@ implements IClassTransformer {
         boolean isObf = !name.startsWith("net.minecraft");
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         String targetMethodName = "getIcon";
         String targetMethodNameObf = "func_149673_e";
         String targetMethodDescObf = targetMethodDesc = "(Lnet/minecraft/world/IBlockAccess;IIII)Lnet/minecraft/util/IIcon;";
         MethodNode newMethod = isObf ? new MethodNode(1, targetMethodNameObf, targetMethodDescObf, null, null) : new MethodNode(1, targetMethodName, targetMethodDesc, null, null);
-        newMethod.instructions.add(new VarInsnNode(25, 0));
-        newMethod.instructions.add(new VarInsnNode(25, 1));
-        newMethod.instructions.add(new VarInsnNode(21, 2));
-        newMethod.instructions.add(new VarInsnNode(21, 3));
-        newMethod.instructions.add(new VarInsnNode(21, 4));
-        newMethod.instructions.add(new VarInsnNode(21, 5));
-        newMethod.instructions.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Stone", "getIconWorld", "(Lnet/minecraft/block/Block;Lnet/minecraft/world/IBlockAccess;IIII)Lnet/minecraft/util/IIcon;", false));
-        newMethod.instructions.add(new InsnNode(176));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(25, 0));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(25, 1));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(21, 2));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(21, 3));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(21, 4));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(21, 5));
+        newMethod.instructions.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Stone", "getIconWorld", "(Lnet/minecraft/block/Block;Lnet/minecraft/world/IBlockAccess;IIII)Lnet/minecraft/util/IIcon;", false));
+        newMethod.instructions.add((AbstractInsnNode)new InsnNode(176));
         classNode.methods.add(newMethod);
         System.out.println("LOTRCore: Added method " + newMethod.name);
         targetMethodName = "getIcon";
         targetMethodNameObf = "func_149691_a";
         targetMethodDescObf = targetMethodDesc = "(II)Lnet/minecraft/util/IIcon;";
         newMethod = isObf ? new MethodNode(1, targetMethodNameObf, targetMethodDescObf, null, null) : new MethodNode(1, targetMethodName, targetMethodDesc, null, null);
-        newMethod.instructions.add(new VarInsnNode(25, 0));
-        newMethod.instructions.add(new FieldInsnNode(180, cls_Block, isObf ? "field_149761_L" : "blockIcon", "Lnet/minecraft/util/IIcon;"));
-        newMethod.instructions.add(new VarInsnNode(58, 3));
-        newMethod.instructions.add(new VarInsnNode(25, 0));
-        newMethod.instructions.add(new VarInsnNode(25, 3));
-        newMethod.instructions.add(new VarInsnNode(21, 1));
-        newMethod.instructions.add(new VarInsnNode(21, 2));
-        newMethod.instructions.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Stone", "getIconSideMeta", "(Lnet/minecraft/block/Block;Lnet/minecraft/util/IIcon;II)Lnet/minecraft/util/IIcon;", false));
-        newMethod.instructions.add(new InsnNode(176));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(25, 0));
+        newMethod.instructions.add((AbstractInsnNode)new FieldInsnNode(180, cls_Block, isObf ? "field_149761_L" : "blockIcon", "Lnet/minecraft/util/IIcon;"));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(58, 3));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(25, 0));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(25, 3));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(21, 1));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(21, 2));
+        newMethod.instructions.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Stone", "getIconSideMeta", "(Lnet/minecraft/block/Block;Lnet/minecraft/util/IIcon;II)Lnet/minecraft/util/IIcon;", false));
+        newMethod.instructions.add((AbstractInsnNode)new InsnNode(176));
         classNode.methods.add(newMethod);
         System.out.println("LOTRCore: Added method " + newMethod.name);
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -168,23 +239,23 @@ implements IClassTransformer {
         String targetMethodSignObf = "(Lahb;IIILjava/util/Random;)V";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
             method.instructions.clear();
             InsnList newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 1));
-            newIns.add(new VarInsnNode(21, 2));
-            newIns.add(new VarInsnNode(21, 3));
-            newIns.add(new VarInsnNode(21, 4));
-            newIns.add(new VarInsnNode(25, 5));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Grass", "updateTick_optimised", "(Lnet/minecraft/world/World;IIILjava/util/Random;)V", false));
-            newIns.add(new InsnNode(177));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 2));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 3));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 4));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 5));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Grass", "updateTick_optimised", "(Lnet/minecraft/world/World;IIILjava/util/Random;)V", false));
+            newIns.add((AbstractInsnNode)new InsnNode(177));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -206,59 +277,59 @@ implements IClassTransformer {
         String targetMethodSignObf4 = "(Lahb;III)I";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             InsnList newIns;
             if (method.name.equals("<clinit>")) {
-                LdcInsnNode nodeNameIndex1 = LOTRClassTransformer.findNodeInMethod(method, new LdcInsnNode("default"), 1);
-                method.instructions.set(nodeNameIndex1, new LdcInsnNode(LOTRReplacedMethods.Dirt.nameIndex1));
+                LdcInsnNode nodeNameIndex1 = LOTRClassTransformer.findNodeInMethod(method, new LdcInsnNode((Object)"default"), 1);
+                method.instructions.set((AbstractInsnNode)nodeNameIndex1, (AbstractInsnNode)new LdcInsnNode((Object)LOTRReplacedMethods.Dirt.nameIndex1));
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if ((method.name.equals(targetMethodName) || method.name.equals(targetMethodNameObf)) && method.desc.equals(targetMethodSign)) {
                 method.instructions.clear();
                 newIns = new InsnList();
-                newIns.add(new VarInsnNode(21, 1));
-                newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Dirt", "damageDropped", "(I)I", false));
-                newIns.add(new InsnNode(172));
+                newIns.add((AbstractInsnNode)new VarInsnNode(21, 1));
+                newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Dirt", "damageDropped", "(I)I", false));
+                newIns.add((AbstractInsnNode)new InsnNode(172));
                 method.instructions.insert(newIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if ((method.name.equals(targetMethodName2) || method.name.equals(targetMethodNameObf2)) && (method.desc.equals(targetMethodSign2) || method.desc.equals(targetMethodSignObf2))) {
                 method.instructions.clear();
                 newIns = new InsnList();
-                newIns.add(new VarInsnNode(25, 0));
-                newIns.add(new VarInsnNode(21, 1));
-                newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Dirt", "createStackedBlock", "(Lnet/minecraft/block/Block;I)Lnet/minecraft/item/ItemStack;", false));
-                newIns.add(new InsnNode(176));
+                newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+                newIns.add((AbstractInsnNode)new VarInsnNode(21, 1));
+                newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Dirt", "createStackedBlock", "(Lnet/minecraft/block/Block;I)Lnet/minecraft/item/ItemStack;", false));
+                newIns.add((AbstractInsnNode)new InsnNode(176));
                 method.instructions.insert(newIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if ((method.name.equals(targetMethodName3) || method.name.equals(targetMethodNameObf3)) && (method.desc.equals(targetMethodSign3) || method.desc.equals(targetMethodSignObf3))) {
                 method.instructions.clear();
                 newIns = new InsnList();
-                newIns.add(new VarInsnNode(25, 0));
-                newIns.add(new VarInsnNode(25, 1));
-                newIns.add(new VarInsnNode(25, 2));
-                newIns.add(new VarInsnNode(25, 3));
-                newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Dirt", "getSubBlocks", "(Lnet/minecraft/block/Block;Lnet/minecraft/item/Item;Lnet/minecraft/creativetab/CreativeTabs;Ljava/util/List;)V", false));
-                newIns.add(new InsnNode(177));
+                newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+                newIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+                newIns.add((AbstractInsnNode)new VarInsnNode(25, 2));
+                newIns.add((AbstractInsnNode)new VarInsnNode(25, 3));
+                newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Dirt", "getSubBlocks", "(Lnet/minecraft/block/Block;Lnet/minecraft/item/Item;Lnet/minecraft/creativetab/CreativeTabs;Ljava/util/List;)V", false));
+                newIns.add((AbstractInsnNode)new InsnNode(177));
                 method.instructions.insert(newIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if (!method.name.equals(targetMethodName4) && !method.name.equals(targetMethodNameObf4) || !method.desc.equals(targetMethodSign4) && !method.desc.equals(targetMethodSignObf4)) continue;
             method.instructions.clear();
             newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 1));
-            newIns.add(new VarInsnNode(21, 2));
-            newIns.add(new VarInsnNode(21, 3));
-            newIns.add(new VarInsnNode(21, 4));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Dirt", "getDamageValue", "(Lnet/minecraft/world/World;III)I", false));
-            newIns.add(new InsnNode(172));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 2));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 3));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 4));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Dirt", "getDamageValue", "(Lnet/minecraft/world/World;III)I", false));
+            newIns.add((AbstractInsnNode)new InsnNode(172));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -269,24 +340,24 @@ implements IClassTransformer {
         String targetMethodSignObf = "(Lahb;IIILjava/util/Random;)V";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
             method.instructions.clear();
             InsnList newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 0));
-            newIns.add(new VarInsnNode(25, 1));
-            newIns.add(new VarInsnNode(21, 2));
-            newIns.add(new VarInsnNode(21, 3));
-            newIns.add(new VarInsnNode(21, 4));
-            newIns.add(new VarInsnNode(25, 5));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$StaticLiquid", "updateTick_optimised", "(Lnet/minecraft/block/Block;Lnet/minecraft/world/World;IIILjava/util/Random;)V", false));
-            newIns.add(new InsnNode(177));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 2));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 3));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 4));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 5));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$StaticLiquid", "updateTick_optimised", "(Lnet/minecraft/block/Block;Lnet/minecraft/world/World;IIILjava/util/Random;)V", false));
+            newIns.add((AbstractInsnNode)new InsnNode(177));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -371,32 +442,56 @@ implements IClassTransformer {
         String targetMethodSignObf2 = "(Laji;)Z";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             InsnList newIns;
             if ((method.name.equals(targetMethodName) || method.name.equals(targetMethodNameObf)) && (method.desc.equals(targetMethodSign) || method.desc.equals(targetMethodSignObf))) {
                 method.instructions.clear();
                 newIns = new InsnList();
-                newIns.add(new VarInsnNode(25, 1));
-                newIns.add(new VarInsnNode(21, 2));
-                newIns.add(new VarInsnNode(21, 3));
-                newIns.add(new VarInsnNode(21, 4));
-                newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Fence", "canConnectFenceTo", "(Lnet/minecraft/world/IBlockAccess;III)Z", false));
-                newIns.add(new InsnNode(172));
+                newIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+                newIns.add((AbstractInsnNode)new VarInsnNode(21, 2));
+                newIns.add((AbstractInsnNode)new VarInsnNode(21, 3));
+                newIns.add((AbstractInsnNode)new VarInsnNode(21, 4));
+                newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Fence", "canConnectFenceTo", "(Lnet/minecraft/world/IBlockAccess;III)Z", false));
+                newIns.add((AbstractInsnNode)new InsnNode(172));
                 method.instructions.insert(newIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if (!method.name.equals(targetMethodName2) && !method.name.equals(targetMethodNameObf2) || !method.desc.equals(targetMethodSign2) && !method.desc.equals(targetMethodSignObf2)) continue;
             method.instructions.clear();
             newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 0));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Fence", "canPlacePressurePlate", "(Lnet/minecraft/block/Block;)Z", false));
-            newIns.add(new InsnNode(172));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Fence", "canPlacePressurePlate", "(Lnet/minecraft/block/Block;)Z", false));
+            newIns.add((AbstractInsnNode)new InsnNode(172));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
+        return writer.toByteArray();
+    }
+
+    private byte[] patchBlockPumpkin(String name, byte[] bytes) {
+        String targetMethodName = "getIcon";
+        String targetMethodNameObf = "func_149691_a";
+        String targetMethodSign = "(II)Lnet/minecraft/util/IIcon;";
+        String targetMethodSignObf = "(II)Lrf;";
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept((ClassVisitor)classNode, 0);
+        for (MethodNode method : classNode.methods) {
+            if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
+            InsnList newIns = new InsnList();
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 1));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 2));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Pumpkin", "alterIconSideParam", "(Lnet/minecraft/block/Block;II)I", false));
+            newIns.add((AbstractInsnNode)new VarInsnNode(54, 1));
+            method.instructions.insertBefore(method.instructions.getFirst(), newIns);
+            System.out.println("LOTRCore: Patched method " + method.name);
+        }
+        ClassWriter writer = new ClassWriter(1);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -415,42 +510,42 @@ implements IClassTransformer {
         String targetMethodSignObf3 = targetMethodSign3 = "()I";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             InsnList newIns;
             if ((method.name.equals(targetMethodName) || method.name.equals(targetMethodNameObf)) && (method.desc.equals(targetMethodSign) || method.desc.equals(targetMethodSignObf))) {
                 method.instructions.clear();
                 newIns = new InsnList();
-                newIns.add(new VarInsnNode(25, 1));
-                newIns.add(new VarInsnNode(21, 2));
-                newIns.add(new VarInsnNode(21, 3));
-                newIns.add(new VarInsnNode(21, 4));
-                newIns.add(new VarInsnNode(21, 5));
-                newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Trapdoor", "canPlaceBlockOnSide", "(Lnet/minecraft/world/World;IIII)Z", false));
-                newIns.add(new InsnNode(172));
+                newIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+                newIns.add((AbstractInsnNode)new VarInsnNode(21, 2));
+                newIns.add((AbstractInsnNode)new VarInsnNode(21, 3));
+                newIns.add((AbstractInsnNode)new VarInsnNode(21, 4));
+                newIns.add((AbstractInsnNode)new VarInsnNode(21, 5));
+                newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Trapdoor", "canPlaceBlockOnSide", "(Lnet/minecraft/world/World;IIII)Z", false));
+                newIns.add((AbstractInsnNode)new InsnNode(172));
                 method.instructions.insert(newIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if ((method.name.equals(targetMethodName2) || method.name.equals(targetMethodNameObf2)) && (method.desc.equals(targetMethodSign2) || method.desc.equals(targetMethodSignObf2))) {
                 method.instructions.clear();
                 newIns = new InsnList();
-                newIns.add(new VarInsnNode(25, 0));
-                newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Trapdoor", "isValidSupportBlock", "(Lnet/minecraft/block/Block;)Z", false));
-                newIns.add(new InsnNode(172));
+                newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+                newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Trapdoor", "isValidSupportBlock", "(Lnet/minecraft/block/Block;)Z", false));
+                newIns.add((AbstractInsnNode)new InsnNode(172));
                 method.instructions.insert(newIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if (!method.name.equals(targetMethodName3) && !method.name.equals(targetMethodNameObf3) || !method.desc.equals(targetMethodSign3) && !method.desc.equals(targetMethodSignObf3)) continue;
             method.instructions.clear();
             newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 0));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Trapdoor", "getRenderType", "(Lnet/minecraft/block/Block;)I", false));
-            newIns.add(new InsnNode(172));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Trapdoor", "getRenderType", "(Lnet/minecraft/block/Block;)I", false));
+            newIns.add((AbstractInsnNode)new InsnNode(172));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -461,29 +556,29 @@ implements IClassTransformer {
         String targetMethodSignObf = "(Lahl;III)Z";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
             method.instructions.clear();
             InsnList newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 1));
-            newIns.add(new VarInsnNode(21, 2));
-            newIns.add(new VarInsnNode(21, 3));
-            newIns.add(new VarInsnNode(21, 4));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Wall", "canConnectWallTo", "(Lnet/minecraft/world/IBlockAccess;III)Z", false));
-            newIns.add(new InsnNode(172));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 2));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 3));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 4));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Wall", "canConnectWallTo", "(Lnet/minecraft/world/IBlockAccess;III)Z", false));
+            newIns.add((AbstractInsnNode)new InsnNode(172));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
     private byte[] patchBlockPistonBase(String name, byte[] bytes) {
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             int skip = 0;
             do {
@@ -515,7 +610,7 @@ implements IClassTransformer {
             System.out.println("LOTRCore: Patched method " + method.name + " " + skip + " times");
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -525,18 +620,18 @@ implements IClassTransformer {
         String targetMethodSign = "()I";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign)) continue;
             method.instructions.clear();
             InsnList newIns = new InsnList();
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Cauldron", "getRenderType", "()I", false));
-            newIns.add(new InsnNode(172));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Cauldron", "getRenderType", "()I", false));
+            newIns.add((AbstractInsnNode)new InsnNode(172));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -548,19 +643,19 @@ implements IClassTransformer {
         String targetMethodDescObf = targetMethodDesc = "(Lnet/minecraft/world/World;III)Lnet/minecraft/util/AxisAlignedBB;";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         MethodNode newMethod = isObf ? new MethodNode(1, targetMethodNameObf, targetMethodDescObf, null, null) : new MethodNode(1, targetMethodName, targetMethodDesc, null, null);
-        newMethod.instructions.add(new VarInsnNode(25, 0));
-        newMethod.instructions.add(new VarInsnNode(25, 1));
-        newMethod.instructions.add(new VarInsnNode(21, 2));
-        newMethod.instructions.add(new VarInsnNode(21, 3));
-        newMethod.instructions.add(new VarInsnNode(21, 4));
-        newMethod.instructions.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Anvil", "getCollisionBoundingBoxFromPool", "(Lnet/minecraft/block/Block;Lnet/minecraft/world/World;III)Lnet/minecraft/util/AxisAlignedBB;", false));
-        newMethod.instructions.add(new InsnNode(176));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(25, 0));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(25, 1));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(21, 2));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(21, 3));
+        newMethod.instructions.add((AbstractInsnNode)new VarInsnNode(21, 4));
+        newMethod.instructions.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Anvil", "getCollisionBoundingBoxFromPool", "(Lnet/minecraft/block/Block;Lnet/minecraft/world/World;III)Lnet/minecraft/util/AxisAlignedBB;", false));
+        newMethod.instructions.add((AbstractInsnNode)new InsnNode(176));
         classNode.methods.add(newMethod);
         System.out.println("LOTRCore: Added method " + newMethod.name);
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -570,20 +665,20 @@ implements IClassTransformer {
         String targetMethodSign = "(Z)Z";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign)) continue;
             method.instructions.clear();
             InsnList newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 0));
-            newIns.add(new VarInsnNode(21, 1));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Player", "canEat", "(Lnet/minecraft/entity/player/EntityPlayer;Z)Z", false));
-            newIns.add(new InsnNode(172));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 1));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Player", "canEat", "(Lnet/minecraft/entity/player/EntityPlayer;Z)Z", false));
+            newIns.add((AbstractInsnNode)new InsnNode(172));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -642,7 +737,7 @@ implements IClassTransformer {
         String targetMethodSign = "(FF)V";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign)) continue;
             FieldInsnNode nodeIsRemote = null;
@@ -650,8 +745,10 @@ implements IClassTransformer {
                 boolean[] arrbl = new boolean[]{false, true};
                 int n = arrbl.length;
                 for (int i = 0; i < n; ++i) {
+                    String _remote;
+                    boolean isRemoteObf;
                     String _world = worldObf ? cls_World_obf : cls_World;
-                    nodeIsRemote = LOTRClassTransformer.findNodeInMethod(method, new FieldInsnNode(180, _world, (arrbl[i]) ? "field_72995_K" : "isRemote", "Z"));
+                    nodeIsRemote = LOTRClassTransformer.findNodeInMethod(method, new FieldInsnNode(180, _world, _remote = (isRemoteObf = arrbl[i]) ? "field_72995_K" : "isRemote", "Z"));
                     if (nodeIsRemote != null) break block1;
                 }
             }
@@ -667,12 +764,12 @@ implements IClassTransformer {
                 System.out.println("WARNING! Things may break!");
             }
             InsnList newIns = new InsnList();
-            newIns.add(new MethodInsnNode(184, "lotr/common/entity/LOTRMountFunctions", "canRiderControl_elseNoMotion", "(Lnet/minecraft/entity/EntityLiving;)Z", false));
-            method.instructions.insert(nodeLoadThisEntity, newIns);
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/entity/LOTRMountFunctions", "canRiderControl_elseNoMotion", "(Lnet/minecraft/entity/EntityLiving;)Z", false));
+            method.instructions.insert((AbstractInsnNode)nodeLoadThisEntity, newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -736,37 +833,37 @@ implements IClassTransformer {
         String targetMethodSignObf = "(IIIDDLaji;I)V";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
             VarInsnNode nodeLoadRailBlockForPoweredCheck = LOTRClassTransformer.findNodeInMethod(method, new VarInsnNode(25, 8), 1);
             AbstractInsnNode nextNode = nodeLoadRailBlockForPoweredCheck.getNext();
             if (!(nextNode instanceof TypeInsnNode) || ((TypeInsnNode)nextNode).getOpcode() != 192) {
-                System.out.println("WARNING! Expected CHECKCAST! Instead got " + nextNode);
+                System.out.println("WARNING! Expected CHECKCAST! Instead got " + (Object)nextNode);
                 System.out.println("WARNING! Things may break!");
             }
             InsnList newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 0));
-            newIns.add(new VarInsnNode(21, 1));
-            newIns.add(new VarInsnNode(21, 2));
-            newIns.add(new VarInsnNode(21, 3));
-            newIns.add(new VarInsnNode(25, 8));
-            newIns.add(new VarInsnNode(21, 11));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Minecart", "checkForPoweredRail", "(Lnet/minecraft/entity/item/EntityMinecart;IIILnet/minecraft/block/Block;Z)Z", false));
-            newIns.add(new VarInsnNode(54, 11));
-            newIns.add(new VarInsnNode(25, 0));
-            newIns.add(new VarInsnNode(21, 1));
-            newIns.add(new VarInsnNode(21, 2));
-            newIns.add(new VarInsnNode(21, 3));
-            newIns.add(new VarInsnNode(25, 8));
-            newIns.add(new VarInsnNode(21, 12));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Minecart", "checkForDepoweredRail", "(Lnet/minecraft/entity/item/EntityMinecart;IIILnet/minecraft/block/Block;Z)Z", false));
-            newIns.add(new VarInsnNode(54, 12));
-            method.instructions.insertBefore(nodeLoadRailBlockForPoweredCheck, newIns);
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 1));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 2));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 3));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 8));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 11));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Minecart", "checkForPoweredRail", "(Lnet/minecraft/entity/item/EntityMinecart;IIILnet/minecraft/block/Block;Z)Z", false));
+            newIns.add((AbstractInsnNode)new VarInsnNode(54, 11));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 1));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 2));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 3));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 8));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 12));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Minecart", "checkForDepoweredRail", "(Lnet/minecraft/entity/item/EntityMinecart;IIILnet/minecraft/block/Block;Z)Z", false));
+            newIns.add((AbstractInsnNode)new VarInsnNode(54, 12));
+            method.instructions.insertBefore((AbstractInsnNode)nodeLoadRailBlockForPoweredCheck, newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -784,7 +881,7 @@ implements IClassTransformer {
         }
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             AbstractInsnNode nodePrev;
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
@@ -799,20 +896,20 @@ implements IClassTransformer {
                 }
             }
             if (!((nodePrev = nodeFound.getPrevious()) instanceof VarInsnNode) || ((VarInsnNode)nodePrev).getOpcode() != 25 || ((VarInsnNode)nodePrev).var != 9) {
-                System.out.println("WARNING! Expected ALOAD 9! Instead got " + nodePrev);
+                System.out.println("WARNING! Expected ALOAD 9! Instead got " + (Object)nodePrev);
                 System.out.println("WARNING! Things may break!");
             }
             method.instructions.remove(nodePrev);
             InsnList newIns = new InsnList();
             if (!isCauldron) {
-                newIns.add(new VarInsnNode(25, 7));
-                newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getDamageReduceAmount", "(Lnet/minecraft/item/ItemStack;)I", false));
+                newIns.add((AbstractInsnNode)new VarInsnNode(25, 7));
+                newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getDamageReduceAmount", "(Lnet/minecraft/item/ItemStack;)I", false));
             } else {
-                newIns.add(new VarInsnNode(25, 8));
-                newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getDamageReduceAmount", "(Lnet/minecraft/item/ItemStack;)I", false));
+                newIns.add((AbstractInsnNode)new VarInsnNode(25, 8));
+                newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getDamageReduceAmount", "(Lnet/minecraft/item/ItemStack;)I", false));
             }
-            method.instructions.insert(nodeFound, newIns);
-            method.instructions.remove(nodeFound);
+            method.instructions.insert((AbstractInsnNode)nodeFound, newIns);
+            method.instructions.remove((AbstractInsnNode)nodeFound);
             if (!isCauldron) {
                 System.out.println("LOTRCore: Patched method " + method.name);
                 continue;
@@ -820,7 +917,7 @@ implements IClassTransformer {
             System.out.println("LOTRCore: Patched method " + method.name + " for Cauldron");
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -828,22 +925,25 @@ implements IClassTransformer {
         String targetMethodName = "addExhaustion";
         String targetMethodNameObf = "func_75113_a";
         String targetMethodSign = "(F)V";
+        String targetMethodName2 = "needFood";
+        String targetMethodNameObf2 = "func_75121_c";
+        String targetMethodSign2 = "()Z";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign)) continue;
             InsnList newIns = new InsnList();
-            newIns.add(new VarInsnNode(23, 1));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Food", "getExhaustionFactor", "()F", false));
-            newIns.add(new InsnNode(106));
-            newIns.add(new VarInsnNode(56, 1));
+            newIns.add((AbstractInsnNode)new VarInsnNode(23, 1));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Food", "getExhaustionFactor", "()F", false));
+            newIns.add((AbstractInsnNode)new InsnNode(106));
+            newIns.add((AbstractInsnNode)new VarInsnNode(56, 1));
             VarInsnNode nodeAfter = LOTRClassTransformer.findNodeInMethod(method, new VarInsnNode(25, 0));
-            method.instructions.insertBefore(nodeAfter, newIns);
+            method.instructions.insertBefore((AbstractInsnNode)nodeAfter, newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -854,24 +954,24 @@ implements IClassTransformer {
         String targetMethodSignObf = "(Lmt;ZZZ)I";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
             method.instructions.clear();
             method.tryCatchBlocks.clear();
             method.localVariables.clear();
             InsnList newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 1));
-            newIns.add(new VarInsnNode(21, 2));
-            newIns.add(new VarInsnNode(21, 3));
-            newIns.add(new VarInsnNode(21, 4));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Spawner", "performSpawning_optimised", "(Lnet/minecraft/world/WorldServer;ZZZ)I", false));
-            newIns.add(new InsnNode(172));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 2));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 3));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 4));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Spawner", "performSpawning_optimised", "(Lnet/minecraft/world/WorldServer;ZZZ)I", false));
+            newIns.add((AbstractInsnNode)new InsnNode(172));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -968,7 +1068,7 @@ implements IClassTransformer {
         String targetMethodSignObf = "(III)Lakn;";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
             FieldInsnNode nodeFound = null;
@@ -977,6 +1077,7 @@ implements IClassTransformer {
                     for (boolean blockObf : new boolean[]{false, true}) {
                         String _blocks = blocksObf ? cls_Blocks_obf : cls_Blocks;
                         String _door = doorObf ? "field_150466_ao" : "wooden_door";
+                        String _block = blockObf ? cls_Block_obf : cls_Block;
                         FieldInsnNode nodeGetDoor = new FieldInsnNode(178, _blocks, _door, "Lnet/minecraft/block/Block;");
                         nodeFound = LOTRClassTransformer.findNodeInMethod(method, nodeGetDoor);
                         if (nodeFound != null) break block1;
@@ -984,7 +1085,7 @@ implements IClassTransformer {
                 }
             }
             MethodInsnNode nodeCheckDoor = new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$PathFinder", "isWoodenDoor", "(Lnet/minecraft/block/Block;)Z", false);
-            method.instructions.set(nodeFound, nodeCheckDoor);
+            method.instructions.set(nodeFound, (AbstractInsnNode)nodeCheckDoor);
             JumpInsnNode nodeIf = (JumpInsnNode)nodeCheckDoor.getNext();
             if (nodeIf.getOpcode() != 165) {
                 System.out.println("WARNING! WARNING! THIS OPCODE SHOULD HAVE BEEN IF_ACMPEQ!");
@@ -995,7 +1096,7 @@ implements IClassTransformer {
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -1034,80 +1135,80 @@ implements IClassTransformer {
         String targetMethodSignObf8 = "(Lsv;)I";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             InsnNode nodeReturn;
             InsnList extraIns;
             if ((method.name.equals(targetMethodName) || method.name.equals(targetMethodNameObf)) && (method.desc.equals(targetMethodSign) || method.desc.equals(targetMethodSignObf))) {
                 nodeReturn = LOTRClassTransformer.findNodeInMethod(method, new InsnNode(174));
                 extraIns = new InsnList();
-                extraIns.add(new VarInsnNode(25, 0));
-                extraIns.add(new VarInsnNode(25, 1));
-                extraIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getEnchantmentModifierLiving", "(FLnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/entity/EntityLivingBase;)F", false));
-                method.instructions.insertBefore(nodeReturn, extraIns);
+                extraIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+                extraIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+                extraIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getEnchantmentModifierLiving", "(FLnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/entity/EntityLivingBase;)F", false));
+                method.instructions.insertBefore((AbstractInsnNode)nodeReturn, extraIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if ((method.name.equals(targetMethodName2) || method.name.equals(targetMethodNameObf2)) && (method.desc.equals(targetMethodSign2) || method.desc.equals(targetMethodSignObf2))) {
                 nodeReturn = LOTRClassTransformer.findNodeInMethod(method, new InsnNode(174));
                 extraIns = new InsnList();
-                extraIns.add(new VarInsnNode(25, 0));
-                extraIns.add(new VarInsnNode(25, 1));
-                extraIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "func_152377_a", "(FLnet/minecraft/item/ItemStack;Lnet/minecraft/entity/EnumCreatureAttribute;)F", false));
-                method.instructions.insertBefore(nodeReturn, extraIns);
+                extraIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+                extraIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+                extraIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "func_152377_a", "(FLnet/minecraft/item/ItemStack;Lnet/minecraft/entity/EnumCreatureAttribute;)F", false));
+                method.instructions.insertBefore((AbstractInsnNode)nodeReturn, extraIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if ((method.name.equals(targetMethodName3) || method.name.equals(targetMethodNameObf3)) && (method.desc.equals(targetMethodSign3) || method.desc.equals(targetMethodSignObf3))) {
                 nodeReturn = LOTRClassTransformer.findNodeInMethod(method, new InsnNode(172));
                 extraIns = new InsnList();
-                extraIns.add(new VarInsnNode(25, 0));
-                extraIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getSilkTouchModifier", "(ZLnet/minecraft/entity/EntityLivingBase;)Z", false));
-                method.instructions.insertBefore(nodeReturn, extraIns);
+                extraIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+                extraIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getSilkTouchModifier", "(ZLnet/minecraft/entity/EntityLivingBase;)Z", false));
+                method.instructions.insertBefore((AbstractInsnNode)nodeReturn, extraIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if ((method.name.equals(targetMethodName4) || method.name.equals(targetMethodNameObf4)) && (method.desc.equals(targetMethodSign4) || method.desc.equals(targetMethodSignObf4))) {
                 nodeReturn = LOTRClassTransformer.findNodeInMethod(method, new InsnNode(172));
                 extraIns = new InsnList();
-                extraIns.add(new VarInsnNode(25, 0));
-                extraIns.add(new VarInsnNode(25, 1));
-                extraIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getKnockbackModifier", "(ILnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/entity/EntityLivingBase;)I", false));
-                method.instructions.insertBefore(nodeReturn, extraIns);
+                extraIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+                extraIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+                extraIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getKnockbackModifier", "(ILnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/entity/EntityLivingBase;)I", false));
+                method.instructions.insertBefore((AbstractInsnNode)nodeReturn, extraIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if ((method.name.equals(targetMethodName5) || method.name.equals(targetMethodNameObf5)) && (method.desc.equals(targetMethodSign5) || method.desc.equals(targetMethodSignObf5))) {
                 nodeReturn = LOTRClassTransformer.findNodeInMethod(method, new InsnNode(172));
                 extraIns = new InsnList();
-                extraIns.add(new VarInsnNode(25, 0));
-                extraIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getFortuneModifier", "(ILnet/minecraft/entity/EntityLivingBase;)I", false));
-                method.instructions.insertBefore(nodeReturn, extraIns);
+                extraIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+                extraIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getFortuneModifier", "(ILnet/minecraft/entity/EntityLivingBase;)I", false));
+                method.instructions.insertBefore((AbstractInsnNode)nodeReturn, extraIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if ((method.name.equals(targetMethodName6) || method.name.equals(targetMethodNameObf6)) && (method.desc.equals(targetMethodSign6) || method.desc.equals(targetMethodSignObf6))) {
                 nodeReturn = LOTRClassTransformer.findNodeInMethod(method, new InsnNode(172));
                 extraIns = new InsnList();
-                extraIns.add(new VarInsnNode(25, 0));
-                extraIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getLootingModifier", "(ILnet/minecraft/entity/EntityLivingBase;)I", false));
-                method.instructions.insertBefore(nodeReturn, extraIns);
+                extraIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+                extraIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getLootingModifier", "(ILnet/minecraft/entity/EntityLivingBase;)I", false));
+                method.instructions.insertBefore((AbstractInsnNode)nodeReturn, extraIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if ((method.name.equals(targetMethodName7) || method.name.equals(targetMethodNameObf7)) && (method.desc.equals(targetMethodSign7) || method.desc.equals(targetMethodSignObf7))) {
                 nodeReturn = LOTRClassTransformer.findNodeInMethod(method, new InsnNode(172));
                 extraIns = new InsnList();
-                extraIns.add(new VarInsnNode(25, 0));
-                extraIns.add(new VarInsnNode(25, 1));
-                extraIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getSpecialArmorProtection", "(I[Lnet/minecraft/item/ItemStack;Lnet/minecraft/util/DamageSource;)I", false));
-                method.instructions.insertBefore(nodeReturn, extraIns);
+                extraIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+                extraIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+                extraIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getSpecialArmorProtection", "(I[Lnet/minecraft/item/ItemStack;Lnet/minecraft/util/DamageSource;)I", false));
+                method.instructions.insertBefore((AbstractInsnNode)nodeReturn, extraIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if (!method.name.equals(targetMethodName8) && !method.name.equals(targetMethodNameObf8) || !method.desc.equals(targetMethodSign8) && !method.desc.equals(targetMethodSignObf8)) continue;
             nodeReturn = LOTRClassTransformer.findNodeInMethod(method, new InsnNode(172));
             extraIns = new InsnList();
-            extraIns.add(new VarInsnNode(25, 0));
-            extraIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getFireAspectModifier", "(ILnet/minecraft/entity/EntityLivingBase;)I", false));
-            method.instructions.insertBefore(nodeReturn, extraIns);
+            extraIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            extraIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getFireAspectModifier", "(ILnet/minecraft/entity/EntityLivingBase;)I", false));
+            method.instructions.insertBefore((AbstractInsnNode)nodeReturn, extraIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -1165,18 +1266,18 @@ implements IClassTransformer {
         String targetMethodSignObf = "(Lsa;I)I";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
             VarInsnNode nodeIStore = LOTRClassTransformer.findNodeInMethod(method, new VarInsnNode(54, 2));
             InsnList newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 0));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getMaxFireProtectionLevel", "(ILnet/minecraft/entity/Entity;)I", false));
-            method.instructions.insertBefore(nodeIStore, newIns);
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Enchants", "getMaxFireProtectionLevel", "(ILnet/minecraft/entity/Entity;)I", false));
+            method.instructions.insertBefore((AbstractInsnNode)nodeIStore, newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -1187,21 +1288,21 @@ implements IClassTransformer {
         String targetMethodSignObf = "(ILtj;)D";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
             method.instructions.clear();
             InsnList newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 0));
-            newIns.add(new VarInsnNode(21, 1));
-            newIns.add(new VarInsnNode(25, 2));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Potions", "getStrengthModifier", "(Lnet/minecraft/potion/Potion;ILnet/minecraft/entity/ai/attributes/AttributeModifier;)D", false));
-            newIns.add(new InsnNode(175));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            newIns.add((AbstractInsnNode)new VarInsnNode(21, 1));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 2));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$Potions", "getStrengthModifier", "(Lnet/minecraft/potion/Potion;ILnet/minecraft/entity/ai/attributes/AttributeModifier;)D", false));
+            newIns.add((AbstractInsnNode)new InsnNode(175));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -1222,7 +1323,7 @@ implements IClassTransformer {
         String targetMethodSignObf = "(Laji;III)Z";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
             MethodInsnNode nodeFound = null;
@@ -1239,11 +1340,11 @@ implements IClassTransformer {
                 }
             }
             MethodInsnNode nodeRSB = new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$BlockRendering", "renderStandardBlock", "(Lnet/minecraft/client/renderer/RenderBlocks;Lnet/minecraft/block/Block;III)Z", false);
-            method.instructions.set(nodeFound, nodeRSB);
+            method.instructions.set(nodeFound, (AbstractInsnNode)nodeRSB);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -1253,19 +1354,19 @@ implements IClassTransformer {
         String targetMethodSign = "()V";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign)) continue;
             method.instructions.clear();
             InsnList newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 0));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$ClientPlayer", "horseJump", "(Lnet/minecraft/client/entity/EntityClientPlayerMP;)V", false));
-            newIns.add(new InsnNode(177));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$ClientPlayer", "horseJump", "(Lnet/minecraft/client/entity/EntityClientPlayerMP;)V", false));
+            newIns.add((AbstractInsnNode)new InsnNode(177));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -1280,31 +1381,31 @@ implements IClassTransformer {
         String targetMethodSignObf2 = "(Lhf;)V";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             InsnList newIns;
             if ((method.name.equals(targetMethodName) || method.name.equals(targetMethodNameObf)) && (method.desc.equals(targetMethodSign) || method.desc.equals(targetMethodSignObf))) {
                 method.instructions.clear();
                 newIns = new InsnList();
-                newIns.add(new VarInsnNode(25, 0));
-                newIns.add(new VarInsnNode(25, 1));
-                newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$NetHandlerClient", "handleEntityTeleport", "(Lnet/minecraft/client/network/NetHandlerPlayClient;Lnet/minecraft/network/play/server/S18PacketEntityTeleport;)V", false));
-                newIns.add(new InsnNode(177));
+                newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+                newIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+                newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$NetHandlerClient", "handleEntityTeleport", "(Lnet/minecraft/client/network/NetHandlerPlayClient;Lnet/minecraft/network/play/server/S18PacketEntityTeleport;)V", false));
+                newIns.add((AbstractInsnNode)new InsnNode(177));
                 method.instructions.insert(newIns);
                 System.out.println("LOTRCore: Patched method " + method.name);
             }
             if (!method.name.equals(targetMethodName2) && !method.name.equals(targetMethodNameObf2) || !method.desc.equals(targetMethodSign2) && !method.desc.equals(targetMethodSignObf2)) continue;
             method.instructions.clear();
             newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 0));
-            newIns.add(new VarInsnNode(25, 1));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$NetHandlerClient", "handleEntityMovement", "(Lnet/minecraft/client/network/NetHandlerPlayClient;Lnet/minecraft/network/play/server/S14PacketEntity;)V", false));
-            newIns.add(new InsnNode(177));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 1));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$NetHandlerClient", "handleEntityMovement", "(Lnet/minecraft/client/network/NetHandlerPlayClient;Lnet/minecraft/network/play/server/S14PacketEntity;)V", false));
+            newIns.add((AbstractInsnNode)new InsnNode(177));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
@@ -1315,25 +1416,51 @@ implements IClassTransformer {
         String targetMethodSignObf = "(Lsa;)Lft;";
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
-        classReader.accept(classNode, 0);
+        classReader.accept((ClassVisitor)classNode, 0);
         for (MethodNode method : classNode.methods) {
             if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
             method.instructions.clear();
             InsnList newIns = new InsnList();
-            newIns.add(new VarInsnNode(25, 0));
-            newIns.add(new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$EntityPackets", "getMobSpawnPacket", "(Lnet/minecraft/entity/Entity;)Lnet/minecraft/network/Packet;", false));
-            newIns.add(new InsnNode(176));
+            newIns.add((AbstractInsnNode)new VarInsnNode(25, 0));
+            newIns.add((AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRReplacedMethods$EntityPackets", "getMobSpawnPacket", "(Lnet/minecraft/entity/Entity;)Lnet/minecraft/network/Packet;", false));
+            newIns.add((AbstractInsnNode)new InsnNode(176));
             method.instructions.insert(newIns);
             System.out.println("LOTRCore: Patched method " + method.name);
         }
         ClassWriter writer = new ClassWriter(1);
-        classNode.accept(writer);
+        classNode.accept((ClassVisitor)writer);
+        return writer.toByteArray();
+    }
+
+    private byte[] patchAnvilChunkLoader(String name, byte[] bytes) {
+        String targetMethodName;
+        String targetMethodNameObf = targetMethodName = "loadChunk__Async";
+        String targetMethodSign = "(Lnet/minecraft/world/World;II)[Ljava/lang/Object;";
+        String targetMethodSignObf = "(Lahb;II)[Ljava/lang/Object;";
+        ClassNode classNode = new ClassNode();
+        ClassReader classReader = new ClassReader(bytes);
+        classReader.accept((ClassVisitor)classNode, 0);
+        for (MethodNode method : classNode.methods) {
+            if (!method.name.equals(targetMethodName) && !method.name.equals(targetMethodNameObf) || !method.desc.equals(targetMethodSign) && !method.desc.equals(targetMethodSignObf)) continue;
+            AbstractInsnNode methodNod = null;
+            for (AbstractInsnNode nod : method.instructions.toArray()) {
+                if (!(nod instanceof MethodInsnNode) || nod.getOpcode() != 184 || !((MethodInsnNode)nod).owner.equals("net/minecraft/nbt/CompressedStreamTools")) continue;
+                methodNod = nod;
+                break;
+            }
+            method.instructions.insertBefore(methodNod, (AbstractInsnNode)new VarInsnNode(21, 2));
+            method.instructions.insertBefore(methodNod, (AbstractInsnNode)new VarInsnNode(21, 3));
+            method.instructions.set(methodNod, (AbstractInsnNode)new MethodInsnNode(184, "lotr/common/coremod/LOTRClassTransformer", "doDebug", "(Ljava/io/DataInputStream;II)Lnet/minecraft/nbt/NBTTagCompound;", false));
+            System.out.println("LOTRCore: Patched method " + method.name);
+        }
+        ClassWriter writer = new ClassWriter(1);
+        classNode.accept((ClassVisitor)writer);
         return writer.toByteArray();
     }
 
     public static NBTTagCompound doDebug(DataInputStream stream, int i, int k) {
         try {
-            return CompressedStreamTools.read(stream);
+            return CompressedStreamTools.read((DataInputStream)stream);
         }
         catch (Exception e) {
             System.out.println("Error loading chunk: " + i + ", " + k);
